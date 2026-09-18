@@ -22,19 +22,26 @@ export function FinalCTA() {
               <p className="mx-auto mt-5 max-w-xl text-base text-muted-foreground md:text-lg">
                 Create natural-sounding voiceovers and accurate transcripts in seconds — right in your browser. No account needed.
               </p>
-              <div className="mt-9 flex flex-col items-center justify-center gap-4 sm:flex-row">
+              <div className="mt-9 flex flex-wrap items-center justify-center gap-4">
                 <Link
                   href={siteConfig.links.textToSpeech}
-                  className="inline-flex items-center gap-2 rounded-md bg-gradient-to-r from-brand-from to-brand-to px-6 py-3 text-base font-semibold text-white shadow-glow transition-all duration-200 hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                  className="inline-flex items-center gap-2 rounded-full bg-[#00c882] hover:bg-[#00e092] px-6 py-3 text-base font-semibold text-slate-950 shadow-md shadow-[#00c882]/20 transition-all duration-200 hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
                 >
                   Generate speech now
                   <ArrowRight className="h-4 w-4" aria-hidden="true" />
                 </Link>
                 <Link
                   href={siteConfig.links.audioToText}
-                  className="inline-flex items-center rounded-md border border-border/70 bg-background/50 px-6 py-3 text-base font-semibold text-foreground transition-colors hover:bg-secondary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                  className="inline-flex items-center rounded-full border border-slate-800 bg-slate-900/80 hover:border-[#00c882]/60 px-6 py-3 text-base font-medium text-slate-200 transition-colors hover:bg-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
                 >
                   Transcribe audio
+                </Link>
+                <Link
+                  href="/voice-agent"
+                  className="inline-flex items-center gap-2 rounded-full border border-[#00c882] bg-slate-900/80 hover:bg-[#00c882] hover:text-slate-950 px-6 py-3 text-base font-semibold text-[#00c882] shadow-md shadow-[#00c882]/10 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                >
+                  <span>🎙️</span>
+                  AI Voice Agent
                 </Link>
               </div>
               <p className="mt-6 text-sm text-muted-foreground">Free · No sign-up · Files auto-delete in 60 minutes</p>
