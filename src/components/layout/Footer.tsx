@@ -63,40 +63,6 @@ export function Footer() {
               <Mail className="h-4 w-4 text-muted-foreground/80" aria-hidden="true" />
               support@konthora.dev.bd
             </a>
-
-            <a
-              href="https://www.producthunt.com/products/konthora?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-konthora"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-6 inline-block max-w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                alt="Konthora - Natural AI voices and accurate transcription in your browser | Product Hunt"
-                width={250}
-                height={54}
-                loading="lazy"
-                decoding="async"
-                src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1228496&theme=dark&t=1787315761233"
-                className="block h-auto max-w-full"
-              />
-            </a>
-            <a
-              href="https://www.launchory.app/startups/konthora?ref=badge"
-              target="_blank"
-              className="mt-6 inline-block max-w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="https://www.launchory.app/api/badge/konthora?theme=dark"
-                alt="Featured on Launchory"
-                width={240}
-                height={54}
-                loading="lazy"
-                decoding="async"
-                className="block h-auto max-w-full"
-              />
-            </a>
           </div>
 
           {/* Link columns */}
