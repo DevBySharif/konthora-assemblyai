@@ -32,15 +32,20 @@ export function FinalCTA() {
                 </Link>
                 <Link
                   href={siteConfig.links.audioToText}
-                  className="inline-flex items-center rounded-full border border-slate-800 bg-slate-900/80 hover:border-[#00c882]/60 px-6 py-3 text-base font-medium text-slate-200 transition-colors hover:bg-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                  className="inline-flex items-center gap-2 rounded-full bg-[#0d1f1a]/80 border border-[#1b3d33] hover:border-[#00c882] px-6 py-3 text-base font-medium text-slate-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
                 >
+                  <svg className="w-5 h-5 text-[#00c882]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                  </svg>
                   Transcribe audio
                 </Link>
                 <Link
                   href="/voice-agent"
-                  className="inline-flex items-center gap-2 rounded-full border border-[#00c882] bg-slate-900/80 hover:bg-[#00c882] hover:text-slate-950 px-6 py-3 text-base font-semibold text-[#00c882] shadow-md shadow-[#00c882]/10 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                  className="inline-flex items-center gap-2 rounded-full bg-[#0d1f1a]/80 border border-[#1b3d33] hover:border-[#00c882] px-6 py-3 text-base font-medium text-slate-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
                 >
-                  <span>🎙️</span>
+                  <svg className="w-5 h-5 text-[#00c882]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                  </svg>
                   AI Voice Agent
                 </Link>
               </div>

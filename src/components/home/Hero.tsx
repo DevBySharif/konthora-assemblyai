@@ -74,7 +74,7 @@ export function Hero() {
               variants={item(0.15)}
               className="mt-9 flex flex-wrap items-center gap-3 sm:justify-center lg:justify-start"
             >
-              {/* Button 1: Generate Speech */}
+              {/* Button 1: Generate Speech (Primary Solid Green) */}
               <Link
                 href={siteConfig.links.textToSpeech}
                 className="group inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#00c882] hover:bg-[#00e092] text-slate-950 font-semibold px-6 text-base transition-all shadow-md shadow-[#00c882]/20 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2"
@@ -84,21 +84,26 @@ export function Hero() {
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
               </Link>
 
-              {/* Button 2: Transcribe Audio */}
+              {/* Button 2: Transcribe Audio (Secondary Dark) */}
               <Link
                 href={siteConfig.links.audioToText}
-                className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-slate-900/80 border border-slate-800 hover:border-[#00c882]/60 text-slate-200 font-medium px-6 text-base backdrop-blur transition-all hover:-translate-y-0.5 hover:bg-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2"
+                className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#0d1f1a]/80 border border-[#1b3d33] hover:border-[#00c882] text-slate-100 font-medium px-6 text-base backdrop-blur transition-all hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2"
               >
-                <Mic2 className="h-5 w-5 text-[#00c882]" aria-hidden="true" />
+                <svg className="w-5 h-5 text-[#00c882]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                </svg>
                 Transcribe Audio
               </Link>
 
-              {/* NEW Button 3: Real-Time Voice Agent */}
+              {/* Button 3: AI Voice Agent (Secondary Dark - Identical to Button 2) */}
               <Link
                 href="/voice-agent"
-                className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-slate-900/80 border border-[#00c882] text-[#00c882] hover:bg-[#00c882] hover:text-slate-950 font-semibold px-6 text-base transition-all shadow-md shadow-[#00c882]/10 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2"
+                className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#0d1f1a]/80 border border-[#1b3d33] hover:border-[#00c882] text-slate-100 font-medium px-6 text-base backdrop-blur transition-all hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2"
               >
-                <span>🎙️</span> AI Voice Agent
+                <svg className="w-5 h-5 text-[#00c882]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                </svg>
+                AI Voice Agent
               </Link>
             </motion.div>
 
