@@ -1,0 +1,40 @@
+.env
+*.env
+backend/.env
+backend/venv/
+venv/
+backend/__pycache__/
+*.pyc
+frontend/.next/
+frontend/node_modules/
+.DS_Store
+
+# Root & Backend Environment Files
+.env.*
+!.env.example
+!.env.production.example
+!backend/.env.example
+!backend/.env.production.example
+
+# Root & Backend Dependencies & Build Caches
+node_modules/
+.next/
+backend/.venv/
+.venv/
+__pycache__/
+*.pyo
+*.pyd
+.pytest_cache/
+backend/.pytest_cache/
+.qa-temp/
+scratch/
+storage/
+backend/storage/*
+!backend/storage/.gitkeep
+
+# System & Tooling Files
+*.log
+*.tsbuildinfo
+Thumbs.db
+desktop.ini
+

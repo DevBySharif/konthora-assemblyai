@@ -1,0 +1,22 @@
+# Core API
+fastapi
+pydantic
+pydantic-settings
+python-dotenv
+soundfile
+scipy
+numpy<2.0.0
+loguru
+python-multipart
+
+# Kokoro & Dependencies
+misaki[en] @ git+https://github.com/hexgrad/misaki.git@fba1236595f2d2bf21d414ba6e57d25256afada3
+kokoro==0.7.16
+
+# Whisper
+faster-whisper
+
+# Voice Agent Hackathon (AssemblyAI & Gemini)
+assemblyai>=0.33.0
+websockets>=12.0
+google-genai>=0.1.0

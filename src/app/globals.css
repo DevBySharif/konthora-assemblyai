@@ -1,0 +1,239 @@
+@import "tailwindcss";
+
+:root {
+  --background: #FFFFFF;
+  --background-secondary: #F8F9FA;
+  --foreground: #111827;
+  --card: #FFFFFF;
+  --card-elevated: #F9FAFB;
+  --card-foreground: #111827;
+  --primary: #0E9F6E;
+  --primary-strong: #047857;
+  --primary-soft: #31C48D;
+  --primary-foreground: #FFFFFF;
+  --premium-accent: #D97706;
+  --secondary: #F3F4F6;
+  --secondary-foreground: #1F2937;
+  --muted: #F3F4F6;
+  --muted-foreground: #6B7280;
+  --border: #E5E7EB;
+  --success: #10B981;
+  --error: #EF4444;
+  --destructive: #EF4444;
+  --destructive-foreground: #FFFFFF;
+
+  /* Brand gradient stops (Emerald → Jade) */
+  --brand-from: #10B981;
+  --brand-via: #34D399;
+  --brand-to: #5EEAD4;
+
+  --glass-bg: rgba(255, 255, 255, 0.72);
+  --glass-border: rgba(255, 255, 255, 0.6);
+
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px -8px rgba(0, 0, 0, 0.08);
+  --shadow-card-hover: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 20px 48px -16px rgba(0, 0, 0, 0.12);
+  --shadow-glow: 0 0 0 1px rgba(14, 159, 110, 0.12), 0 24px 64px -24px rgba(14, 159, 110, 0.25);
+}
+
+.dark {
+  --background: #0B0F0D;
+  --background-secondary: #111715;
+  --foreground: #EDEDED;
+  --card: #111715;
+  --card-elevated: #161D1A;
+  --card-foreground: #EDEDED;
+  --primary: #10B981;
+  --primary-strong: #059669;
+  --primary-soft: #34D399;
+  --primary-foreground: #022C22;
+  --premium-accent: #F59E0B;
+  --secondary: #1C2421;
+  --secondary-foreground: #F9FAFB;
+  --muted: #1A231F;
+  --muted-foreground: #9CA3AF;
+  --border: #232C28;
+  --ring: rgba(237, 237, 237, 0.15);
+  --success: #10B981;
+  --error: #EF4444;
+  --destructive: #EF4444;
+  --destructive-foreground: #FFFFFF;
+
+  --glass-bg: rgba(11, 15, 13, 0.66);
+  --glass-border: rgba(255, 255, 255, 0.08);
+
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4), 0 12px 32px -12px rgba(0, 0, 0, 0.6);
+  --shadow-card-hover: 0 18px 50px rgba(0, 0, 0, 0.4), 0 1px 0 rgba(255, 255, 255, 0.05) inset;
+  --shadow-glow: 0 0 0 1px rgba(16, 185, 129, 0.2), 0 28px 72px -28px rgba(16, 185, 129, 0.25);
+}
+
+.konthora-logo--dark {
+  display: none;
+}
+
+.dark .konthora-logo--light {
+  display: none;
+}
+
+.dark .konthora-logo--dark {
+  display: block;
+}
+
+@theme {
+  --color-background: var(--background);
+  --color-background-secondary: var(--background-secondary);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-elevated: var(--card-elevated);
+  --color-card-foreground: var(--card-foreground);
+  --color-primary: var(--primary);
+  --color-primary-strong: var(--primary-strong);
+  --color-primary-soft: var(--primary-soft);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-premium-accent: var(--premium-accent);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+  --color-success: var(--success);
+  --color-error: var(--error);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+
+  --color-brand-from: var(--brand-from);
+  --color-brand-via: var(--brand-via);
+  --color-brand-to: var(--brand-to);
+
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+}
+
+/* ---- Base resets & transitions ---- */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease;
+}
+
+::selection {
+  background-color: rgba(52, 211, 153, 0.25);
+}
+
+/* ---- Reduced motion settings ---- */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ---- Accessible focus visible rings ---- */
+*:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* ---- Skip link styling ---- */
+.skip-to-content {
+  position: absolute;
+  left: -9999px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.skip-to-content:focus {
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  z-index: 50;
+  width: auto;
+  height: auto;
+  padding: 0.75rem 1.5rem;
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+  border-radius: 0.5rem;
+  font-weight: 500;
+  outline: none;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* ---- Premium helpers ---- */
+.text-gradient {
+  background-image: linear-gradient(120deg, var(--brand-from), var(--brand-via) 50%, var(--brand-to));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.bg-radial-faint {
+  background-image: radial-gradient(
+    60% 55% at 50% 0%,
+    color-mix(in srgb, var(--primary) 10%, transparent),
+    transparent 70%
+  );
+}
+
+.glass {
+  background-color: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+}
+
+.shadow-card {
+  box-shadow: var(--shadow-card);
+}
+
+.shadow-card-hover {
+  box-shadow: var(--shadow-card-hover);
+}
+
+.shadow-glow {
+  box-shadow: var(--shadow-glow);
+}
+
+/* Animated gradient border for premium cards */
+.border-gradient {
+  position: relative;
+  background-clip: padding-box;
+}
+
+.border-gradient::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--brand-from) 55%, transparent),
+    color-mix(in srgb, var(--brand-via) 45%, transparent) 45%,
+    color-mix(in srgb, var(--brand-to) 45%, transparent)
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* Soft glowing orb used behind hero and CTA */
+.orb {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(90px);
+  pointer-events: none;
+}
