@@ -1,4 +1,5 @@
 import os
+import re
 import json
 import asyncio
 import contextlib
@@ -21,6 +22,51 @@ agent_service = VoiceAgentService()
 # Standard AssemblyAI Streaming v3 URL
 ASSEMBLYAI_V3_WS_URL = "wss://streaming.assemblyai.com/v3/ws?sample_rate=16000"
 
+# Punctuation regex for clause splitting on ., !, ?, ,, ;, or newline
+CLAUSE_PATTERN = re.compile(r'([^.!?,\n;]+[.!?,\n;]+)')
+
+async def process_llm_and_tts_stream(websocket: WebSocket, prompt: str):
+    """Streams tokens from LLM and synthesizes audio at clause boundaries for ultra-low latency."""
+    text_buffer = ""
+    full_text = ""
+
+    async for token in agent_service.stream_ai_response(prompt):
+        if websocket.client_state != WebSocketState.CONNECTED:
+            break
+
+        text_buffer += token
+        full_text += token
+
+        # Send text delta to frontend for real-time text display
+        with contextlib.suppress(Exception):
+            await websocket.send_json({"type": "text_delta", "content": token})
+
+        # Find all clause matches in buffer
+        last_end = 0
+        for match in CLAUSE_PATTERN.finditer(text_buffer):
+            clause_text = match.group(1).strip()
+            if clause_text and len(clause_text) > 1:
+                audio_bytes = await agent_service.generate_speech_bytes_async(clause_text)
+                if audio_bytes and websocket.client_state == WebSocketState.CONNECTED:
+                    with contextlib.suppress(Exception):
+                        await websocket.send_bytes(audio_bytes)
+            last_end = match.end()
+        if last_end > 0:
+            text_buffer = text_buffer[last_end:]
+
+    # Process remaining text in buffer if any
+    remaining_text = text_buffer.strip()
+    if remaining_text and len(remaining_text) > 1 and websocket.client_state == WebSocketState.CONNECTED:
+        audio_bytes = await agent_service.generate_speech_bytes_async(remaining_text)
+        if audio_bytes and websocket.client_state == WebSocketState.CONNECTED:
+            with contextlib.suppress(Exception):
+                await websocket.send_bytes(audio_bytes)
+
+    # Emit final consolidated text response
+    if websocket.client_state == WebSocketState.CONNECTED:
+        with contextlib.suppress(Exception):
+            await websocket.send_json({"type": "text_response", "text": full_text.strip(), "role": "assistant"})
+
 @router.websocket("/ws/voice-agent")
 async def voice_agent_websocket(websocket: WebSocket):
     await websocket.accept()
@@ -37,12 +83,7 @@ async def voice_agent_websocket(websocket: WebSocket):
                     text_msg = data["text"]
                     if websocket.client_state == WebSocketState.CONNECTED:
                         await websocket.send_json({"type": "transcript", "text": text_msg, "role": "user", "final": True})
-                    ai_reply = await agent_service.generate_ai_response(text_msg)
-                    if websocket.client_state == WebSocketState.CONNECTED:
-                        await websocket.send_json({"type": "text_response", "text": ai_reply, "role": "assistant"})
-                    audio_bytes = agent_service.generate_speech_bytes(ai_reply)
-                    if audio_bytes and websocket.client_state == WebSocketState.CONNECTED:
-                        await websocket.send_bytes(audio_bytes)
+                    await process_llm_and_tts_stream(websocket, text_msg)
                 elif "bytes" in data and data["bytes"]:
                     pass
         except (WebSocketDisconnect, RuntimeError):
@@ -79,12 +120,7 @@ async def voice_agent_websocket(websocket: WebSocket):
                             text_data = message["text"]
                             if websocket.client_state == WebSocketState.CONNECTED:
                                 await websocket.send_json({"type": "transcript", "text": text_data, "role": "user", "final": True})
-                            ai_reply = await agent_service.generate_ai_response(text_data)
-                            if websocket.client_state == WebSocketState.CONNECTED:
-                                await websocket.send_json({"type": "text_response", "text": ai_reply, "role": "assistant"})
-                            audio_bytes = agent_service.generate_speech_bytes(ai_reply)
-                            if audio_bytes and websocket.client_state == WebSocketState.CONNECTED:
-                                await websocket.send_bytes(audio_bytes)
+                            await process_llm_and_tts_stream(websocket, text_data)
                 except (WebSocketDisconnect, RuntimeError):
                     logger.info("Browser client disconnected cleanly.")
                 except Exception as e:
@@ -124,17 +160,7 @@ async def voice_agent_websocket(websocket: WebSocket):
                                             "final": True
                                         })
 
-                                    ai_reply = await agent_service.generate_ai_response(transcript)
-                                    if websocket.client_state == WebSocketState.CONNECTED:
-                                        await websocket.send_json({
-                                            "type": "text_response",
-                                            "text": ai_reply,
-                                            "role": "assistant"
-                                        })
-
-                                    audio_bytes = agent_service.generate_speech_bytes(ai_reply)
-                                    if audio_bytes and websocket.client_state == WebSocketState.CONNECTED:
-                                        await websocket.send_bytes(audio_bytes)
+                                    await process_llm_and_tts_stream(websocket, transcript)
 
                 except websockets.exceptions.ConnectionClosed as cc:
                     logger.error(f"AssemblyAI v3 Connection Closed Code {cc.code}: {cc.reason}")

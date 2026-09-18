@@ -1,5 +1,7 @@
 import os
 import re
+import json
+import asyncio
 import httpx
 from loguru import logger
 from dotenv import load_dotenv
@@ -102,6 +104,66 @@ class VoiceAgentService:
         
         return f"I am ready to help you write or produce content for '{clean_prompt}'. What outline should we use?"
 
+    async def stream_ai_response(self, prompt: str):
+        """Streams text tokens asynchronously from Groq/OpenAI compatible LLM."""
+        clean_prompt = prompt.strip()
+        if not clean_prompt:
+            yield "I didn't hear anything clearly. Could you please repeat?"
+            return
+
+        api_key = os.getenv("GROQ_API_KEY") or os.getenv("OPENAI_API_KEY")
+        if api_key:
+            try:
+                is_groq = bool(os.getenv("GROQ_API_KEY"))
+                base_url = "https://api.groq.com/openai/v1" if is_groq else "https://api.openai.com/v1"
+                headers = {"Authorization": f"Bearer {api_key}"}
+
+                async with httpx.AsyncClient(timeout=12.0) as client:
+                    model_name = await self._get_active_model(client, base_url, headers)
+
+                    async with client.stream(
+                        "POST",
+                        f"{base_url}/chat/completions",
+                        headers=headers,
+                        json={
+                            "model": model_name,
+                            "messages": [
+                                {"role": "system", "content": self.system_prompt},
+                                {"role": "user", "content": clean_prompt}
+                            ],
+                            "max_tokens": 150,
+                            "temperature": 0.7,
+                            "stream": True,
+                        }
+                    ) as resp:
+                        if resp.status_code == 200:
+                            async for line in resp.aiter_lines():
+                                line_str = line.strip()
+                                if not line_str or not line_str.startswith("data: "):
+                                    continue
+                                data_str = line_str[6:].strip()
+                                if data_str == "[DONE]":
+                                    break
+                                try:
+                                    chunk = json.loads(data_str)
+                                    delta = chunk.get("choices", [{}])[0].get("delta", {})
+                                    content = delta.get("content", "")
+                                    if content:
+                                        yield content
+                                except Exception:
+                                    continue
+                            return
+                        else:
+                            err_body = await resp.aread()
+                            logger.error(f"Streaming LLM error {resp.status_code}: {err_body}")
+                            self._cached_model = None
+            except Exception as e:
+                logger.error(f"Streaming LLM exception: {e}")
+
+        # Fallback if streaming failed or key is absent
+        fallback_reply = await self.generate_ai_response(clean_prompt)
+        yield fallback_reply
+
     def generate_speech_bytes(self, text: str) -> bytes:
         if not text or not text.strip():
             return b""
@@ -115,3 +177,9 @@ class VoiceAgentService:
         except Exception as e:
             logger.error(f"Kokoro synthesis error: {e}")
             return b""
+
+    async def generate_speech_bytes_async(self, text: str) -> bytes:
+        """Run CPU-bound Kokoro synthesis in an executor to avoid blocking event loop."""
+        if not text or not text.strip():
+            return b""
+        return await asyncio.to_thread(self.generate_speech_bytes, text)

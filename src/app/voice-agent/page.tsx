@@ -10,10 +10,55 @@ export default function VoiceAgentPage() {
 
   const wsRef = useRef<WebSocket | null>(null);
   const isSpeakingRef = useRef(false);
+  const audioQueueRef = useRef<Blob[]>([]);
+  const currentAudioRef = useRef<HTMLAudioElement | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const processorRef = useRef<ScriptProcessorNode | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
+
+  const playNextAudioChunk = () => {
+    if (audioQueueRef.current.length === 0) {
+      isSpeakingRef.current = false;
+      currentAudioRef.current = null;
+      return;
+    }
+
+    const nextBlob = audioQueueRef.current.shift();
+    if (!nextBlob) {
+      isSpeakingRef.current = false;
+      currentAudioRef.current = null;
+      return;
+    }
+
+    isSpeakingRef.current = true;
+    const audioUrl = URL.createObjectURL(nextBlob);
+    const audio = new Audio(audioUrl);
+    currentAudioRef.current = audio;
+
+    const handleFinish = () => {
+      URL.revokeObjectURL(audioUrl);
+      currentAudioRef.current = null;
+      playNextAudioChunk();
+    };
+
+    audio.onended = handleFinish;
+    audio.onerror = handleFinish;
+
+    audio.play().catch((err) => {
+      console.warn("Audio playback notice:", err);
+      handleFinish();
+    });
+  };
+
+  const stopPlayback = () => {
+    audioQueueRef.current = [];
+    if (currentAudioRef.current) {
+      currentAudioRef.current.pause();
+      currentAudioRef.current = null;
+    }
+    isSpeakingRef.current = false;
+  };
 
   useEffect(() => {
     if (messages.length > 0) {
@@ -45,22 +90,36 @@ export default function VoiceAgentPage() {
             const filtered = prev.filter((m) => m.final !== false);
             return [...filtered, { role: "user", text: data.text, final: data.final }];
           });
+        } else if (data.type === "text_delta") {
+          setMessages((prev) => {
+            const last = prev[prev.length - 1];
+            if (last && last.role === "assistant" && !last.final) {
+              return [
+                ...prev.slice(0, -1),
+                { role: "assistant", text: last.text + data.content, final: false }
+              ];
+            } else {
+              return [...prev, { role: "assistant", text: data.content, final: false }];
+            }
+          });
         } else if (data.type === "text_response") {
-          setMessages((prev) => [...prev, { role: "assistant", text: data.text, final: true }]);
+          setMessages((prev) => {
+            const last = prev[prev.length - 1];
+            if (last && last.role === "assistant" && !last.final) {
+              return [
+                ...prev.slice(0, -1),
+                { role: "assistant", text: data.text, final: true }
+              ];
+            }
+            return [...prev, { role: "assistant", text: data.text, final: true }];
+          });
         }
       } else if (event.data instanceof Blob || event.data instanceof ArrayBuffer) {
         const audioBlob = new Blob([event.data], { type: "audio/wav" });
-        const audioUrl = URL.createObjectURL(audioBlob);
-        const audio = new Audio(audioUrl);
-
-        isSpeakingRef.current = true;
-        audio.onended = () => { isSpeakingRef.current = false; };
-        audio.onerror = () => { isSpeakingRef.current = false; };
-
-        audio.play().catch((err) => {
-          console.warn("Audio playback notice:", err);
-          isSpeakingRef.current = false;
-        });
+        audioQueueRef.current.push(audioBlob);
+        if (!isSpeakingRef.current) {
+          playNextAudioChunk();
+        }
       }
     };
 
@@ -69,6 +128,7 @@ export default function VoiceAgentPage() {
     return () => {
       isMounted = false;
       stopMicrophone();
+      stopPlayback();
       if (ws.readyState === WebSocket.OPEN) {
         ws.close(1000, "Component unmounted");
       } else if (ws.readyState === WebSocket.CONNECTING) {
@@ -115,6 +175,7 @@ export default function VoiceAgentPage() {
   };
 
   const stopMicrophone = () => {
+    stopPlayback();
     if (processorRef.current) {
       processorRef.current.disconnect();
       processorRef.current = null;
