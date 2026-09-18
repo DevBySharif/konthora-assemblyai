@@ -20,14 +20,22 @@ export default function VoiceAgentPage() {
   }, [messages]);
 
   useEffect(() => {
+    let isMounted = true;
     const wsUrl = process.env.NEXT_PUBLIC_WS_URL || "ws://localhost:8000/api/v1/ws/voice-agent";
     const ws = new WebSocket(wsUrl);
 
-    ws.onopen = () => setIsConnected(true);
-    ws.onclose = () => setIsConnected(false);
-    ws.onerror = () => setIsConnected(false);
+    ws.onopen = () => {
+      if (isMounted) setIsConnected(true);
+    };
+    ws.onclose = () => {
+      if (isMounted) setIsConnected(false);
+    };
+    ws.onerror = () => {
+      if (isMounted) setIsConnected(false);
+    };
 
     ws.onmessage = async (event) => {
+      if (!isMounted) return;
       if (typeof event.data === "string") {
         const data = JSON.parse(event.data);
         if (data.type === "transcript") {
@@ -55,7 +63,19 @@ export default function VoiceAgentPage() {
     };
 
     wsRef.current = ws;
-    return () => ws.close();
+
+    return () => {
+      isMounted = false;
+      stopMicrophone();
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.close(1000, "Component unmounted");
+      } else if (ws.readyState === WebSocket.CONNECTING) {
+        ws.onopen = () => {
+          ws.close(1000, "Component unmounted");
+        };
+      }
+      wsRef.current = null;
+    };
   }, []);
 
   const startMicrophone = async () => {

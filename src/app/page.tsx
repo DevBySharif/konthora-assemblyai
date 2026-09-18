@@ -5,17 +5,15 @@ import Link from 'next/link';
 export default function HomePage() {
   return (
     <main className="min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center justify-center p-6">
-      {/* Header / Branding */}
       <div className="text-center max-w-3xl mb-12">
         <h1 className="text-5xl font-extrabold tracking-tight bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500 bg-clip-text text-transparent mb-4">
           Konthora AI Suite
         </h1>
         <p className="text-slate-400 text-lg">
-          Real-Time Multilingual Speech Intelligence powered by AssemblyAI v3, Groq LLM, & Kokoro TTS.
+          Real-Time Multilingual Speech Intelligence powered by AssemblyAI v3, Groq LLM, and Kokoro TTS.
         </p>
       </div>
 
-      {/* Feature Navigation Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl w-full">
         {/* Card 1: Voice Agent */}
         <Link
@@ -24,7 +22,7 @@ export default function HomePage() {
         >
           <div>
             <div className="w-12 h-12 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform">
-              ???
+              🎙️
             </div>
             <h2 className="text-xl font-bold mb-2 text-white group-hover:text-cyan-400 transition-colors">
               Full Voice Agent
@@ -45,7 +43,7 @@ export default function HomePage() {
         >
           <div>
             <div className="w-12 h-12 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform">
-              ??
+              📝
             </div>
             <h2 className="text-xl font-bold mb-2 text-white group-hover:text-blue-400 transition-colors">
               STT Transcribe
@@ -66,7 +64,7 @@ export default function HomePage() {
         >
           <div>
             <div className="w-12 h-12 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform">
-              ??
+              🔊
             </div>
             <h2 className="text-xl font-bold mb-2 text-white group-hover:text-indigo-400 transition-colors">
               Kokoro Speech Synthesis
@@ -81,9 +79,8 @@ export default function HomePage() {
         </Link>
       </div>
 
-      {/* Submission Footer Tag */}
       <footer className="mt-16 text-slate-500 text-xs tracking-wide uppercase">
-        Built for AssemblyAI Hackathon � Konthora AI
+        Built for AssemblyAI Hackathon • Konthora AI
       </footer>
     </main>
   );

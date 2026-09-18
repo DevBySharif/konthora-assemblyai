@@ -155,6 +155,11 @@ async def voice_agent_websocket(websocket: WebSocket):
                 with contextlib.suppress(asyncio.CancelledError):
                     await task
 
+            # Explicitly terminate AssemblyAI session to prevent 1008 concurrent session errors
+            with contextlib.suppress(Exception):
+                await aai_ws.send(json.dumps({"terminate_session": True}))
+                await asyncio.sleep(0.05)
+
     except (WebSocketDisconnect, RuntimeError):
         logger.info("Voice Agent WebSocket disconnected.")
     except Exception as e:
