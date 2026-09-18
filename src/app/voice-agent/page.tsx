@@ -16,7 +16,9 @@ export default function VoiceAgentPage() {
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (messages.length > 0) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
   }, [messages]);
 
   useEffect(() => {
@@ -212,7 +214,11 @@ export default function VoiceAgentPage() {
         <div className="flex items-center gap-3">
           {!isListening ? (
             <button
-              onClick={startMicrophone}
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                startMicrophone();
+              }}
               disabled={!isConnected}
               className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-6 py-3 rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed text-sm"
             >
@@ -220,7 +226,11 @@ export default function VoiceAgentPage() {
             </button>
           ) : (
             <button
-              onClick={stopMicrophone}
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                stopMicrophone();
+              }}
               className="bg-destructive hover:bg-destructive/90 text-destructive-foreground font-semibold px-6 py-3 rounded-xl animate-pulse flex items-center gap-2 cursor-pointer text-sm"
             >
               <Square className="w-5 h-5" /> Stop Listening
