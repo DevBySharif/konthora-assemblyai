@@ -84,18 +84,18 @@ export function Hero() {
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
               </Link>
 
-              {/* Button 2: Transcribe Audio (Secondary Dark) */}
+              {/* Button 2: Transcribe Audio (Document/STT Icon) */}
               <Link
                 href={siteConfig.links.audioToText}
                 className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#0d1f1a]/80 border border-[#1b3d33] hover:border-[#00c882] text-slate-100 font-medium px-6 text-base backdrop-blur transition-all hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2"
               >
                 <svg className="w-5 h-5 text-[#00c882]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h4m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
                 Transcribe Audio
               </Link>
 
-              {/* Button 3: AI Voice Agent (Secondary Dark - Identical to Button 2) */}
+              {/* Button 3: AI Voice Agent (Microphone/Agent Icon) */}
               <Link
                 href="/voice-agent"
                 className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#0d1f1a]/80 border border-[#1b3d33] hover:border-[#00c882] text-slate-100 font-medium px-6 text-base backdrop-blur transition-all hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2"
