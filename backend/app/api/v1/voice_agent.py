@@ -19,8 +19,8 @@ if os.path.exists(_backend_env_path):
 router = APIRouter()
 agent_service = VoiceAgentService()
 
-# Standard AssemblyAI Streaming v3 URL
-ASSEMBLYAI_V3_WS_URL = "wss://streaming.assemblyai.com/v3/ws?sample_rate=16000"
+# AssemblyAI Streaming v3 URL — locked to English to prevent Hindi/Bangla script misclassification
+ASSEMBLYAI_V3_WS_URL = "wss://streaming.assemblyai.com/v3/ws?sample_rate=16000&language_code=en"
 
 # Punctuation regex for clause splitting on ., !, ?, ,, ;, or newline
 CLAUSE_PATTERN = re.compile(r'([^.!?,\n;]+[.!?,\n;]+)')

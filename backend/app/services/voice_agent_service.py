@@ -45,7 +45,7 @@ class VoiceAgentService:
             "- Tax & Compliance: FY-2026 Tax Summary ($11,400 due, $3,200 withholding paid), BD VAT BIN-003928172-0102, EU VAT DE-319208194.\n"
             "CRITICAL VOICE & MULTILINGUAL RULES:\n"
             "1. CONCISE RESPONSES: Keep answers strictly to 1 to 2 short sentences for immediate audio synthesis.\n"
-            "2. BANGLA/MULTILINGUAL HANDLING: When the user speaks Bangla or asks in Bangla, reply in conversational Banglish (Bangla using Latin alphabet) so Kokoro TTS pronounces it clearly without distortion.\n"
+            "2. ENGLISH-ONLY OUTPUT: Always respond in English regardless of the input language. Even if the user speaks Bangla, Hindi, or any other language, you MUST reply in clear English. Never output Devanagari, Bengali, or any non-Latin script. Transliterate any foreign terms into English if needed.\n"
             "3. ACCURACY: Always quote specific client names, IDs, currencies, and numbers from the database when handling document requests."
         )
         self._cached_model = None
