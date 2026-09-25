@@ -1537,8 +1537,8 @@ function DocPanelIdle({ onSelectDemo }: { onSelectDemo: (query: string) => void 
             📄⚡
           </div>
           <div>
-            <h3 className="text-sm font-bold text-white tracking-tight">Enterprise Document Deck</h3>
-            <p className="text-[11px] text-slate-500">Select a template or speak naturally</p>
+            <h3 className="text-sm font-bold text-white tracking-tight">Enterprise Operations Deck</h3>
+            <p className="text-[11px] text-slate-500">Speak naturally or select a workflow template</p>
           </div>
         </div>
 
@@ -2138,7 +2138,7 @@ export default function VoiceAgentPage() {
                 </div>
 
                 <div className="text-xs font-semibold text-slate-300">
-                  {isListening ? "Listening — Speak Now" : "Tap to Start Voice Engine"}
+                  {isListening ? "Listening — Speak Now" : "Tap to Start Voice Operations Engine"}
                 </div>
 
                 {/* Hardware Status Chips */}
@@ -2225,7 +2225,7 @@ export default function VoiceAgentPage() {
                 type="text"
                 value={textInput}
                 onChange={(e) => setTextInput(e.target.value)}
-                placeholder="Type a command or revision..."
+                placeholder="Issue operational voice command or revision (e.g. 'Generate quotation for Acme', 'Authorize transaction')..."
                 className="flex-1 bg-slate-950/60 border border-slate-800/80 rounded-xl px-4 py-2.5 text-xs text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-emerald-500/50 font-mono transition-colors"
               />
               <button
@@ -2247,7 +2247,7 @@ export default function VoiceAgentPage() {
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.9)]" />
               <span className="text-[11px] font-mono font-bold text-cyan-400 uppercase tracking-widest">
-                Enterprise Document Deck
+                Enterprise Operations Deck
               </span>
             </div>
 

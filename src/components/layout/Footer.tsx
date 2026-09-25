@@ -74,10 +74,10 @@ export function Footer() {
           <div className="flex flex-col items-start lg:col-span-4">
             <KonthoraBrand variant="footer" />
             <h3 className="mt-4 text-sm font-semibold text-emerald-400 font-mono tracking-tight">
-              Konthora — Real-Time Voice-to-Document Enterprise Engine
+              Konthora — Autonomous Voice-Driven Enterprise Operations Engine
             </h3>
             <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-              Built for the AssemblyAI Hackathon. The fastest multilingual voice assistant for dynamic document generation and enterprise operations.
+              Enterprise-grade full-duplex voice intelligence engine for real-time B2B workflow automation, stateful document revisions, and cryptographic audit verification.
             </p>
 
             <div className="mt-4 flex flex-wrap gap-2 text-xs">

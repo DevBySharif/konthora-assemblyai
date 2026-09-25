@@ -64,7 +64,7 @@ export function Hero() {
               transition={{ duration: 0.6, delay: 0.2 }}
               className="mt-6 text-lg sm:text-xl text-slate-300 leading-relaxed max-w-2xl mx-auto lg:mx-0"
             >
-              Speak in English, Bangla, or Banglish. Konthora listens via AssemblyAI v3, reasons via Groq, executes structured tool calls, and generates live downloadable Invoices, Reports, and Contracts with instant local Kokoro voice feedback.
+              Speak in English, Bangla, or Banglish. Konthora's autonomous voice operations engine listens via AssemblyAI v3, reasons via Groq, executes structured workflows, and generates verified enterprise documents with cryptographic SHA-256 seals and instant Kokoro voice feedback.
             </motion.p>
 
             {/* CTA Buttons */}

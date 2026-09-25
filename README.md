@@ -1,6 +1,6 @@
-# 🎙️ Konthora — Real-Time Voice-to-Document Enterprise Engine
+# 🎙️ Konthora — Autonomous Voice-Driven Enterprise Operations Engine
 
-> **Next-Generation Conversational Voice Intelligence Engine for Autonomous B2B Document Synthesis, Stateful Revisions, and Cryptographic Trust Verification.**
+> **Enterprise-Grade Full-Duplex Voice Intelligence Engine for Real-Time B2B Workflow Automation, Stateful Document Revisions, and Cryptographic Audit Verification.**
 
 [![AssemblyAI v3](https://img.shields.io/badge/STT-AssemblyAI_v3_Streaming-blueviolet?style=for-the-badge&logo=assemblyai)](https://www.assemblyai.com/)
 [![Groq LPU](https://img.shields.io/badge/LLM-Groq_Llama--3.3--70B-orange?style=for-the-badge&logo=groq)](https://groq.com/)

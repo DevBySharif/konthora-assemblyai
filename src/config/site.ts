@@ -7,9 +7,9 @@ const siteUrl = (
 
 export const siteConfig = {
   name: 'Konthora AI',
-  tagline: 'Real-Time Voice-to-Document Enterprise Engine',
+  tagline: 'Autonomous Voice-Driven Enterprise Operations Engine',
   description:
-    'Built for the AssemblyAI Hackathon. The fastest multilingual voice assistant for dynamic document generation and enterprise operations.',
+    'Enterprise-grade full-duplex voice intelligence engine for real-time B2B workflow automation, stateful document revisions, and cryptographic audit verification.',
   url: siteUrl,
   contactEmail: process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'support@konthora.dev.bd',
   author: 'DevBySharif',

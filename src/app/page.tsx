@@ -14,9 +14,9 @@ import { voiceDocFaqs } from '@/config/voiceDocFaqs';
 import { VoiceFinalCTA } from '@/components/home/VoiceFinalCTA';
 
 export const metadata: Metadata = constructMetadata({
-  title: 'Konthora — Real-Time Voice-to-Document Enterprise Engine',
+  title: 'Konthora — Autonomous Voice-Driven Enterprise Operations Engine',
   description:
-    'Built for the AssemblyAI Hackathon. The fastest multilingual voice assistant for dynamic document generation and enterprise operations.',
+    'Enterprise-grade full-duplex voice intelligence engine for real-time B2B workflow automation, stateful document revisions, and cryptographic audit verification.',
   path: '/',
 });
 

@@ -19,18 +19,18 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL('https://konthora.dev.bd'),
   title: {
-    default: 'Konthora — Real-Time Voice-to-Document Enterprise Engine',
+    default: 'Konthora — Autonomous Voice-Driven Enterprise Operations Engine',
     template: '%s | Konthora AI',
   },
   description:
-    'Built for the AssemblyAI Hackathon. The fastest multilingual voice assistant for dynamic document generation and enterprise operations.',
+    'Enterprise-grade full-duplex voice intelligence engine for real-time B2B workflow automation, stateful document revisions, and cryptographic audit verification.',
   alternates: {
     canonical: '/',
   },
   openGraph: {
-    title: 'Konthora — Real-Time Voice-to-Document Enterprise Engine',
+    title: 'Konthora — Autonomous Voice-Driven Enterprise Operations Engine',
     description:
-      'Built for the AssemblyAI Hackathon. The fastest multilingual voice assistant for dynamic document generation and enterprise operations.',
+      'Enterprise-grade full-duplex voice intelligence engine for real-time B2B workflow automation, stateful document revisions, and cryptographic audit verification.',
     url: 'https://konthora.dev.bd',
     siteName: 'Konthora AI',
     locale: 'en_US',
@@ -38,9 +38,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Konthora — Real-Time Voice-to-Document Enterprise Engine',
+    title: 'Konthora — Autonomous Voice-Driven Enterprise Operations Engine',
     description:
-      'Built for the AssemblyAI Hackathon. The fastest multilingual voice assistant for dynamic document generation and enterprise operations.',
+      'Enterprise-grade full-duplex voice intelligence engine for real-time B2B workflow automation, stateful document revisions, and cryptographic audit verification.',
   },
   verification: {
     google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
