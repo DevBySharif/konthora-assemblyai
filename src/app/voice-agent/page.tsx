@@ -1148,6 +1148,7 @@ export default function VoiceAgentPage() {
   const [textInput, setTextInput] = useState("");
   const [jsonCopied, setJsonCopied] = useState(false);
   const [isRevisedPulse, setIsRevisedPulse] = useState(false);
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
 
   // Deduplication helper — rejects identical consecutive messages
   const appendMessage = useCallback(
@@ -1180,15 +1181,18 @@ export default function VoiceAgentPage() {
   const playNextAudioChunk = useCallback(() => {
     if (audioQueueRef.current.length === 0) {
       isSpeakingRef.current = false;
+      setIsPlayingAudio(false);
       currentAudioRef.current = null;
       return;
     }
     const nextBlob = audioQueueRef.current.shift();
     if (!nextBlob) {
       isSpeakingRef.current = false;
+      setIsPlayingAudio(false);
       return;
     }
     isSpeakingRef.current = true;
+    setIsPlayingAudio(true);
     const audioUrl = URL.createObjectURL(nextBlob);
     const audio = new Audio(audioUrl);
     currentAudioRef.current = audio;
@@ -1206,10 +1210,20 @@ export default function VoiceAgentPage() {
     audioQueueRef.current = [];
     if (currentAudioRef.current) {
       currentAudioRef.current.pause();
+      currentAudioRef.current.currentTime = 0;
       currentAudioRef.current = null;
     }
     isSpeakingRef.current = false;
+    setIsPlayingAudio(false);
   }, []);
+
+  // Barge-in: kill audio playback and notify backend to cancel TTS/LLM
+  const interruptPlayback = useCallback(() => {
+    stopPlayback();
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({ type: "user_interrupt" }));
+    }
+  }, [stopPlayback]);
 
   const stopMicrophone = useCallback(() => {
     stopPlayback();
@@ -1328,6 +1342,9 @@ export default function VoiceAgentPage() {
             }));
           }
           setTimeout(() => setGroqStatus("idle"), 2500);
+        } else if (data.type === "interrupt_ack") {
+          stopPlayback();
+          setGroqStatus("idle");
         }
       } else if (event.data instanceof Blob || event.data instanceof ArrayBuffer) {
         const audioBlob = new Blob([event.data], { type: "audio/wav" });
@@ -1345,7 +1362,7 @@ export default function VoiceAgentPage() {
       else if (ws.readyState === WebSocket.CONNECTING) ws.onopen = () => ws.close(1000, "Component unmounted");
       wsRef.current = null;
     };
-  }, [playNextAudioChunk, stopMicrophone, stopPlayback]);
+  }, [playNextAudioChunk, stopMicrophone, stopPlayback, interruptPlayback]);
 
   // Audio capture
   const startMicrophone = async () => {
@@ -1363,8 +1380,21 @@ export default function VoiceAgentPage() {
 
       processor.onaudioprocess = (e) => {
         if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) return;
-        if (isSpeakingRef.current) return;
         const inputData = e.inputBuffer.getChannelData(0);
+
+        // Barge-in: detect voice activity while assistant audio is playing
+        if (isSpeakingRef.current) {
+          let sumSquares = 0;
+          for (let i = 0; i < inputData.length; i++) {
+            sumSquares += inputData[i] * inputData[i];
+          }
+          const rms = Math.sqrt(sumSquares / inputData.length);
+          if (rms > 0.02) {
+            interruptPlayback();
+          }
+          return;
+        }
+
         const pcm16 = new Int16Array(inputData.length);
         for (let i = 0; i < inputData.length; i++) {
           const s = Math.max(-1, Math.min(1, inputData[i]));

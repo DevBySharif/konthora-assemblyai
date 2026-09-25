@@ -29,9 +29,13 @@ async def process_llm_and_tts_stream(websocket: WebSocket, prompt: str):
     """Streams tokens from LLM and synthesizes audio at clause boundaries for ultra-low latency."""
     text_buffer = ""
     full_text = ""
+    agent_service.clear_interrupt()
 
     async for token in agent_service.stream_ai_response(prompt):
         if websocket.client_state != WebSocketState.CONNECTED:
+            break
+        if agent_service._interrupt_flag:
+            logger.info("Interrupt detected during LLM stream — aborting.")
             break
 
         text_buffer += token
@@ -46,6 +50,10 @@ async def process_llm_and_tts_stream(websocket: WebSocket, prompt: str):
         for match in CLAUSE_PATTERN.finditer(text_buffer):
             clause_text = match.group(1).strip()
             if clause_text and len(clause_text) > 1:
+                if agent_service._interrupt_flag:
+                    logger.info("Interrupt detected before TTS clause — skipping.")
+                    last_end = match.end()
+                    continue
                 audio_bytes = await agent_service.generate_speech_bytes_async(clause_text)
                 if audio_bytes and websocket.client_state == WebSocketState.CONNECTED:
                     with contextlib.suppress(Exception):
@@ -54,16 +62,17 @@ async def process_llm_and_tts_stream(websocket: WebSocket, prompt: str):
         if last_end > 0:
             text_buffer = text_buffer[last_end:]
 
-    # Process remaining text in buffer if any
+    # Process remaining text in buffer if no interrupt
     remaining_text = text_buffer.strip()
     if remaining_text and len(remaining_text) > 1 and websocket.client_state == WebSocketState.CONNECTED:
-        audio_bytes = await agent_service.generate_speech_bytes_async(remaining_text)
-        if audio_bytes and websocket.client_state == WebSocketState.CONNECTED:
-            with contextlib.suppress(Exception):
-                await websocket.send_bytes(audio_bytes)
+        if not agent_service._interrupt_flag:
+            audio_bytes = await agent_service.generate_speech_bytes_async(remaining_text)
+            if audio_bytes and websocket.client_state == WebSocketState.CONNECTED:
+                with contextlib.suppress(Exception):
+                    await websocket.send_bytes(audio_bytes)
 
-    # Emit final consolidated text response
-    if websocket.client_state == WebSocketState.CONNECTED:
+    # Emit final consolidated text response (skip if interrupted)
+    if websocket.client_state == WebSocketState.CONNECTED and not agent_service._interrupt_flag:
         with contextlib.suppress(Exception):
             await websocket.send_json({"type": "text_response", "text": full_text.strip(), "role": "assistant"})
 
@@ -72,6 +81,8 @@ async def process_llm_and_tts_stream(websocket: WebSocket, prompt: str):
         if action_card and websocket.client_state == WebSocketState.CONNECTED:
             with contextlib.suppress(Exception):
                 await websocket.send_json(action_card)
+
+    agent_service.clear_interrupt()
 
 @router.websocket("/ws/voice-agent")
 async def voice_agent_websocket(websocket: WebSocket):
@@ -87,6 +98,16 @@ async def voice_agent_websocket(websocket: WebSocket):
                 data = await websocket.receive()
                 if "text" in data and data["text"]:
                     text_msg = data["text"]
+                    # Check for interrupt signal
+                    try:
+                        parsed = json.loads(text_msg)
+                        if parsed.get("type") == "user_interrupt":
+                            agent_service.request_interrupt()
+                            if websocket.client_state == WebSocketState.CONNECTED:
+                                await websocket.send_json({"type": "interrupt_ack"})
+                            continue
+                    except (json.JSONDecodeError, AttributeError):
+                        pass
                     if websocket.client_state == WebSocketState.CONNECTED:
                         await websocket.send_json({"type": "transcript", "text": text_msg, "role": "user", "final": True})
                     await process_llm_and_tts_stream(websocket, text_msg)
@@ -124,6 +145,16 @@ async def voice_agent_websocket(websocket: WebSocket):
                                 await aai_ws.send(raw_bytes)
                         elif "text" in message and message["text"]:
                             text_data = message["text"]
+                            # Check for interrupt signal from client
+                            try:
+                                parsed = json.loads(text_data)
+                                if parsed.get("type") == "user_interrupt":
+                                    agent_service.request_interrupt()
+                                    if websocket.client_state == WebSocketState.CONNECTED:
+                                        await websocket.send_json({"type": "interrupt_ack"})
+                                    continue
+                            except (json.JSONDecodeError, AttributeError):
+                                pass
                             if websocket.client_state == WebSocketState.CONNECTED:
                                 await websocket.send_json({"type": "transcript", "text": text_data, "role": "user", "final": True})
                             await process_llm_and_tts_stream(websocket, text_data)

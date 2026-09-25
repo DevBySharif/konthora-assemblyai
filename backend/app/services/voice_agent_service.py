@@ -32,6 +32,7 @@ def generate_verification_data(doc_type: str, doc_ref: str, amount: any = 0) -> 
 class VoiceAgentService:
     def __init__(self):
         self.active_doc_state = None
+        self._interrupt_flag = False
         self.system_prompt = (
             "You are Konthora's real-time AI Voice-to-Document Production Engine for enterprise workflows.\n"
             "You possess conversational state memory. If the user asks to modify, update, adjust rates, or add line items to the currently displayed document, preserve all previous details and apply the requested delta changes directly into the document object.\n"
@@ -49,6 +50,15 @@ class VoiceAgentService:
             "3. ACCURACY: Always quote specific client names, IDs, currencies, and numbers from the database when handling document requests."
         )
         self._cached_model = None
+
+    def request_interrupt(self):
+        """Set interrupt flag to cancel ongoing TTS synthesis."""
+        self._interrupt_flag = True
+        logger.info("Interrupt flag set — cancelling pending TTS synthesis.")
+
+    def clear_interrupt(self):
+        """Reset interrupt flag for next turn."""
+        self._interrupt_flag = False
 
     async def _get_active_model(self, client: httpx.AsyncClient, base_url: str, headers: dict) -> str:
         if self._cached_model:
