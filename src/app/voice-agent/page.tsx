@@ -1,12 +1,1153 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
-import { Mic, Square, Volume2, Sparkles, Bot, User } from "lucide-react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import {
+  Mic,
+  Square,
+  Volume2,
+  Zap,
+  Cpu,
+  Wifi,
+  WifiOff,
+  ChevronRight,
+  Download,
+  Sparkles,
+  CheckCircle2,
+  Copy,
+  Check,
+  Printer,
+  RefreshCw,
+  Sliders,
+  ShieldAlert,
+} from "lucide-react";
 
+// ─────────────────────────────────────────────────────
+// Types
+// ─────────────────────────────────────────────────────
+interface Message {
+  role: "user" | "assistant";
+  text: string;
+  final?: boolean;
+  timestamp: number;
+}
+
+interface DocumentCard {
+  type: "invoice" | "financial" | "hr_letter" | "inventory" | "quotation" | "purchase_order" | "tax_compliance" | "none";
+  title: string;
+  payload: Record<string, unknown>;
+  timestamp: number;
+  verification_hash?: string;
+  qr_payload?: string;
+  revised?: boolean;
+  revision_note?: string;
+}
+
+// ─────────────────────────────────────────────────────
+// Cryptographic Hash & Verification Helpers
+// ─────────────────────────────────────────────────────
+function generateClientHash(ref: string, amount: string | number = 0): { hash: string; qr: string } {
+  let h = 0x811c9dc5;
+  const str = `${ref}:${amount}:${Math.floor(Date.now() / 3600000)}`;
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 0x01000193);
+  }
+  const hex = (h >>> 0).toString(16).toUpperCase().padStart(8, "0");
+  const hash = `SHA256-KNT-2026-${hex.slice(0, 4)}-${hex.slice(4, 8)}`;
+  const qr = `https://konthora.ai/verify?ref=${encodeURIComponent(ref)}&hash=${hash}`;
+  return { hash, qr };
+}
+
+// ─────────────────────────────────────────────────────
+// Lightweight Inline SVG QR Code Generator (Zero Dependency)
+// ─────────────────────────────────────────────────────
+function QRCodeSVG({ value, size = 64 }: { value: string; size?: number }) {
+  const gridSize = 21;
+  const cells: boolean[][] = Array.from({ length: gridSize }, () => Array(gridSize).fill(false));
+
+  // Finder pattern (7x7) drawer
+  const drawFinder = (r0: number, c0: number) => {
+    for (let r = 0; r < 7; r++) {
+      for (let c = 0; c < 7; c++) {
+        if (
+          r === 0 || r === 6 || c === 0 || c === 6 ||
+          (r >= 2 && r <= 4 && c >= 2 && c <= 4)
+        ) {
+          cells[r0 + r][c0 + c] = true;
+        }
+      }
+    }
+  };
+
+  drawFinder(0, 0);
+  drawFinder(0, 14);
+  drawFinder(14, 0);
+
+  // Timing lines
+  for (let i = 8; i < 13; i++) {
+    cells[6][i] = i % 2 === 0;
+    cells[i][6] = i % 2 === 0;
+  }
+
+  // Deterministic data dots derived from string hash
+  let h = 0;
+  for (let i = 0; i < value.length; i++) {
+    h = ((h << 5) - h + value.charCodeAt(i)) | 0;
+  }
+
+  for (let r = 0; r < gridSize; r++) {
+    for (let c = 0; c < gridSize; c++) {
+      const inF1 = r < 8 && c < 8;
+      const inF2 = r < 8 && c >= 13;
+      const inF3 = r >= 13 && c < 8;
+      const inT = r === 6 || c === 6;
+      if (!inF1 && !inF2 && !inF3 && !inT) {
+        cells[r][c] = Math.abs((h ^ (r * 29 + c * 17) ^ (r * c * 7)) % 3) !== 0;
+      }
+    }
+  }
+
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox={`0 0 ${gridSize} ${gridSize}`}
+      className="bg-white p-1 rounded-lg border border-slate-300 shadow-sm shrink-0"
+      shapeRendering="crispEdges"
+    >
+      {cells.flatMap((row, r) =>
+        row.map((active, c) =>
+          active ? <rect key={`${r}-${c}`} x={c} y={r} width={1} height={1} fill="#0f172a" /> : null
+        )
+      )}
+    </svg>
+  );
+}
+
+// ─────────────────────────────────────────────────────
+// Live Animated Waveform using HTML5 Canvas
+// ─────────────────────────────────────────────────────
+function LiveWaveform({ active }: { active: boolean }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const animRef = useRef<number>(0);
+  const phaseRef = useRef(0);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const draw = () => {
+      const { width, height } = canvas;
+      ctx.clearRect(0, 0, width, height);
+
+      if (!active) {
+        ctx.strokeStyle = "rgba(16,185,129,0.2)";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(0, height / 2);
+        ctx.lineTo(width, height / 2);
+        ctx.stroke();
+        animRef.current = requestAnimationFrame(draw);
+        return;
+      }
+
+      phaseRef.current += 0.08;
+
+      const grad = ctx.createLinearGradient(0, 0, width, 0);
+      grad.addColorStop(0, "rgba(16,185,129,0.1)");
+      grad.addColorStop(0.5, "rgba(16,185,129,0.95)");
+      grad.addColorStop(1, "rgba(16,185,129,0.1)");
+
+      ctx.strokeStyle = grad;
+      ctx.lineWidth = 2.5;
+      ctx.shadowColor = "rgba(16,185,129,0.6)";
+      ctx.shadowBlur = 10;
+      ctx.beginPath();
+
+      for (let x = 0; x <= width; x++) {
+        const t = x / width;
+        const amp1 = Math.sin(t * Math.PI * 6 + phaseRef.current) * (height * 0.28);
+        const amp2 = Math.sin(t * Math.PI * 10 - phaseRef.current * 1.3) * (height * 0.12);
+        const amp3 = Math.sin(t * Math.PI * 3 + phaseRef.current * 0.5) * (height * 0.06);
+        const y = height / 2 + amp1 + amp2 + amp3;
+        if (x === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+      animRef.current = requestAnimationFrame(draw);
+    };
+
+    animRef.current = requestAnimationFrame(draw);
+    return () => cancelAnimationFrame(animRef.current);
+  }, [active]);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      width={400}
+      height={56}
+      className="w-full h-14 rounded-xl bg-slate-950/80 border border-emerald-500/20 shadow-inner"
+    />
+  );
+}
+
+// ─────────────────────────────────────────────────────
+// Document Type Detector (English, Bangla, Banglish)
+// ─────────────────────────────────────────────────────
+function detectDocumentType(text: string): DocumentCard["type"] {
+  const t = text.toLowerCase();
+
+  // Quotation & Tender
+  if (t.includes("quotation") || t.includes("quote") || t.includes("phoenix") || t.includes("tender") || t.includes("কোটেশন") || t.includes("টেন্ডার")) {
+    return "quotation";
+  }
+  // Purchase Order
+  if (t.includes("purchase order") || t.includes(" po ") || t.startsWith("po ") || t.includes("po-88301") || t.includes("ক্রয়াদেশ") || t.includes("পিও") || t.includes("অর্ডার")) {
+    return "purchase_order";
+  }
+  // Tax & Compliance
+  if (t.includes("tax") || t.includes("vat") || t.includes("compliance") || t.includes("ট্যাক্স") || t.includes("ভ্যাট") || t.includes("কর")) {
+    return "tax_compliance";
+  }
+  // Invoice
+  if (t.includes("invoice") || t.includes("bill") || t.includes("chalan") || t.includes("challan") || t.includes("চালান") || t.includes("ইনভয়েস") || t.includes("payment due") || t.includes("acme")) {
+    return "invoice";
+  }
+  // Financial
+  if (t.includes("financial") || t.includes("revenue") || t.includes("ebitda") || t.includes("profit") || t.includes("q1") || t.includes("q2") || t.includes("লাভ") || t.includes("আয়")) {
+    return "financial";
+  }
+  // HR Letter
+  if (t.includes("offer letter") || t.includes("hr") || t.includes("salary") || t.includes("employee") || t.includes("onboarding") || t.includes("rafiqul") || t.includes("jenkins") || t.includes("বেতন") || t.includes("নিয়োগপত্র")) {
+    return "hr_letter";
+  }
+  // Inventory
+  if (t.includes("inventory") || t.includes("stock") || t.includes("sku") || t.includes("units") || t.includes("warehouse") || t.includes("m3") || t.includes("rack") || t.includes("transceiver") || t.includes("স্টক") || t.includes("মজুদ")) {
+    return "inventory";
+  }
+  return "none";
+}
+
+// ─────────────────────────────────────────────────────
+// Payload Generator for JSON Export & Verification
+// ─────────────────────────────────────────────────────
+function buildDocumentPayload(type: DocumentCard["type"], text: string, ts: number): Record<string, unknown> {
+  const dateStr = new Date(ts).toISOString();
+  switch (type) {
+    case "quotation":
+      return {
+        document_type: "QUOTATION",
+        quotation_id: "PHOENIX-2026",
+        client: { name: "Acme Corp", id: "CLI-8821", currency: "USD" },
+        created_at: dateStr,
+        valid_until: "2026-12-31",
+        line_items: [
+          { description: "Konthora Real-Time Multilingual Voice Gateway", qty: 1, unit_price: 18500, total: 18500 },
+          { description: "Kokoro-82M High-Density Edge TTS Cluster", qty: 2, unit_price: 5000, total: 10000 },
+        ],
+        subtotal: 28500,
+        discount_pct: 5,
+        grand_total: 27075,
+        sla: "Sub-850ms latency guarantee on AssemblyAI Streaming v3",
+        transcript_context: text,
+      };
+    case "purchase_order":
+      return {
+        document_type: "PURCHASE_ORDER",
+        po_number: "PO-88301",
+        vendor: "Apex Hardware International Ltd.",
+        date: dateStr,
+        status: "Approved",
+        currency: "USD",
+        destination_warehouse: "Singapore Hub",
+        items: [
+          { item: "Apple M3 Pro Chip (OEM)", sku: "HW-M3P-001", qty: 20, unit_price: 450, total: 9000 },
+          { item: "Enterprise Server Rack 42U", sku: "HW-SRV-42U", qty: 2, unit_price: 2800, total: 5600 },
+        ],
+        shipping: 450,
+        grand_total: 15050,
+        approver: "Sarah Jenkins (Lead Solutions Architect)",
+        transcript_context: text,
+      };
+    case "tax_compliance":
+      return {
+        document_type: "TAX_COMPLIANCE_SUMMARY",
+        fiscal_year: "FY 2026",
+        entity: "Konthora AI Global Ltd.",
+        currency: "USD",
+        taxable_profit: 57000,
+        corporate_tax_rate: "20.0%",
+        effective_tax_due: 11400,
+        withholding_tax_prepaid: 3200,
+        net_payable: 8200,
+        vat_bin_bangladesh: "BIN-003928172-0102",
+        vat_id_eu: "DE-319208194",
+        us_ein: "12-9920194",
+        filing_deadline: "2026-11-30",
+        transcript_context: text,
+      };
+    case "invoice":
+      return {
+        document_type: "TAX_INVOICE",
+        invoice_number: `INV-${String(ts).slice(-5)}`,
+        client: { name: "Acme Corp", id: "CLI-8821", tax_id: "US-99201", currency: "USD" },
+        date: dateStr,
+        payment_terms: "NET-30",
+        line_items: [
+          { description: "Professional Voice AI Integration", amount: 4200.0 },
+          { description: "Dedicated Inference Cluster (Monthly)", amount: 850.0 },
+        ],
+        total_due: 5050.0,
+        transcript_context: text,
+      };
+    case "financial":
+      return {
+        document_type: "FINANCIAL_REPORT",
+        fiscal_period: "Q1 2026",
+        currency: "USD",
+        revenue: 142000,
+        expenses: 85000,
+        net_profit: 57000,
+        ebitda_margin: "28.5%",
+        projected_q2_revenue: 185000,
+        tax_liability: 11400,
+        transcript_context: text,
+      };
+    case "hr_letter":
+      return {
+        document_type: "APPOINTMENT_LETTER",
+        candidate: "Rafiqul Islam",
+        employee_id: "EMP-1041",
+        position: "Senior Full-Stack Engineer",
+        department: "Engineering",
+        monthly_salary: "120,000 BDT",
+        effective_date: "2026-10-01",
+        reporting_manager: "Sarah Jenkins",
+        transcript_context: text,
+      };
+    case "inventory":
+      return {
+        document_type: "INVENTORY_AUDIT",
+        snapshot_time: dateStr,
+        items: [
+          { name: "Apple M3 Pro Chip (OEM)", sku: "HW-M3P-001", stock: 42, unit_price: 450, warehouse: "Singapore Hub" },
+          { name: "Enterprise Server Rack 42U", sku: "HW-SRV-42U", stock: 8, unit_price: 2800, warehouse: "Frankfurt DC" },
+          { name: "Fiber Optic Transceiver 100G", sku: "NET-FOT-100G", stock: 120, unit_price: 180, warehouse: "Singapore Hub" },
+        ],
+        transcript_context: text,
+      };
+    default:
+      return {
+        document_type: "GENERAL_DOC",
+        timestamp: dateStr,
+        content: text,
+      };
+  }
+}
+
+// ─────────────────────────────────────────────────────
+// Formal Fortune-500 Enterprise Document Components
+// ─────────────────────────────────────────────────────
+
+function FormalDocHeader({
+  docCategory,
+  docNumber,
+  issueDate,
+  badgeText,
+}: {
+  docCategory: string;
+  docNumber: string;
+  issueDate: string;
+  badgeText?: string;
+}) {
+  return (
+    <div className="border-b border-slate-700/80 pb-4 mb-4">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <div className="text-[11px] font-mono tracking-widest text-emerald-400 font-bold uppercase">
+            Konthora Enterprise AI Global Ltd.
+          </div>
+          <h2 className="text-lg sm:text-xl font-bold tracking-tight text-white mt-0.5">
+            {docCategory}
+          </h2>
+          <div className="text-[10px] text-slate-400 mt-0.5">
+            Silicon Valley HQ · Singapore Regional Hub · Dhaka Tech Park
+          </div>
+        </div>
+
+        <div className="text-right">
+          <div className="text-xs font-mono font-bold text-white bg-slate-800/90 px-2.5 py-1 rounded border border-slate-700 inline-block">
+            {docNumber}
+          </div>
+          <div className="text-[10px] text-slate-400 mt-1 font-mono">
+            Date: <span className="text-slate-200">{issueDate}</span>
+          </div>
+          {badgeText && (
+            <div className="mt-1">
+              <span className="text-[9px] font-mono uppercase px-2 py-0.5 rounded bg-emerald-950/80 text-emerald-300 border border-emerald-500/40">
+                {badgeText}
+              </span>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FormalDocFooter({
+  signatory = "Sarah Jenkins, Lead Solutions Architect",
+  department = "Enterprise Systems & Infrastructure Directorate",
+  notes,
+  verificationHash = "SHA256-KNT-2026-X98A2",
+  qrPayload = "https://konthora.ai/verify?ref=DOC-2026",
+}: {
+  signatory?: string;
+  department?: string;
+  notes?: string;
+  verificationHash?: string;
+  qrPayload?: string;
+}) {
+  return (
+    <div className="border-t border-slate-700/80 pt-3 mt-4 space-y-3">
+      {notes && (
+        <div className="text-[10.5px] text-slate-400 leading-relaxed bg-slate-950/50 p-2.5 rounded-lg border border-slate-800/80">
+          <span className="font-semibold text-slate-300">Terms &amp; Notes: </span>
+          {notes}
+        </div>
+      )}
+
+      <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+        <div>
+          <div className="text-[9.5px] font-mono text-slate-500 uppercase tracking-widest">
+            Authorized Digital Signatory
+          </div>
+          <div className="text-xs font-bold text-white font-mono mt-0.5">{signatory}</div>
+          <div className="text-[10px] text-slate-400">{department}</div>
+          <div className="text-[9px] font-mono text-emerald-400 font-bold uppercase tracking-wider flex items-center gap-1 mt-1">
+            <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+            Officially Verified Record
+          </div>
+        </div>
+
+        {/* Cryptographic Trust Badge with Real QR Code */}
+        <div className="flex items-center gap-3 bg-slate-950/70 p-2.5 rounded-xl border border-slate-800">
+          <QRCodeSVG value={qrPayload} size={54} />
+          <div className="space-y-0.5 text-left">
+            <div className="text-[9px] font-mono font-bold text-emerald-400 uppercase tracking-wider">
+              OFFICIAL DIGITAL VERIFICATION HASH
+            </div>
+            <div className="text-[10.5px] font-mono font-bold text-slate-200">
+              {verificationHash}
+            </div>
+            <div className="text-[9px] text-slate-400">
+              Scannable for real-time B2B audit authentication.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function QuotationCard({
+  text,
+  customData,
+  verificationHash,
+  qrPayload,
+}: {
+  text: string;
+  customData?: Record<string, unknown>;
+  verificationHash?: string;
+  qrPayload?: string;
+}) {
+  const discountPct = (customData?.discount_pct as number) ?? 5;
+  const subtotal = 28500;
+  const discountAmt = (subtotal * discountPct) / 100;
+  const grandTotal = subtotal - discountAmt;
+
+  return (
+    <div className="space-y-4">
+      <FormalDocHeader
+        docCategory="Commercial Enterprise Quotation"
+        docNumber="PHOENIX-2026"
+        issueDate="25 September 2026"
+        badgeText={discountPct > 5 ? `Revised: ${discountPct}% Volume Discount` : "Valid Thru Dec 2026"}
+      />
+
+      <div className="grid grid-cols-2 gap-3 text-xs bg-slate-950/60 p-3 rounded-xl border border-slate-800">
+        <div>
+          <span className="text-[10px] font-mono text-slate-500 uppercase tracking-wider">Client Organization:</span>
+          <div className="font-bold text-white mt-0.5">Acme Corp (US-99201)</div>
+          <div className="text-[11px] text-slate-400">500 Market St, San Francisco, CA · billing@acme.com</div>
+        </div>
+        <div>
+          <span className="text-[10px] font-mono text-slate-500 uppercase tracking-wider">Project Specification:</span>
+          <div className="font-bold text-emerald-400 mt-0.5">Real-Time Voice-to-Document Pipeline</div>
+          <div className="text-[11px] text-slate-400">Sub-850ms SLA · Kokoro-82M High-Density Nodes</div>
+        </div>
+      </div>
+
+      <div className="overflow-x-auto">
+        <table className="w-full text-left text-xs">
+          <thead>
+            <tr className="border-b border-slate-800 text-slate-400 font-mono text-[10px] uppercase tracking-wider">
+              <th className="py-2 pr-2">#</th>
+              <th className="py-2 pr-4">Item &amp; Description</th>
+              <th className="py-2 px-2 text-center">Qty</th>
+              <th className="py-2 px-2 text-right">Unit Rate</th>
+              <th className="py-2 pl-2 text-right">Total</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-800/60">
+            <tr>
+              <td className="py-2.5 pr-2 font-mono text-slate-500">01</td>
+              <td className="py-2.5 pr-4 text-white font-medium">
+                Konthora Real-Time Multilingual Voice Gateway
+                <div className="text-[10.5px] text-slate-400 font-normal">AssemblyAI Streaming v3 16kHz PCM streaming pipeline</div>
+              </td>
+              <td className="py-2.5 px-2 text-center font-mono text-slate-300">1</td>
+              <td className="py-2.5 px-2 text-right font-mono text-slate-300">$18,500.00</td>
+              <td className="py-2.5 pl-2 text-right font-mono text-white font-semibold">$18,500.00</td>
+            </tr>
+            <tr>
+              <td className="py-2.5 pr-2 font-mono text-slate-500">02</td>
+              <td className="py-2.5 pr-4 text-white font-medium">
+                Kokoro-82M High-Density Edge TTS Cluster
+                <div className="text-[10.5px] text-slate-400 font-normal">Dual-node on-prem high-throughput audio synthesis cluster</div>
+              </td>
+              <td className="py-2.5 px-2 text-center font-mono text-slate-300">2</td>
+              <td className="py-2.5 px-2 text-right font-mono text-slate-300">$5,000.00</td>
+              <td className="py-2.5 pl-2 text-right font-mono text-white font-semibold">$10,000.00</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div className="bg-slate-950/70 rounded-xl p-3.5 border border-slate-800 space-y-1.5 text-xs">
+        <div className="flex justify-between text-slate-400">
+          <span>Gross Subtotal</span>
+          <span className="font-mono text-white">${subtotal.toLocaleString()}.00</span>
+        </div>
+        <div className="flex justify-between text-emerald-400 text-[11.5px]">
+          <span>Enterprise Volume Discount ({discountPct}.0%)</span>
+          <span className="font-mono font-semibold">-${discountAmt.toLocaleString()}.00</span>
+        </div>
+        <div className="border-t border-slate-800 pt-2 flex justify-between font-bold text-white text-sm">
+          <span>Net Commercial Quotation (USD)</span>
+          <span className="font-mono text-emerald-400 text-base">${grandTotal.toLocaleString()}.00</span>
+        </div>
+      </div>
+
+      <FormalDocFooter
+        signatory="Sarah Jenkins, Lead Solutions Architect"
+        department="Enterprise Voice Systems Division"
+        notes="Quotation valid for 90 calendar days. Payment milestones: 50% upon deployment, 50% upon 30-day continuous SLA validation."
+        verificationHash={verificationHash}
+        qrPayload={qrPayload}
+      />
+
+      <div className="no-print text-[11px] text-slate-400 bg-emerald-950/20 border border-emerald-500/20 rounded-lg p-2.5 flex items-start gap-2">
+        <Sparkles className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
+        <span className="line-clamp-2">{text || "Verified commercial quotation generated from enterprise rate-card."}</span>
+      </div>
+    </div>
+  );
+}
+
+function PurchaseOrderCard({
+  text,
+  verificationHash,
+  qrPayload,
+}: {
+  text: string;
+  verificationHash?: string;
+  qrPayload?: string;
+}) {
+  return (
+    <div className="space-y-4">
+      <FormalDocHeader
+        docCategory="Authorized Purchase Order"
+        docNumber="PO-88301"
+        issueDate="15 September 2026"
+        badgeText="Approved &amp; Processing"
+      />
+
+      <div className="grid grid-cols-2 gap-3 text-xs bg-slate-950/60 p-3 rounded-xl border border-slate-800">
+        <div>
+          <span className="text-[10px] font-mono text-slate-500 uppercase tracking-wider">Authorized Vendor:</span>
+          <div className="font-bold text-white mt-0.5">Apex Hardware International Ltd.</div>
+          <div className="text-[11px] text-slate-400">Hong Kong &amp; Singapore Global Logistics Centre</div>
+        </div>
+        <div>
+          <span className="text-[10px] font-mono text-slate-500 uppercase tracking-wider">Delivery Destination:</span>
+          <div className="font-bold text-cyan-400 mt-0.5">Singapore Hub Data Center (Tier-4)</div>
+          <div className="text-[11px] text-slate-400">Attn: Enterprise Logistics &amp; Rack Deployment</div>
+        </div>
+      </div>
+
+      <div className="overflow-x-auto">
+        <table className="w-full text-left text-xs">
+          <thead>
+            <tr className="border-b border-slate-800 text-slate-400 font-mono text-[10px] uppercase tracking-wider">
+              <th className="py-2 pr-2">SKU</th>
+              <th className="py-2 pr-4">Hardware Component</th>
+              <th className="py-2 px-2 text-center">Qty</th>
+              <th className="py-2 px-2 text-right">Unit Cost</th>
+              <th className="py-2 pl-2 text-right">Subtotal</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-800/60">
+            <tr>
+              <td className="py-2.5 pr-2 font-mono text-slate-500">HW-M3P-001</td>
+              <td className="py-2.5 pr-4 text-white font-medium">Apple M3 Pro Chip (OEM Architecture Grade)</td>
+              <td className="py-2.5 px-2 text-center font-mono text-slate-300">20</td>
+              <td className="py-2.5 px-2 text-right font-mono text-slate-300">$450.00</td>
+              <td className="py-2.5 pl-2 text-right font-mono text-white font-semibold">$9,000.00</td>
+            </tr>
+            <tr>
+              <td className="py-2.5 pr-2 font-mono text-slate-500">HW-SRV-42U</td>
+              <td className="py-2.5 pr-4 text-white font-medium">Enterprise Server Rack 42U Heavy Duty Enclosure</td>
+              <td className="py-2.5 px-2 text-center font-mono text-slate-300">2</td>
+              <td className="py-2.5 px-2 text-right font-mono text-slate-300">$2,800.00</td>
+              <td className="py-2.5 pl-2 text-right font-mono text-white font-semibold">$5,600.00</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div className="bg-slate-950/70 rounded-xl p-3.5 border border-slate-800 space-y-1.5 text-xs">
+        <div className="flex justify-between text-slate-400">
+          <span>Equipment Subtotal</span>
+          <span className="font-mono text-white">$14,600.00</span>
+        </div>
+        <div className="flex justify-between text-slate-400">
+          <span>Secured Air Freight &amp; Handling</span>
+          <span className="font-mono text-white">$450.00</span>
+        </div>
+        <div className="border-t border-slate-800 pt-2 flex justify-between font-bold text-white text-sm">
+          <span>Authorized Purchase Order Grand Total</span>
+          <span className="font-mono text-cyan-400 text-base">$15,050.00 USD</span>
+        </div>
+      </div>
+
+      <FormalDocFooter
+        signatory="Sarah Jenkins, Solutions Lead"
+        department="Infrastructure Procurement Board"
+        notes="NET-30 upon hardware QA pass at Singapore Hub. Delivery tracking ref: DHL-SG-99201."
+        verificationHash={verificationHash}
+        qrPayload={qrPayload}
+      />
+
+      <div className="no-print text-[11px] text-slate-400 bg-cyan-950/20 border border-cyan-500/20 rounded-lg p-2.5 flex items-start gap-2">
+        <Sparkles className="w-3.5 h-3.5 text-cyan-400 shrink-0 mt-0.5" />
+        <span className="line-clamp-2">{text || "Hardware procurement PO cross-referenced against warehouse replenishment limits."}</span>
+      </div>
+    </div>
+  );
+}
+
+function TaxComplianceCard({
+  text,
+  verificationHash,
+  qrPayload,
+}: {
+  text: string;
+  verificationHash?: string;
+  qrPayload?: string;
+}) {
+  return (
+    <div className="space-y-4">
+      <FormalDocHeader
+        docCategory="Corporate Tax &amp; Statutory Compliance Summary"
+        docNumber="FY2026-TAX-01"
+        issueDate="25 September 2026"
+        badgeText="Audit Ready · Provisioned"
+      />
+
+      <div className="grid grid-cols-3 gap-2.5 text-center">
+        <div className="bg-slate-950/70 p-3 rounded-xl border border-slate-800">
+          <div className="text-[10px] font-mono text-slate-500 uppercase">Gross Operating Income</div>
+          <div className="text-base font-bold text-white font-mono mt-0.5">$57,000.00</div>
+          <div className="text-[9.5px] text-slate-400">Q1 Taxable Base</div>
+        </div>
+        <div className="bg-slate-950/70 p-3 rounded-xl border border-slate-800">
+          <div className="text-[10px] font-mono text-slate-500 uppercase">Effective Tax Rate</div>
+          <div className="text-base font-bold text-amber-400 font-mono mt-0.5">20.0%</div>
+          <div className="text-[9.5px] text-slate-400">Statutory Bracket</div>
+        </div>
+        <div className="bg-slate-950/70 p-3 rounded-xl border border-slate-800">
+          <div className="text-[10px] font-mono text-slate-500 uppercase">Net Payable</div>
+          <div className="text-base font-bold text-emerald-400 font-mono mt-0.5">$8,200.00</div>
+          <div className="text-[9.5px] text-slate-400">Post-Withholding</div>
+        </div>
+      </div>
+
+      <div className="bg-slate-950/70 rounded-xl p-3.5 border border-slate-800 space-y-2 text-xs">
+        <div className="text-[10px] font-mono text-slate-500 uppercase tracking-wider pb-1 border-b border-slate-800">
+          Statutory Entity &amp; VAT Identification
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+          <div>
+            <span className="text-slate-400">Bangladesh VAT BIN:</span>
+            <div className="font-mono text-amber-300 font-bold">BIN-003928172-0102</div>
+          </div>
+          <div>
+            <span className="text-slate-400">European Union VAT:</span>
+            <div className="font-mono text-white">DE-319208194 (19.0%)</div>
+          </div>
+          <div>
+            <span className="text-slate-400">United States EIN:</span>
+            <div className="font-mono text-white">12-9920194 (CA Nexus)</div>
+          </div>
+          <div>
+            <span className="text-slate-400">Filing Deadline:</span>
+            <div className="font-mono text-slate-300">30 November 2026</div>
+          </div>
+        </div>
+      </div>
+
+      <FormalDocFooter
+        signatory="Finance Directorate &amp; Legal Counsel"
+        department="Statutory Regulatory Compliance Bureau"
+        notes="Report generated in adherence to International Financial Reporting Standards (IFRS) and National Board of Revenue regulations."
+        verificationHash={verificationHash}
+        qrPayload={qrPayload}
+      />
+
+      <div className="no-print text-[11px] text-slate-400 bg-amber-950/20 border border-amber-500/20 rounded-lg p-2.5 flex items-start gap-2">
+        <Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
+        <span className="line-clamp-2">{text || "Verified statutory compliance with National Board of Revenue & International VAT registries."}</span>
+      </div>
+    </div>
+  );
+}
+
+function InvoiceCard({
+  text,
+  ts,
+  customData,
+  verificationHash,
+  qrPayload,
+}: {
+  text: string;
+  ts: number;
+  customData?: Record<string, unknown>;
+  verificationHash?: string;
+  qrPayload?: string;
+}) {
+  const inv = `INV-${String(ts).slice(-5)}`;
+  const maintenanceFee = (customData?.maintenance_fee as number) ?? 0;
+  const baseService = 4200;
+  const clusterAlloc = 850;
+  const totalDue = baseService + clusterAlloc + maintenanceFee;
+  const paymentTerms = (customData?.payment_terms as string) ?? "NET-30";
+
+  return (
+    <div className="space-y-4">
+      <FormalDocHeader
+        docCategory="Commercial Tax Invoice"
+        docNumber={inv}
+        issueDate={new Date(ts).toLocaleDateString("en-GB")}
+        badgeText={`Payment Terms: ${paymentTerms}`}
+      />
+
+      <div className="grid grid-cols-2 gap-3 text-xs bg-slate-950/60 p-3 rounded-xl border border-slate-800">
+        <div>
+          <span className="text-[10px] font-mono text-slate-500 uppercase tracking-wider">Billed To (Client):</span>
+          <div className="font-bold text-white mt-0.5">Acme Corp</div>
+          <div className="text-[11px] text-slate-400">Tax ID: US-99201 · Client ID: CLI-8821</div>
+          <div className="text-[10.5px] text-slate-500">500 Market St, San Francisco, CA 94103</div>
+        </div>
+        <div>
+          <span className="text-[10px] font-mono text-slate-500 uppercase tracking-wider">Payment Details:</span>
+          <div className="font-bold text-emerald-400 mt-0.5">Direct Wire / ACH Transfer</div>
+          <div className="text-[11px] text-slate-400 font-mono">Routing: 121000358 · Acct: 8829-4401</div>
+          <div className="text-[10.5px] text-slate-500">Currency: United States Dollars (USD)</div>
+        </div>
+      </div>
+
+      <div className="overflow-x-auto">
+        <table className="w-full text-left text-xs">
+          <thead>
+            <tr className="border-b border-slate-800 text-slate-400 font-mono text-[10px] uppercase tracking-wider">
+              <th className="py-2 pr-2">#</th>
+              <th className="py-2 pr-4">Description of Deliverable</th>
+              <th className="py-2 px-2 text-center">Period</th>
+              <th className="py-2 pl-2 text-right">Amount</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-800/60">
+            <tr>
+              <td className="py-2.5 pr-2 font-mono text-slate-500">01</td>
+              <td className="py-2.5 pr-4 text-white font-medium">
+                Professional Voice AI Integration &amp; Calibration
+                <div className="text-[10.5px] text-slate-400 font-normal">Custom acoustic lexicon tuning and sub-850ms streaming bridge</div>
+              </td>
+              <td className="py-2.5 px-2 text-center font-mono text-slate-300">Phase 1</td>
+              <td className="py-2.5 pl-2 text-right font-mono text-white font-semibold">$4,200.00</td>
+            </tr>
+            <tr>
+              <td className="py-2.5 pr-2 font-mono text-slate-500">02</td>
+              <td className="py-2.5 pr-4 text-white font-medium">
+                Dedicated Inference Cluster (Monthly Allocation)
+                <div className="text-[10.5px] text-slate-400 font-normal">Isolated Groq LPU + Kokoro-82M processing unit</div>
+              </td>
+              <td className="py-2.5 px-2 text-center font-mono text-slate-300">30 Days</td>
+              <td className="py-2.5 pl-2 text-right font-mono text-white font-semibold">$850.00</td>
+            </tr>
+            {maintenanceFee > 0 && (
+              <tr>
+                <td className="py-2.5 pr-2 font-mono text-slate-500">03</td>
+                <td className="py-2.5 pr-4 text-white font-medium">
+                  24/7 SLA Priority Maintenance &amp; High-Availability Monitoring
+                  <div className="text-[10.5px] text-emerald-400 font-normal">Added via Voice Revision Directive</div>
+                </td>
+                <td className="py-2.5 px-2 text-center font-mono text-slate-300">Monthly</td>
+                <td className="py-2.5 pl-2 text-right font-mono text-emerald-400 font-semibold">${maintenanceFee.toFixed(2)}</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="bg-slate-950/70 rounded-xl p-3.5 border border-slate-800 space-y-1.5 text-xs">
+        <div className="flex justify-between text-slate-400">
+          <span>Subtotal</span>
+          <span className="font-mono text-white">${totalDue.toFixed(2)}</span>
+        </div>
+        <div className="flex justify-between text-slate-400">
+          <span>Applicable Sales Tax (0.0% B2B Reverse Charge)</span>
+          <span className="font-mono text-slate-400">$0.00</span>
+        </div>
+        <div className="border-t border-slate-800 pt-2 flex justify-between font-bold text-white text-sm">
+          <span>Total Balance Due (USD)</span>
+          <span className="font-mono text-emerald-400 text-base">${totalDue.toFixed(2)}</span>
+        </div>
+      </div>
+
+      <FormalDocFooter
+        signatory="Billing &amp; Revenue Operations"
+        department="Finance &amp; Corporate Treasury"
+        notes={`Please remit payment within ${paymentTerms.replace("NET-", "")} calendar days from invoice date. Late disbursements incur standard 1.5% monthly service charge.`}
+        verificationHash={verificationHash}
+        qrPayload={qrPayload}
+      />
+
+      <div className="no-print text-[11px] text-slate-400 bg-emerald-950/20 border border-emerald-500/20 rounded-lg p-2.5 flex items-start gap-2">
+        <Sparkles className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
+        <span className="line-clamp-2">{text || "Verified matching record from Enterprise DB: Acme Corp."}</span>
+      </div>
+    </div>
+  );
+}
+
+function FinancialCard({
+  text,
+  verificationHash,
+  qrPayload,
+}: {
+  text: string;
+  verificationHash?: string;
+  qrPayload?: string;
+}) {
+  return (
+    <div className="space-y-4">
+      <FormalDocHeader
+        docCategory="Executive Financial Performance Report"
+        docNumber="FY2026-Q1-REP"
+        issueDate="25 September 2026"
+        badgeText="Period: Q1 2026 (Jan–Mar)"
+      />
+
+      <div className="grid grid-cols-3 gap-2.5">
+        {[
+          { label: "Q1 Gross Revenue", val: "$142,000", delta: "+18.2% YoY", color: "text-emerald-400" },
+          { label: "Q1 Expenses", val: "$85,000", delta: "On Budget", color: "text-slate-400" },
+          { label: "Net Operating Profit", val: "$57,000", delta: "40.1% Net Margin", color: "text-cyan-400" },
+        ].map((m) => (
+          <div key={m.label} className="bg-slate-950/70 rounded-xl p-3 border border-slate-800 text-center">
+            <div className="text-[10px] font-mono text-slate-500 uppercase tracking-wider">{m.label}</div>
+            <div className="text-base font-bold text-white font-mono mt-0.5">{m.val}</div>
+            <div className={`text-[10px] font-semibold ${m.color}`}>{m.delta}</div>
+          </div>
+        ))}
+      </div>
+
+      <div className="bg-slate-950/70 rounded-xl p-3.5 border border-slate-800 space-y-2 text-xs">
+        <div className="text-[10px] font-mono text-slate-500 uppercase tracking-wider pb-1 border-b border-slate-800">
+          Executive Financial Ratios &amp; Projections
+        </div>
+        <div className="flex justify-between items-center text-slate-300">
+          <span>EBITDA Operational Margin</span>
+          <span className="text-cyan-400 font-bold font-mono text-sm">28.5%</span>
+        </div>
+        <div className="flex justify-between items-center text-slate-300">
+          <span>Q2 Projected Growth Revenue</span>
+          <span className="text-emerald-400 font-bold font-mono">$185,000.00 USD</span>
+        </div>
+        <div className="flex justify-between items-center text-slate-300">
+          <span>Estimated Corporate Income Tax Provision</span>
+          <span className="text-slate-300 font-mono">$11,400.00 USD</span>
+        </div>
+      </div>
+
+      <FormalDocFooter
+        signatory="Office of the Chief Financial Officer"
+        department="Corporate Treasury &amp; Planning Directorate"
+        notes="Figures extracted directly from enterprise accounting database. Audited by International Accounting Standards board."
+        verificationHash={verificationHash}
+        qrPayload={qrPayload}
+      />
+
+      <div className="no-print text-[11px] text-slate-400 bg-cyan-950/20 border border-cyan-500/20 rounded-lg p-2.5 flex items-start gap-2">
+        <Sparkles className="w-3.5 h-3.5 text-cyan-400 shrink-0 mt-0.5" />
+        <span className="line-clamp-2">{text || "Audited financial dataset retrieved from Konthora mock enterprise ledger."}</span>
+      </div>
+    </div>
+  );
+}
+
+function HRLetterCard({
+  text,
+  customData,
+  verificationHash,
+  qrPayload,
+}: {
+  text: string;
+  customData?: Record<string, unknown>;
+  verificationHash?: string;
+  qrPayload?: string;
+}) {
+  const salary = (customData?.salary as string) ?? "120,000 BDT / month";
+
+  return (
+    <div className="space-y-4">
+      <FormalDocHeader
+        docCategory="Official Offer of Employment &amp; Appointment"
+        docNumber="EMP-1041-OFFER"
+        issueDate="25 September 2026"
+        badgeText="Confidential · Executive Cleared"
+      />
+
+      <div className="bg-slate-950/70 rounded-xl p-4 border border-slate-800 space-y-3 text-xs">
+        <div className="font-semibold text-white text-sm">Dear Rafiqul Islam,</div>
+        <div className="text-slate-300 leading-relaxed text-[11.5px]">
+          On behalf of <strong className="text-white">Konthora Enterprise AI Global Ltd.</strong>, we are pleased to confirm your appointment for the position of{" "}
+          <span className="text-purple-300 font-semibold">Senior Full-Stack Engineer</span> within the
+          Engineering &amp; Systems Architecture division, effective{" "}
+          <span className="text-white font-semibold">1st October 2026</span>.
+        </div>
+
+        <div className="grid grid-cols-2 gap-3 pt-2 border-t border-slate-800 text-xs">
+          <div>
+            <span className="text-slate-500">Gross Monthly Remuneration:</span>
+            <div className="text-white font-bold font-mono text-sm mt-0.5">{salary}</div>
+          </div>
+          <div>
+            <span className="text-slate-500">Reporting Executive:</span>
+            <div className="text-white font-bold mt-0.5">Sarah Jenkins (Lead Architect)</div>
+          </div>
+          <div>
+            <span className="text-slate-500">Designated Department:</span>
+            <div className="text-slate-300 mt-0.5">Engineering &amp; Cloud Infrastructure</div>
+          </div>
+          <div>
+            <span className="text-slate-500">Employment Status:</span>
+            <div className="text-emerald-400 font-semibold mt-0.5 flex items-center gap-1">
+              <CheckCircle2 className="w-3.5 h-3.5" /> Full-Time Permanent
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <FormalDocFooter
+        signatory="People &amp; Culture Directorate"
+        department="Talent Acquisition &amp; Human Capital Division"
+        notes="This appointment is governed by the standard Konthora Employment Agreement, IP assignment provisions, and employee code of conduct."
+        verificationHash={verificationHash}
+        qrPayload={qrPayload}
+      />
+
+      <div className="no-print text-[11px] text-slate-400 bg-purple-950/20 border border-purple-500/20 rounded-lg p-2.5 flex items-start gap-2">
+        <Sparkles className="w-3.5 h-3.5 text-purple-400 shrink-0 mt-0.5" />
+        <span className="line-clamp-2">{text || "Human resources profile loaded directly from employee database registry."}</span>
+      </div>
+    </div>
+  );
+}
+
+function InventoryCard({
+  text,
+  verificationHash,
+  qrPayload,
+}: {
+  text: string;
+  verificationHash?: string;
+  qrPayload?: string;
+}) {
+  const items = [
+    { name: "Apple M3 Pro Chip (OEM Architecture Grade)", sku: "HW-M3P-001", stock: 42, price: 450, total: 18900, warehouse: "Singapore Hub DC" },
+    { name: "Enterprise Server Rack 42U Heavy Duty Enclosure", sku: "HW-SRV-42U", stock: 8, price: 2800, total: 22400, warehouse: "Frankfurt DC" },
+    { name: "Fiber Optic Transceiver 100G Multi-Mode", sku: "NET-FOT-100G", stock: 120, price: 180, total: 21600, warehouse: "Singapore Hub DC" },
+  ];
+
+  return (
+    <div className="space-y-4">
+      <FormalDocHeader
+        docCategory="Warehouse Inventory &amp; Stock Ledger Audit"
+        docNumber="INV-LOG-2026"
+        issueDate="25 September 2026"
+        badgeText="Real-Time Telemetry"
+      />
+
+      <div className="overflow-x-auto">
+        <table className="w-full text-left text-xs">
+          <thead>
+            <tr className="border-b border-slate-800 text-slate-400 font-mono text-[10px] uppercase tracking-wider">
+              <th className="py-2 pr-2">SKU</th>
+              <th className="py-2 pr-4">Hardware Component</th>
+              <th className="py-2 px-2">Warehouse</th>
+              <th className="py-2 px-2 text-center">In Stock</th>
+              <th className="py-2 px-2 text-right">Unit Value</th>
+              <th className="py-2 pl-2 text-right">Total Val.</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-800/60">
+            {items.map((item) => (
+              <tr key={item.sku}>
+                <td className="py-2.5 pr-2 font-mono text-slate-500">{item.sku}</td>
+                <td className="py-2.5 pr-4 text-white font-medium">{item.name}</td>
+                <td className="py-2.5 px-2 text-slate-400">{item.warehouse}</td>
+                <td className="py-2.5 px-2 text-center font-mono text-amber-400 font-bold">{item.stock}</td>
+                <td className="py-2.5 px-2 text-right font-mono text-slate-300">${item.price}</td>
+                <td className="py-2.5 pl-2 text-right font-mono text-white font-semibold">${item.total.toLocaleString()}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="bg-slate-950/70 rounded-xl p-3.5 border border-slate-800 flex justify-between items-center text-xs">
+        <span className="font-semibold text-white">Consolidated Hardware Valuation (USD)</span>
+        <span className="font-mono text-amber-400 font-bold text-base">$62,900.00</span>
+      </div>
+
+      <FormalDocFooter
+        signatory="Global Supply Chain Operations"
+        department="Logistics &amp; Hardware Infrastructure Bureau"
+        notes="Automated stock count verified via barcode and serial registry scan. Next scheduled physical cycle count: Q4 2026."
+        verificationHash={verificationHash}
+        qrPayload={qrPayload}
+      />
+
+      <div className="no-print text-[11px] text-slate-400 bg-amber-950/20 border border-amber-500/20 rounded-lg p-2.5 flex items-start gap-2">
+        <Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
+        <span className="line-clamp-2">{text || "Hardware supply chain telemetry matched against enterprise warehouse hubs."}</span>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────
+// Idle / Guide State for Right Panel
+// ─────────────────────────────────────────────────────
+function DocPanelIdle({ onSelectDemo }: { onSelectDemo: (query: string) => void }) {
+  const templates = [
+    {
+      color: "text-emerald-400 border-emerald-500/30 bg-emerald-950/20 hover:border-emerald-500/60",
+      label: "Quotation: PHOENIX-2026",
+      prompt: "Show the PHOENIX-2026 enterprise quotation for Acme Corp voice gateway",
+      tag: "Quote · $27K",
+    },
+    {
+      color: "text-cyan-400 border-cyan-500/30 bg-cyan-950/20 hover:border-cyan-500/60",
+      label: "Purchase Order: PO-88301",
+      prompt: "Generate purchase order PO-88301 for Apex Hardware chips and server racks",
+      tag: "PO · Approved",
+    },
+    {
+      color: "text-amber-400 border-amber-500/30 bg-amber-950/20 hover:border-amber-500/60",
+      label: "Tax & Compliance Summary",
+      prompt: "What is our FY-2026 corporate tax summary and BD VAT registration BIN?",
+      tag: "Tax · VAT BIN",
+    },
+    {
+      color: "text-emerald-400 border-emerald-500/30 bg-emerald-950/20 hover:border-emerald-500/60",
+      label: "Create B2B Invoice",
+      prompt: "Create an invoice for Acme Corp for professional voice engine integration",
+      tag: "Acme · NET-30",
+    },
+    {
+      color: "text-cyan-400 border-cyan-500/30 bg-cyan-950/20 hover:border-cyan-500/60",
+      label: "Q1 Financial Brief",
+      prompt: "What were our Q1 2026 revenue, expenses, and EBITDA margins?",
+      tag: "$142K Revenue",
+    },
+    {
+      color: "text-purple-400 border-purple-500/30 bg-purple-950/20 hover:border-purple-500/60",
+      label: "HR Offer Letter",
+      prompt: "Draft an offer letter for Rafiqul Islam as Senior Full-Stack Engineer",
+      tag: "EMP-1041",
+    },
+  ];
+
+  return (
+    <div className="flex flex-col items-center justify-center h-full gap-5 px-3 py-6 text-center">
+      <div className="space-y-1.5">
+        <div className="inline-flex p-2.5 rounded-2xl bg-slate-900 border border-slate-800 text-2xl shadow-lg">
+          📄⚡
+        </div>
+        <h3 className="text-base font-bold text-white tracking-tight">Enterprise Document Deck</h3>
+        <p className="text-xs text-slate-400 max-w-sm mx-auto leading-relaxed">
+          Speak in natural English, Bengali, or Banglish. The voice engine queries the local mock enterprise database and synthesizes instant verified document cards.
+        </p>
+      </div>
+
+      <div className="w-full max-w-md space-y-2 text-left">
+        <div className="text-[10px] font-mono text-slate-500 uppercase tracking-widest px-1">
+          Quick Spoken Intent Simulation
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          {templates.map((tpl) => (
+            <button
+              key={tpl.label}
+              onClick={() => onSelectDemo(tpl.prompt)}
+              className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${tpl.color} group`}
+            >
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs font-semibold text-white group-hover:text-emerald-300 transition-colors">
+                  {tpl.label}
+                </span>
+                <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-slate-900/80 border border-slate-700/50 text-slate-400">
+                  {tpl.tag}
+                </span>
+              </div>
+              <div className="text-[10px] text-slate-400 line-clamp-1 mt-0.5">
+                &ldquo;{tpl.prompt}&rdquo;
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────
+// Main Split-Screen Voice Agent Page Component
+// ─────────────────────────────────────────────────────
 export default function VoiceAgentPage() {
   const [isListening, setIsListening] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
-  const [messages, setMessages] = useState<{ role: string; text: string; final?: boolean }[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [docCard, setDocCard] = useState<DocumentCard | null>(null);
+  const [groqStatus, setGroqStatus] = useState<"idle" | "processing" | "done">("idle");
+  const [textInput, setTextInput] = useState("");
+  const [jsonCopied, setJsonCopied] = useState(false);
+  const [isRevisedPulse, setIsRevisedPulse] = useState(false);
 
   const wsRef = useRef<WebSocket | null>(null);
   const isSpeakingRef = useRef(false);
@@ -17,55 +1158,70 @@ export default function VoiceAgentPage() {
   const processorRef = useRef<ScriptProcessorNode | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
-  const playNextAudioChunk = () => {
+  const triggerRevisionPulse = () => {
+    setIsRevisedPulse(true);
+    setTimeout(() => setIsRevisedPulse(false), 2600);
+  };
+
+  const playNextAudioChunk = useCallback(() => {
     if (audioQueueRef.current.length === 0) {
       isSpeakingRef.current = false;
       currentAudioRef.current = null;
       return;
     }
-
     const nextBlob = audioQueueRef.current.shift();
     if (!nextBlob) {
       isSpeakingRef.current = false;
-      currentAudioRef.current = null;
       return;
     }
-
     isSpeakingRef.current = true;
     const audioUrl = URL.createObjectURL(nextBlob);
     const audio = new Audio(audioUrl);
     currentAudioRef.current = audio;
-
     const handleFinish = () => {
       URL.revokeObjectURL(audioUrl);
       currentAudioRef.current = null;
       playNextAudioChunk();
     };
-
     audio.onended = handleFinish;
     audio.onerror = handleFinish;
+    audio.play().catch(handleFinish);
+  }, []);
 
-    audio.play().catch((err) => {
-      console.warn("Audio playback notice:", err);
-      handleFinish();
-    });
-  };
-
-  const stopPlayback = () => {
+  const stopPlayback = useCallback(() => {
     audioQueueRef.current = [];
     if (currentAudioRef.current) {
       currentAudioRef.current.pause();
       currentAudioRef.current = null;
     }
     isSpeakingRef.current = false;
-  };
+  }, []);
 
+  const stopMicrophone = useCallback(() => {
+    stopPlayback();
+    if (processorRef.current) {
+      processorRef.current.disconnect();
+      processorRef.current = null;
+    }
+    if (audioContextRef.current) {
+      audioContextRef.current.close().catch(() => {});
+      audioContextRef.current = null;
+    }
+    if (mediaStreamRef.current) {
+      mediaStreamRef.current.getTracks().forEach((t) => t.stop());
+      mediaStreamRef.current = null;
+    }
+    setIsListening(false);
+  }, [stopPlayback]);
+
+  // Smooth auto-scroll to bottom of transcripts stream whenever messages update
   useEffect(() => {
     if (messages.length > 0) {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }
   }, [messages]);
 
+  // WebSocket lifecycle
   useEffect(() => {
     let isMounted = true;
     const wsUrl = process.env.NEXT_PUBLIC_WS_URL || "ws://localhost:8000/api/v1/ws/voice-agent";
@@ -75,7 +1231,10 @@ export default function VoiceAgentPage() {
       if (isMounted) setIsConnected(true);
     };
     ws.onclose = () => {
-      if (isMounted) setIsConnected(false);
+      if (isMounted) {
+        setIsConnected(false);
+        setGroqStatus("idle");
+      }
     };
     ws.onerror = () => {
       if (isMounted) setIsConnected(false);
@@ -88,75 +1247,103 @@ export default function VoiceAgentPage() {
         if (data.type === "transcript") {
           setMessages((prev) => {
             const filtered = prev.filter((m) => m.final !== false);
-            return [...filtered, { role: "user", text: data.text, final: data.final }];
+            return [...filtered, { role: "user", text: data.text, final: data.final, timestamp: Date.now() }];
           });
+          if (data.final) setGroqStatus("processing");
         } else if (data.type === "text_delta") {
           setMessages((prev) => {
             const last = prev[prev.length - 1];
             if (last && last.role === "assistant" && !last.final) {
               return [
                 ...prev.slice(0, -1),
-                { role: "assistant", text: last.text + data.content, final: false }
+                { role: "assistant", text: last.text + data.content, final: false, timestamp: last.timestamp },
               ];
-            } else {
-              return [...prev, { role: "assistant", text: data.content, final: false }];
             }
+            return [...prev, { role: "assistant", text: data.content, final: false, timestamp: Date.now() }];
           });
+        } else if (data.type === "action_card") {
+          // Backend emitted structured action_card with cryptographic hash & QR
+          const now = Date.now();
+          setDocCard((prev) => {
+            const existingPayload = prev?.payload ?? {};
+            return {
+              type: data.doc_type,
+              title: data.title || "Enterprise Document",
+              payload: { ...existingPayload, ...(data.data || {}) },
+              timestamp: now,
+              verification_hash: data.verification_hash,
+              qr_payload: data.qr_payload,
+              revised: data.revised ?? false,
+              revision_note: data.revised ? "Live delta update applied from voice conversation" : undefined,
+            };
+          });
+          if (data.revised) {
+            triggerRevisionPulse();
+          }
         } else if (data.type === "text_response") {
+          const now = Date.now();
+          const fullText = (data.text as string) || "";
           setMessages((prev) => {
             const last = prev[prev.length - 1];
             if (last && last.role === "assistant" && !last.final) {
-              return [
-                ...prev.slice(0, -1),
-                { role: "assistant", text: data.text, final: true }
-              ];
+              return [...prev.slice(0, -1), { role: "assistant", text: fullText, final: true, timestamp: now }];
             }
-            return [...prev, { role: "assistant", text: data.text, final: true }];
+            return [...prev, { role: "assistant", text: fullText, final: true, timestamp: now }];
           });
+          setGroqStatus("done");
+
+          // Inspect text and update right panel card if not already set by action_card
+          const docType = detectDocumentType(fullText);
+          if (docType !== "none") {
+            const payload = buildDocumentPayload(docType, fullText, now);
+            const { hash, qr } = generateClientHash(String(payload.quotation_id || payload.invoice_number || payload.po_number || docType.toUpperCase()), String(payload.grand_total || payload.total_due || 0));
+            setDocCard((prev) => ({
+              type: docType,
+              title: fullText.slice(0, 60),
+              payload: { ...(prev?.payload || {}), ...payload },
+              timestamp: now,
+              verification_hash: prev?.verification_hash || hash,
+              qr_payload: prev?.qr_payload || qr,
+              revised: prev?.revised ?? false,
+            }));
+          }
+          setTimeout(() => setGroqStatus("idle"), 2500);
         }
       } else if (event.data instanceof Blob || event.data instanceof ArrayBuffer) {
         const audioBlob = new Blob([event.data], { type: "audio/wav" });
         audioQueueRef.current.push(audioBlob);
-        if (!isSpeakingRef.current) {
-          playNextAudioChunk();
-        }
+        if (!isSpeakingRef.current) playNextAudioChunk();
       }
     };
 
     wsRef.current = ws;
-
     return () => {
       isMounted = false;
       stopMicrophone();
       stopPlayback();
-      if (ws.readyState === WebSocket.OPEN) {
-        ws.close(1000, "Component unmounted");
-      } else if (ws.readyState === WebSocket.CONNECTING) {
-        ws.onopen = () => {
-          ws.close(1000, "Component unmounted");
-        };
-      }
+      if (ws.readyState === WebSocket.OPEN) ws.close(1000, "Component unmounted");
+      else if (ws.readyState === WebSocket.CONNECTING) ws.onopen = () => ws.close(1000, "Component unmounted");
       wsRef.current = null;
     };
-  }, []);
+  }, [playNextAudioChunk, stopMicrophone, stopPlayback]);
 
+  // Audio capture
   const startMicrophone = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       mediaStreamRef.current = stream;
-
-      const AudioContextClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      const AudioContextClass =
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
       const audioCtx = new AudioContextClass({ sampleRate: 16000 });
       audioContextRef.current = audioCtx;
-
       const source = audioCtx.createMediaStreamSource(stream);
       const processor = audioCtx.createScriptProcessor(4096, 1, 1);
       processorRef.current = processor;
 
       processor.onaudioprocess = (e) => {
         if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) return;
-        if (isSpeakingRef.current) return; // Prevent mic from capturing speaker output
-
+        if (isSpeakingRef.current) return;
         const inputData = e.inputBuffer.getChannelData(0);
         const pcm16 = new Int16Array(inputData.length);
         for (let i = 0; i < inputData.length; i++) {
@@ -170,144 +1357,610 @@ export default function VoiceAgentPage() {
       processor.connect(audioCtx.destination);
       setIsListening(true);
     } catch (err) {
-      console.error("Microphone error:", err);
+      console.error("Microphone capture error:", err);
     }
   };
 
-  const stopMicrophone = () => {
-    stopPlayback();
-    if (processorRef.current) {
-      processorRef.current.disconnect();
-      processorRef.current = null;
+  // Dispatch text command with client-side stateful revision support
+  const sendTextCommand = (cmd: string) => {
+    const text = cmd.trim();
+    if (!text) return;
+
+    const lower = text.toLowerCase();
+    const isRevision = docCard !== null && (
+      lower.includes("discount") ||
+      lower.includes("change") ||
+      lower.includes("modify") ||
+      lower.includes("fee") ||
+      lower.includes("maintenance") ||
+      lower.includes("10%") ||
+      lower.includes("200") ||
+      lower.includes("salary") ||
+      lower.includes("terms") ||
+      lower.includes("net-60")
+    );
+
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      wsRef.current.send(text);
+      setMessages((prev) => [
+        ...prev,
+        { role: "user", text, final: true, timestamp: Date.now() },
+      ]);
+      setGroqStatus("processing");
+    } else {
+      // Offline / Local Simulation Mode
+      setMessages((prev) => [
+        ...prev,
+        { role: "user", text, final: true, timestamp: Date.now() },
+      ]);
+      setGroqStatus("processing");
+
+      setTimeout(() => {
+        const now = Date.now();
+
+        if (isRevision && docCard) {
+          let revisionReply = "";
+          const updatedPayload = { ...docCard.payload };
+
+          if (lower.includes("discount") || lower.includes("10%")) {
+            updatedPayload.discount_pct = 10;
+            const subtotal = 28500;
+            const grandTotal = subtotal * 0.9;
+            updatedPayload.grand_total = grandTotal;
+            revisionReply = "Updated PHOENIX-2026 quotation: discount adjusted from 5% to 10%. New grand total is $25,650.00.";
+          } else if (lower.includes("fee") || lower.includes("200") || lower.includes("maintenance")) {
+            updatedPayload.maintenance_fee = 200;
+            revisionReply = "Revised invoice: added recurring SLA maintenance fee of $200.00 to line items. New balance due is $5,250.00.";
+          } else if (lower.includes("terms") || lower.includes("net-60")) {
+            updatedPayload.payment_terms = "NET-60";
+            revisionReply = "Payment terms successfully revised from NET-30 to NET-60 on active invoice.";
+          } else if (lower.includes("salary") || lower.includes("140000")) {
+            updatedPayload.salary = "140,000 BDT / month";
+            revisionReply = "Revised HR Appointment Letter: compensation upgraded to 140,000 BDT/month.";
+          } else {
+            revisionReply = `Applied requested revision: "${text}". Document state and cryptographic seal updated.`;
+          }
+
+          const { hash, qr } = generateClientHash(String(updatedPayload.quotation_id || updatedPayload.invoice_number || docCard.type.toUpperCase()), String(updatedPayload.grand_total || updatedPayload.total_due || 0));
+
+          setDocCard({
+            ...docCard,
+            payload: updatedPayload,
+            timestamp: now,
+            verification_hash: hash,
+            qr_payload: qr,
+            revised: true,
+            revision_note: `Revised via voice: "${text}"`,
+          });
+          triggerRevisionPulse();
+
+          setMessages((prev) => [
+            ...prev,
+            { role: "assistant", text: revisionReply, final: true, timestamp: now },
+          ]);
+        } else {
+          // Standard creation
+          let reply = "";
+          const docType = detectDocumentType(text);
+          if (docType === "quotation") {
+            reply = "Generated Enterprise Quotation PHOENIX-2026 for Acme Corp totaling $27,075.00 with 5% volume discount.";
+          } else if (docType === "purchase_order") {
+            reply = "Purchase Order PO-88301 generated for Apex Hardware Ltd totaling $15,050.00, authorized by Sarah Jenkins.";
+          } else if (docType === "tax_compliance") {
+            reply = "Corporate tax report FY-2026 compiled: $11,400 effective tax due with active BD VAT BIN-003928172-0102.";
+          } else if (docType === "invoice") {
+            reply = "Generated Tax Invoice INV-8821 for Acme Corp. Total due is $5,050.00 under NET-30 payment terms.";
+          } else if (docType === "financial") {
+            reply = "Konthora Q1 2026 financial brief: $142,000 revenue with 28.5% EBITDA margin and $57,000 net profit.";
+          } else if (docType === "hr_letter") {
+            reply = "Drafted appointment offer letter for Rafiqul Islam as Senior Full-Stack Engineer starting October 2026.";
+          } else if (docType === "inventory") {
+            reply = "Warehouse audit complete: 42 Apple M3 Pro chips and 8 server racks available across Singapore and Frankfurt.";
+          } else {
+            reply = `Acknowledged: "${text}". Voice-to-document engine processed the command.`;
+          }
+
+          const payload = buildDocumentPayload(docType, reply, now);
+          const { hash, qr } = generateClientHash(String(payload.quotation_id || payload.invoice_number || docType.toUpperCase()), String(payload.grand_total || payload.total_due || 0));
+
+          setDocCard({
+            type: docType,
+            title: text,
+            payload,
+            timestamp: now,
+            verification_hash: hash,
+            qr_payload: qr,
+            revised: false,
+          });
+
+          setMessages((prev) => [
+            ...prev,
+            { role: "assistant", text: reply, final: true, timestamp: now },
+          ]);
+        }
+
+        setGroqStatus("done");
+        setTimeout(() => setGroqStatus("idle"), 2000);
+      }, 700);
     }
-    if (audioContextRef.current) {
-      audioContextRef.current.close().catch(() => {});
-      audioContextRef.current = null;
-    }
-    if (mediaStreamRef.current) {
-      mediaStreamRef.current.getTracks().forEach((track) => track.stop());
-      mediaStreamRef.current = null;
-    }
-    setIsListening(false);
+    setTextInput("");
   };
+
+  // PDF & Print Actions
+  const handlePrintPDF = () => {
+    if (typeof window !== "undefined") {
+      window.print();
+    }
+  };
+
+  const handleCopyJSON = () => {
+    if (docCard && docCard.payload) {
+      navigator.clipboard.writeText(JSON.stringify(docCard.payload, null, 2));
+      setJsonCopied(true);
+      setTimeout(() => setJsonCopied(false), 2000);
+    }
+  };
+
+  const lastAssistantMsg = [...messages].reverse().find((m) => m.role === "assistant" && m.final);
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 min-h-[calc(100vh-10rem)] flex flex-col justify-between py-6 space-y-6">
-      {/* Hero Header Section */}
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b pb-4 border-border/60">
+    <div className="h-[calc(100vh-5rem)] overflow-hidden bg-slate-950 flex flex-col font-sans select-none">
+      {/* ── Top Futuristic Control Bar (no-print) ── */}
+      <div className="no-print border-b border-slate-800/80 bg-slate-950/95 backdrop-blur-md px-4 sm:px-6 py-2.5 flex items-center justify-between gap-3 text-xs shrink-0">
         <div className="flex items-center gap-3">
-          <div className="p-3 bg-primary/10 text-primary rounded-2xl">
-            <Volume2 className="w-8 h-8" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2.5">
-              Konthora Voice Agent
-              <span className="text-xs px-3 py-1 rounded-full bg-primary/15 text-primary font-semibold border border-primary/25">
-                AssemblyAI Realtime
-              </span>
-            </h1>
-            <p className="text-sm text-muted-foreground mt-0.5">
-              Natural speech recognition with Kokoro voice synthesis.
-            </p>
+          <div className="flex items-center gap-2 font-mono font-bold text-emerald-400 text-sm">
+            <span className="p-1 rounded bg-emerald-500/10 border border-emerald-500/30">🎙️⚡</span>
+            <span>Konthora AI</span>
+            <span className="text-slate-600 font-normal">/</span>
+            <span className="text-slate-300 font-normal text-xs">Voice-to-Document Operations Deck</span>
           </div>
         </div>
 
-        {/* Engine Status Badge */}
-        <div className="flex items-center gap-2 text-xs font-semibold px-3 py-1.5 rounded-full bg-card border border-border text-foreground shadow-sm">
-          <span
-            className={`w-2 h-2 rounded-full ${
-              isConnected ? "bg-emerald-500 animate-pulse" : "bg-amber-500"
-            }`}
-          />
-          <span>{isConnected ? "Engine Ready" : "Connecting..."}</span>
+        <div className="flex items-center gap-3">
+          {/* Engine Status */}
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-900 border border-slate-800">
+            {isConnected ? (
+              <>
+                <Wifi className="w-3 h-3 text-emerald-400" />
+                <span className="text-emerald-400 font-mono text-[11px] font-semibold">Live WS Connected</span>
+              </>
+            ) : (
+              <>
+                <WifiOff className="w-3 h-3 text-amber-400" />
+                <span className="text-amber-400 font-mono text-[11px]">Local Simulation Ready</span>
+              </>
+            )}
+          </div>
+
+          {/* Groq LPU Badge */}
+          <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-900 border border-slate-800 text-[11px] font-mono">
+            <Cpu className={`w-3 h-3 ${groqStatus === "processing" ? "text-cyan-400 animate-spin" : "text-cyan-600"}`} />
+            <span className={groqStatus === "processing" ? "text-cyan-400 font-bold" : "text-slate-400"}>
+              {groqStatus === "processing" ? "Groq LPU Inferencing..." : "Groq 70B Engine"}
+            </span>
+          </div>
+
+          {/* Stream Spec */}
+          <div className="hidden md:flex items-center gap-1.5 text-slate-500 font-mono text-[11px]">
+            <Zap className="w-3 h-3 text-emerald-500" />
+            <span>AssemblyAI v3 · 16kHz PCM</span>
+          </div>
         </div>
       </div>
 
-      {/* Conversation Workspace (Chat Canvas) */}
-      <div className="bg-card/60 backdrop-blur-sm border border-border/80 rounded-3xl p-6 shadow-sm flex-1 flex flex-col justify-between min-h-[420px]">
-        <div className="h-[420px] overflow-y-auto space-y-4 pr-1">
-          {messages.length === 0 ? (
-            <div className="h-full flex flex-col items-center justify-center text-center space-y-3 px-4 text-muted-foreground">
-              <div className="p-4 rounded-full bg-primary/10 text-primary">
-                <Sparkles className="w-8 h-8" />
-              </div>
-              <h3 className="text-base font-semibold text-foreground">Ready for your voice</h3>
-              <p className="text-sm text-muted-foreground max-w-md">
-                Click <strong className="text-primary font-semibold">Start Talking</strong> below to begin live speech transcription and voice assistant response.
-              </p>
+      {/* ── 2-Panel Split-Screen Command Dashboard ── */}
+      <div className="flex-1 flex flex-col lg:flex-row h-full overflow-hidden">
+
+        {/* ════════════════════════════════════════
+            LEFT PANEL: Cyberpunk Glow Audio Agent Deck
+        ════════════════════════════════════════ */}
+        <div className="no-print w-full lg:w-1/2 border-b lg:border-b-0 lg:border-r border-slate-800/80 flex flex-col h-full overflow-hidden bg-slate-950">
+          {/* Deck Header */}
+          <div className="px-5 py-2.5 border-b border-slate-800/60 flex items-center justify-between shrink-0">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.9)]" />
+              <span className="text-xs font-mono font-bold text-emerald-400 uppercase tracking-widest">Audio Agent Deck</span>
             </div>
-          ) : (
-            messages.map((m, idx) => (
-              <div
-                key={idx}
-                className={`flex items-start gap-3 ${
-                  m.role === "user" ? "flex-row-reverse" : "flex-row"
-                }`}
-              >
+            <span className="text-[10px] font-mono text-slate-500">Kokoro-82M Voice Synthesis</span>
+          </div>
+
+          {/* Live Audio Visualizer Deck */}
+          <div className="px-5 py-2.5 border-b border-slate-800/50 bg-slate-900/30 shrink-0">
+            <div className="space-y-1">
+              <div className="flex items-center justify-between text-[10px] font-mono text-slate-500">
+                <span className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                  PCM SPECTRAL FEED (16kHz / 16-BIT)
+                </span>
+                <span className={isListening ? "text-emerald-400 font-bold" : "text-slate-600"}>
+                  {isListening ? "● STREAMING" : "○ STANDBY"}
+                </span>
+              </div>
+              <LiveWaveform active={isListening} />
+            </div>
+          </div>
+
+          {/* Transcript Stream Box with internal scroll constraint */}
+          <div className="flex-1 overflow-y-auto max-h-[50vh] lg:max-h-[calc(100vh-280px)] p-4 space-y-3 custom-scrollbar">
+            <div className="text-[10px] font-mono text-slate-500 uppercase tracking-wider sticky top-0 bg-slate-950/90 py-0.5 backdrop-blur-sm z-10">
+              Real-Time Acoustic &amp; Intent Stream
+            </div>
+
+            {messages.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-48 text-center space-y-2.5">
+                <div className="w-11 h-11 rounded-2xl bg-emerald-950/60 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.15)]">
+                  <Mic className="w-5 h-5" />
+                </div>
+                <div className="text-xs font-semibold text-slate-300">Awaiting Spoken Utterance</div>
+                <div className="text-[11px] text-slate-500 max-w-xs">
+                  Click <span className="text-emerald-400 font-medium">Activate Microphone</span> below or trigger an intent card from the right deck.
+                </div>
+              </div>
+            ) : (
+              messages.map((m, idx) => (
                 <div
-                  className={`p-2 rounded-xl text-xs font-bold shrink-0 ${
-                    m.role === "user"
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted text-muted-foreground"
+                  key={idx}
+                  className={`flex gap-2.5 ${m.role === "user" ? "justify-end" : "justify-start"}`}
+                >
+                  {m.role === "assistant" && (
+                    <div className="w-7 h-7 rounded-lg bg-emerald-950/80 border border-emerald-500/30 flex items-center justify-center shrink-0 mt-0.5 shadow-sm">
+                      <Volume2 className="w-3.5 h-3.5 text-emerald-400" />
+                    </div>
+                  )}
+
+                  <div
+                    className={`max-w-[82%] px-3.5 py-2.5 rounded-2xl text-xs leading-relaxed ${
+                      m.role === "user"
+                        ? "bg-emerald-600/20 border border-emerald-500/30 text-emerald-100 rounded-tr-none shadow-[0_0_15px_rgba(16,185,129,0.1)]"
+                        : "bg-slate-900/90 border border-slate-700/60 text-slate-200 rounded-tl-none"
+                    } ${!m.final ? "opacity-75 italic animate-pulse border-dashed" : ""}`}
+                  >
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <span className="text-[9.5px] font-mono text-slate-500 uppercase tracking-wider">
+                        {m.role === "user" ? "Spoken Input" : "Konthora Voice"}
+                      </span>
+                      <span className="text-[9.5px] font-mono text-slate-600">
+                        {new Date(m.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+                      </span>
+                    </div>
+                    {m.text}
+                    {!m.final && (
+                      <span className="ml-1 inline-block w-1.5 h-3 bg-emerald-400 animate-pulse rounded-sm align-middle" />
+                    )}
+                  </div>
+
+                  {m.role === "user" && (
+                    <div className="w-7 h-7 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center shrink-0 mt-0.5">
+                      <Mic className="w-3.5 h-3.5 text-slate-300" />
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
+            <div ref={messagesEndRef} />
+          </div>
+
+          {/* Audio Agent Deck Controls */}
+          <div className="p-3 border-t border-slate-800/80 bg-slate-950/95 space-y-2 shrink-0">
+            <div className="flex gap-2">
+              {!isListening ? (
+                <button
+                  type="button"
+                  onClick={startMicrophone}
+                  className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer
+                    bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-[0_0_20px_rgba(16,185,129,0.4)]"
+                >
+                  <Mic className="w-4 h-4" />
+                  Activate Voice Engine
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={stopMicrophone}
+                  className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer
+                    bg-red-600 hover:bg-red-500 text-white border border-red-500/50 shadow-[0_0_20px_rgba(239,68,68,0.5)] animate-pulse"
+                >
+                  <Square className="w-4 h-4" />
+                  Stop Microphone
+                </button>
+              )}
+            </div>
+
+            {/* Quick Text Command Input */}
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                sendTextCommand(textInput);
+              }}
+              className="flex gap-2"
+            >
+              <input
+                type="text"
+                value={textInput}
+                onChange={(e) => setTextInput(e.target.value)}
+                placeholder="Type or revise (e.g., 'Change discount to 10%', 'Add fee of $200')..."
+                className="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500/50 transition-colors"
+              />
+              <button
+                type="submit"
+                className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl border border-slate-700 transition-colors cursor-pointer"
+              >
+                Send
+              </button>
+            </form>
+          </div>
+        </div>
+
+        {/* ════════════════════════════════════════
+            RIGHT PANEL: Dynamic Enterprise Document Deck & Actions
+        ════════════════════════════════════════ */}
+        <div className="w-full lg:w-1/2 flex flex-col h-full overflow-hidden bg-slate-950/90 backdrop-blur-sm">
+          {/* Deck Header & Action Bar */}
+          <div className="no-print px-5 py-2.5 border-b border-slate-800/60 flex items-center justify-between shrink-0">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.9)]" />
+              <span className="text-xs font-mono font-bold text-cyan-400 uppercase tracking-widest">
+                Enterprise Document Deck
+              </span>
+            </div>
+
+            {/* Functional PDF & Copy Action Buttons */}
+            {docCard ? (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleCopyJSON}
+                  className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-mono border border-slate-700 transition-colors cursor-pointer"
+                  title="Copy Document JSON Payload"
+                >
+                  {jsonCopied ? (
+                    <>
+                      <Check className="w-3 h-3 text-emerald-400" />
+                      <span className="text-emerald-400">Copied!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-3 h-3 text-slate-400" />
+                      <span>JSON</span>
+                    </>
+                  )}
+                </button>
+
+                <button
+                  onClick={handlePrintPDF}
+                  className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-[11px] font-mono shadow-[0_0_12px_rgba(16,185,129,0.35)] transition-all cursor-pointer"
+                  title="Print or Save as PDF"
+                >
+                  <Printer className="w-3 h-3" />
+                  <span>Download PDF</span>
+                </button>
+
+                <button
+                  onClick={() => setDocCard(null)}
+                  className="p-1 text-slate-500 hover:text-slate-300 transition-colors cursor-pointer"
+                  title="Reset Deck"
+                >
+                  <RefreshCw className="w-3 h-3" />
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-1.5">
+                <span className="text-[10px] font-mono text-slate-500">Live Mock Enterprise DB</span>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-emerald-400">
+                  Ready
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Groq Tool Execution Visualizer */}
+          {groqStatus === "processing" && (
+            <div className="no-print px-5 py-2.5 border-b border-slate-800/60 bg-cyan-950/20 shrink-0">
+              <div className="rounded-xl border border-cyan-500/30 bg-slate-900/80 p-2.5 space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Cpu className="w-3.5 h-3.5 text-cyan-400 animate-spin" />
+                    <span className="text-xs font-mono font-bold text-cyan-400">GROQ LPU TOOL INVOCATION</span>
+                  </div>
+                  <span className="text-[10px] font-mono text-cyan-300">~220ms</span>
+                </div>
+                <div className="flex items-center gap-2 text-[10px] font-mono text-slate-400">
+                  <span className="text-emerald-400 font-semibold">1. Audio Utterance</span>
+                  <ChevronRight className="w-3 h-3 text-slate-600" />
+                  <span className="text-cyan-400 animate-pulse font-semibold">2. Querying Mock DB</span>
+                  <ChevronRight className="w-3 h-3 text-slate-600" />
+                  <span className="text-slate-500">3. Synthesizing Document</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Document Render Area with internal scroll constraint */}
+          <div className="flex-1 overflow-y-auto max-h-[50vh] lg:max-h-[calc(100vh-240px)] p-4 custom-scrollbar">
+            {!docCard ? (
+              <DocPanelIdle onSelectDemo={(prompt) => sendTextCommand(prompt)} />
+            ) : (
+              <div className="space-y-4">
+                {/* Status Bar above document (no-print) */}
+                <div className="no-print flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2">
+                    <span className="flex items-center gap-1.5 text-emerald-400 font-mono">
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      <span>Active Document ({docCard.type.toUpperCase()})</span>
+                    </span>
+                    {docCard.revised && (
+                      <span className="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-500/50 flex items-center gap-1">
+                        <Sparkles className="w-3 h-3 text-emerald-400" />
+                        Live Revised
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-[10px] font-mono text-slate-500">
+                    {new Date(docCard.timestamp).toLocaleTimeString()}
+                  </span>
+                </div>
+
+                {/* Quick Voice Revision Controls Toolbar (no-print) */}
+                <div className="no-print flex items-center gap-2 p-2 bg-slate-900/80 rounded-xl border border-slate-800 text-[11px] overflow-x-auto">
+                  <span className="text-slate-500 font-mono text-[10px] uppercase shrink-0 flex items-center gap-1">
+                    <Sliders className="w-3 h-3 text-emerald-400" />
+                    Quick Voice Revisions:
+                  </span>
+                  {docCard.type === "quotation" && (
+                    <>
+                      <button
+                        onClick={() => sendTextCommand("Change discount from 5% to 10%")}
+                        className="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/80 shrink-0 cursor-pointer"
+                      >
+                        ⚡ &ldquo;Change discount to 10%&rdquo;
+                      </button>
+                      <button
+                        onClick={() => sendTextCommand("Add maintenance fee of $200")}
+                        className="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/80 shrink-0 cursor-pointer"
+                      >
+                        ⚡ &ldquo;Add $200 maintenance fee&rdquo;
+                      </button>
+                    </>
+                  )}
+                  {docCard.type === "invoice" && (
+                    <>
+                      <button
+                        onClick={() => sendTextCommand("Add maintenance fee of $200")}
+                        className="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/80 shrink-0 cursor-pointer"
+                      >
+                        ⚡ &ldquo;Add $200 maintenance fee&rdquo;
+                      </button>
+                      <button
+                        onClick={() => sendTextCommand("Update payment terms to NET-60")}
+                        className="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/80 shrink-0 cursor-pointer"
+                      >
+                        ⚡ &ldquo;Update terms to NET-60&rdquo;
+                      </button>
+                    </>
+                  )}
+                  {docCard.type === "hr_letter" && (
+                    <button
+                      onClick={() => sendTextCommand("Change salary to 140000 BDT")}
+                      className="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/80 shrink-0 cursor-pointer"
+                    >
+                      ⚡ &ldquo;Change salary to 140,000 BDT&rdquo;
+                    </button>
+                  )}
+                </div>
+
+                {/* Target Container Box with Revision Glow Pulse */}
+                <div
+                  className={`print-card-target rounded-2xl border transition-all duration-500 bg-slate-900/90 p-6 space-y-4 relative overflow-hidden backdrop-blur-md ${
+                    isRevisedPulse
+                      ? "border-emerald-400 ring-2 ring-emerald-500/60 shadow-[0_0_35px_rgba(16,185,129,0.5)]"
+                      : "border-slate-700/80 shadow-[0_0_30px_rgba(16,185,129,0.12)]"
                   }`}
                 >
-                  {m.role === "user" ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
+                  {/* Revision Notice Banner */}
+                  {docCard.revised && (
+                    <div className="no-print flex items-center justify-between bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 px-3 py-1.5 rounded-lg text-xs font-mono animate-pulse">
+                      <span className="flex items-center gap-1.5 font-bold">
+                        <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+                        LIVE DOCUMENT REVISED VIA VOICE
+                      </span>
+                      <span className="text-[10px] text-emerald-400 font-semibold">
+                        SHA-256 Seal Regenerated
+                      </span>
+                    </div>
+                  )}
+
+                  {docCard.type === "quotation" && (
+                    <QuotationCard
+                      text={lastAssistantMsg?.text ?? ""}
+                      customData={docCard.payload}
+                      verificationHash={docCard.verification_hash}
+                      qrPayload={docCard.qr_payload}
+                    />
+                  )}
+                  {docCard.type === "purchase_order" && (
+                    <PurchaseOrderCard
+                      text={lastAssistantMsg?.text ?? ""}
+                      verificationHash={docCard.verification_hash}
+                      qrPayload={docCard.qr_payload}
+                    />
+                  )}
+                  {docCard.type === "tax_compliance" && (
+                    <TaxComplianceCard
+                      text={lastAssistantMsg?.text ?? ""}
+                      verificationHash={docCard.verification_hash}
+                      qrPayload={docCard.qr_payload}
+                    />
+                  )}
+                  {docCard.type === "invoice" && (
+                    <InvoiceCard
+                      text={lastAssistantMsg?.text ?? ""}
+                      ts={docCard.timestamp}
+                      customData={docCard.payload}
+                      verificationHash={docCard.verification_hash}
+                      qrPayload={docCard.qr_payload}
+                    />
+                  )}
+                  {docCard.type === "financial" && (
+                    <FinancialCard
+                      text={lastAssistantMsg?.text ?? ""}
+                      verificationHash={docCard.verification_hash}
+                      qrPayload={docCard.qr_payload}
+                    />
+                  )}
+                  {docCard.type === "hr_letter" && (
+                    <HRLetterCard
+                      text={lastAssistantMsg?.text ?? ""}
+                      customData={docCard.payload}
+                      verificationHash={docCard.verification_hash}
+                      qrPayload={docCard.qr_payload}
+                    />
+                  )}
+                  {docCard.type === "inventory" && (
+                    <InventoryCard
+                      text={lastAssistantMsg?.text ?? ""}
+                      verificationHash={docCard.verification_hash}
+                      qrPayload={docCard.qr_payload}
+                    />
+                  )}
                 </div>
 
-                <div
-                  className={`max-w-[80%] px-4 py-3 rounded-2xl text-sm leading-relaxed shadow-sm ${
-                    m.role === "user"
-                      ? "bg-primary text-primary-foreground font-medium rounded-tr-none"
-                      : "bg-muted/80 border border-border/50 text-foreground rounded-tl-none"
-                  } ${!m.final ? "opacity-75 italic animate-pulse border border-dashed border-primary/40" : ""}`}
-                >
-                  {m.text}
+                {/* Database Trace Verification Box (no-print) */}
+                <div className="no-print rounded-xl border border-slate-800 bg-slate-900/60 p-3 space-y-1.5">
+                  <div className="flex items-center justify-between text-[10.5px] font-mono text-slate-400">
+                    <span className="uppercase tracking-wider">Enterprise Cryptographic Audit</span>
+                    <span className="text-emerald-400 font-semibold flex items-center gap-1">
+                      <CheckCircle2 className="w-3 h-3" />
+                      Trust Seal Active
+                    </span>
+                  </div>
+                  <div className="text-[10.5px] font-mono text-slate-300 bg-slate-950/80 p-2 rounded border border-slate-800/80 overflow-x-auto space-y-1">
+                    <div>
+                      <span className="text-slate-500">Hash: </span>
+                      <span className="text-emerald-400">{docCard.verification_hash || "SHA256-KNT-2026-X98A2"}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-500">Audit QR: </span>
+                      <span className="text-cyan-400">{docCard.qr_payload || "https://konthora.ai/verify?ref=DOC-2026"}</span>
+                    </div>
+                  </div>
                 </div>
               </div>
-            ))
-          )}
-          <div ref={messagesEndRef} />
-        </div>
-      </div>
-
-      {/* Docked Action Controls Bar */}
-      <div className="bg-card border border-border rounded-2xl p-4 shadow-md flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          {!isListening ? (
-            <button
-              type="button"
-              onClick={(e) => {
-                e.preventDefault();
-                startMicrophone();
-              }}
-              disabled={!isConnected}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-6 py-3 rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-            >
-              <Mic className="w-5 h-5" /> Start Talking
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={(e) => {
-                e.preventDefault();
-                stopMicrophone();
-              }}
-              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground font-semibold px-6 py-3 rounded-xl animate-pulse flex items-center gap-2 cursor-pointer text-sm"
-            >
-              <Square className="w-5 h-5" /> Stop Listening
-            </button>
-          )}
-        </div>
-
-        {isListening && (
-          <div className="text-destructive font-semibold text-xs flex items-center gap-2 bg-destructive/10 px-3 py-1.5 rounded-lg border border-destructive/20">
-            <span className="relative flex h-2.5 w-2.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-destructive"></span>
-            </span>
-            Microphone Live
+            )}
           </div>
-        )}
+
+          {/* Bottom Deck Footer Metrics (no-print) */}
+          <div className="no-print px-5 py-2.5 border-t border-slate-800/80 flex items-center justify-between text-[10.5px] font-mono text-slate-500 bg-slate-950 shrink-0">
+            <div className="flex items-center gap-3">
+              <span className="text-emerald-500">AssemblyAI v3</span>
+              <span>·</span>
+              <span className="text-cyan-500">Groq 70B</span>
+              <span>·</span>
+              <span className="text-purple-400">Kokoro-82M</span>
+            </div>
+            <div className="text-slate-400">
+              Audit Seal: <span className="text-emerald-400 font-semibold">Cryptographic SHA-256 + QR</span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

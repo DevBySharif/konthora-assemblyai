@@ -2,99 +2,63 @@ import React from 'react';
 import { Metadata } from 'next';
 import { constructMetadata } from '@/lib/metadata';
 import { constructSoftwareAppSchema } from '@/lib/schema';
-import { Container } from '@/components/ui/Container';
-import { FAQ, FAQItem } from '@/components/ui/FAQ';
 import { JsonLd } from '@/components/JsonLd';
 import { siteConfig } from '@/config/site';
 import { Hero } from '@/components/home/Hero';
-import { Trusted } from '@/components/home/Trusted';
-import { TextToSpeech } from '@/components/home/TextToSpeech';
-import { AudioTranscription } from '@/components/home/AudioTranscription';
-import { WhyKonthora } from '@/components/home/WhyKonthora';
-import { FeatureGrid } from '@/components/home/FeatureGrid';
-import { Workflow } from '@/components/home/Workflow';
-import { SupportedLanguages } from '@/components/home/SupportedLanguages';
-import { ProductFacts } from '@/components/home/ProductFacts';
-import { FinalCTA } from '@/components/home/FinalCTA';
+import { CapabilityCards } from '@/components/home/CapabilityCards';
+import { PipelineVisualizer } from '@/components/home/PipelineVisualizer';
+import { VoiceSimulator } from '@/components/home/VoiceSimulator';
+import { MultilingualSection } from '@/components/home/MultilingualSection';
+import { VoiceDocFAQ } from '@/components/home/VoiceDocFAQ';
+import { voiceDocFaqs } from '@/config/voiceDocFaqs';
+import { VoiceFinalCTA } from '@/components/home/VoiceFinalCTA';
 
 export const metadata: Metadata = constructMetadata({
-  title: 'Free AI Text to Speech Online | Kokoro TTS Studio',
+  title: 'Konthora — Real-Time Voice-to-Document Enterprise Engine',
   description:
-    'Free AI text to speech generator powered by Kokoro neural voice studio. Convert text into natural speech with 41 AI voices in 6 languages, with MP3 and WAV export.',
+    'Built for the AssemblyAI Hackathon. The fastest multilingual voice assistant for dynamic document generation and enterprise operations.',
   path: '/',
 });
-
-const homeFaqs: FAQItem[] = [
-  {
-    question: 'Is Konthora free to use?',
-    answer:
-      'Yes, Konthora is currently free to use. You can generate speech and transcribe audio directly from your browser without creating an account.',
-  },
-  {
-    question: 'Which audio formats are supported?',
-    answer:
-      'For text-to-speech, you can download audio in MP3 and WAV formats. For transcription, you can upload MP3, WAV, M4A, AAC, MP4, WebM, and MOV files.',
-  },
-  {
-    question: 'Can transcripts include timestamps?',
-    answer:
-      'Yes. You can choose between sentence-level, paragraph-level, or precise word-level timestamps to sync text with your audio.',
-  },
-  {
-    question: 'Can generated speech be downloaded?',
-    answer:
-      'Yes. You can generate and download high-quality speech files directly in MP3 or WAV format from the Text to Speech workspace.',
-  },
-  {
-    question: 'Are uploaded files stored permanently?',
-    answer:
-      'No. Uploaded texts are processed strictly in-memory and immediately wiped once synthesis completes. Uploaded media files and transcripts are automatically deleted after 60 minutes.',
-  },
-  {
-    question: 'Does it work on mobile devices?',
-    answer:
-      'Yes. Konthora is designed with a mobile-first responsive layout, allowing you to use all tools, configure settings, and manage workspaces on smartphones and tablets.',
-  },
-];
 
 export default function HomePage() {
   const organizationSchema = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
-    name: siteConfig.name,
+    name: 'Konthora AI',
     url: siteConfig.url,
     logo: `${siteConfig.url}/icon.png`,
     contactPoint: {
       '@type': 'ContactPoint',
       email: siteConfig.contactEmail,
       contactType: 'customer support',
-      availableLanguage: 'English',
+      availableLanguage: ['English', 'Bengali'],
     },
   };
 
   const websiteSchema = {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
-    name: siteConfig.name,
+    name: 'Konthora AI',
     url: siteConfig.url,
-    description: siteConfig.description,
+    description:
+      'Built for the AssemblyAI Hackathon. The fastest multilingual voice assistant for dynamic document generation and enterprise operations.',
     publisher: {
       '@type': 'Organization',
-      name: siteConfig.name,
+      name: 'Konthora AI',
       url: siteConfig.url,
       logo: `${siteConfig.url}/icon.png`,
     },
   };
 
   const webAppSchema = constructSoftwareAppSchema({
-    name: `${siteConfig.name} AI Audio Tools`,
+    name: 'Konthora Voice-to-Document Production Engine',
     url: siteConfig.url,
   });
 
   const faqSchema = {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
-    mainEntity: homeFaqs.map((f) => ({
+    mainEntity: voiceDocFaqs.map((f) => ({
       '@type': 'Question',
       name: f.question,
       acceptedAnswer: {
@@ -105,38 +69,33 @@ export default function HomePage() {
   };
 
   return (
-    <>
+    <div className="bg-slate-950 text-slate-100 min-h-screen">
       <JsonLd schema={organizationSchema} />
       <JsonLd schema={websiteSchema} />
       <JsonLd schema={webAppSchema} />
       <JsonLd schema={faqSchema} />
 
+      {/* 1. Hero Section */}
       <Hero />
-        <Trusted />
-        <TextToSpeech />
-        <AudioTranscription />
-        <WhyKonthora />
-        <FeatureGrid />
-        <Workflow />
-        <SupportedLanguages />
-        <ProductFacts />
 
-        {/* FAQ Section */}
-        <section className="relative overflow-hidden" aria-labelledby="faq-heading">
-          <Container className="py-20 md:py-28">
-            <div className="text-center mb-12">
-              <h2 id="faq-heading" className="text-3xl font-bold tracking-tight text-foreground">
-                Frequently Asked Questions
-              </h2>
-              <p className="mt-4 text-muted-foreground">
-                Have questions about Konthora? Find quick answers below.
-              </p>
-            </div>
-            <FAQ items={homeFaqs} />
-          </Container>
-        </section>
+      {/* 2. Core Capability Cards */}
+      <CapabilityCards />
 
-        <FinalCTA />
-    </>
+      {/* 3. Real-Time Pipeline Visualizer */}
+      <PipelineVisualizer />
+
+      {/* 4. Interactive Simulation Bench */}
+      <VoiceSimulator />
+
+      {/* 5. Multilingual & Banglish Code-Switching */}
+      <MultilingualSection />
+
+      {/* 6. FAQ Section */}
+      <VoiceDocFAQ />
+
+      {/* 7. Final Action Callout */}
+      <VoiceFinalCTA />
+    </div>
   );
 }
+

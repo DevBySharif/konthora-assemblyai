@@ -3,180 +3,236 @@
 import React from 'react';
 import Link from 'next/link';
 import { motion, useReducedMotion } from 'framer-motion';
-import { ArrowRight, Sparkles, Play, Mic2, AudioLines } from 'lucide-react';
+import {
+  Mic,
+  ArrowRight,
+  FileText,
+  Volume2,
+  Download,
+  Printer,
+} from 'lucide-react';
 import { Container } from '@/components/ui/Container';
-import { siteConfig } from '@/config/site';
 
 export function Hero() {
   const reduce = useReducedMotion();
 
-  const container = {
-    hidden: {},
-    show: { transition: { staggerChildren: reduce ? 0 : 0.09, delayChildren: 0.05 } },
-  };
-
-  const item = (offset: number) => ({
-    hidden: { opacity: 0, y: reduce ? 0 : 22 },
-    show: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.65, ease: [0.22, 1, 0.36, 1] as const, delay: offset },
-    },
-  });
-
   return (
-    <section className="relative overflow-hidden" aria-labelledby="hero-heading">
-      {/* Ambient background */}
-      <div className="absolute inset-0 bg-radial-faint" aria-hidden="true" />
-      <div className="orb top-[-12rem] left-[-8rem] h-[26rem] w-[26rem] bg-primary/20 dark:bg-primary/15" aria-hidden="true" />
-      <div className="orb top-[-6rem] right-[-10rem] h-[28rem] w-[28rem] bg-primary-soft/15 dark:bg-primary-soft/10" aria-hidden="true" />
-      <div
-        className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-background to-transparent"
-        aria-hidden="true"
-      />
+    <section className="relative overflow-hidden bg-slate-950 text-slate-100 pt-10 pb-20 md:pt-16 md:pb-28 border-b border-slate-800/80">
+      {/* Background ambient lighting */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(16,185,129,0.18),rgba(255,255,255,0))]" />
+      <div className="absolute -top-40 -left-40 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-1/3 -right-40 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
 
-      <Container className="relative py-20 md:py-28 lg:py-32">
-        <div className="grid items-center gap-14 lg:grid-cols-[1.05fr_0.95fr] lg:gap-10">
-          {/* Copy */}
-          <motion.div
-            variants={container}
-            initial="hidden"
-            animate="show"
-            className="text-center lg:text-left"
-          >
-            <motion.div variants={item(0)}>
-              <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3.5 py-1.5 text-xs font-semibold text-primary dark:border-primary/30 dark:bg-primary/10 dark:text-primary-soft">
-                <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
-                AI Voice & Transcription Studio
+      <Container className="relative">
+        <div className="grid items-center gap-12 lg:grid-cols-12 lg:gap-8">
+          {/* Left Column: Copy & Actions */}
+          <div className="text-center lg:text-left lg:col-span-7">
+            {/* Hackathon Badge */}
+            <motion.div
+              initial={reduce ? false : { opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-950/60 px-3.5 py-1.5 text-xs font-semibold text-emerald-300 backdrop-blur shadow-sm shadow-emerald-950"
+            >
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
               </span>
+              <span>AssemblyAI Voice Agent Hackathon 2026</span>
+              <span className="text-emerald-500/50">|</span>
+              <span className="font-mono text-emerald-400">AssemblyAI v3 + Groq + Kokoro</span>
             </motion.div>
 
+            {/* Main Headline */}
             <motion.h1
-              id="hero-heading"
-              variants={item(0.05)}
-              className="mt-6 text-4xl font-extrabold leading-[1.08] tracking-tight text-foreground sm:text-5xl md:text-6xl"
+              initial={reduce ? false : { opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+              className="mt-6 text-4xl font-extrabold tracking-tight sm:text-5xl lg:text-6xl text-white leading-[1.12]"
             >
-              Natural speech.{' '}
-              <span className="text-gradient">Precise transcripts.</span>{' '}
-              In your browser.
+              Transform Speech into{' '}
+              <span className="bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 bg-clip-text text-transparent">
+                Production-Ready Enterprise Documents
+              </span>{' '}
+              in Sub-Seconds
             </motion.h1>
 
+            {/* Sub-headline */}
             <motion.p
-              variants={item(0.1)}
-              className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground lg:mx-0"
+              initial={reduce ? false : { opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="mt-6 text-lg sm:text-xl text-slate-300 leading-relaxed max-w-2xl mx-auto lg:mx-0"
             >
-              Turn written text into lifelike voiceovers or convert audio and video
-              into timestamped transcripts — fast, private, and free to use, right
-              from a clean browser-based workspace.
+              Speak in English, Bangla, or Banglish. Konthora listens via AssemblyAI v3, reasons via Groq, executes structured tool calls, and generates live downloadable Invoices, Reports, and Contracts with instant local Kokoro voice feedback.
             </motion.p>
 
+            {/* CTA Buttons */}
             <motion.div
-              variants={item(0.15)}
-              className="mt-9 flex flex-wrap items-center gap-3 sm:justify-center lg:justify-start"
+              initial={reduce ? false : { opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+              className="mt-8 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4"
             >
-              {/* Button 1: Generate Speech (Primary Solid Green) */}
-              <Link
-                href={siteConfig.links.textToSpeech}
-                className="group inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#00c882] hover:bg-[#00e092] text-slate-950 font-semibold px-6 text-base transition-all shadow-md shadow-[#00c882]/20 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2"
-              >
-                <AudioLines className="h-5 w-5" aria-hidden="true" />
-                Generate Speech
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
-              </Link>
-
-              {/* Button 2: Transcribe Audio (Document/STT Icon) */}
-              <Link
-                href={siteConfig.links.audioToText}
-                className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#0d1f1a]/80 border border-[#1b3d33] hover:border-[#00c882] text-slate-100 font-medium px-6 text-base backdrop-blur transition-all hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2"
-              >
-                <svg className="w-5 h-5 text-[#00c882]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h4m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                Transcribe Audio
-              </Link>
-
-              {/* Button 3: AI Voice Agent (Microphone/Agent Icon) */}
+              {/* Primary Action Button */}
               <Link
                 href="/voice-agent"
-                className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#0d1f1a]/80 border border-[#1b3d33] hover:border-[#00c882] text-slate-100 font-medium px-6 text-base backdrop-blur transition-all hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2"
+                className="group relative inline-flex h-13 w-full sm:w-auto items-center justify-center gap-2.5 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-400 px-7 text-base font-bold text-slate-950 shadow-[0_0_28px_rgba(16,185,129,0.4)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_0_36px_rgba(16,185,129,0.7)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
               >
-                <svg className="w-5 h-5 text-[#00c882]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-                </svg>
-                AI Voice Agent
+                <Mic className="h-5 w-5 text-slate-950" />
+                <span>Launch Voice Production Engine</span>
+                <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
               </Link>
+
+              {/* Secondary Button */}
+              <a
+                href="#architecture"
+                className="inline-flex h-13 w-full sm:w-auto items-center justify-center gap-2 rounded-xl border border-slate-700 bg-slate-900/80 px-6 text-base font-semibold text-slate-200 backdrop-blur transition-all duration-200 hover:border-emerald-500/50 hover:bg-slate-800 hover:text-white"
+              >
+                <span>View Architecture & Docs</span>
+              </a>
             </motion.div>
 
-            <motion.p
-              variants={item(0.2)}
-              className="mt-6 text-xs font-semibold uppercase tracking-widest text-muted-foreground"
+            {/* Quick Metrics */}
+            <motion.div
+              initial={reduce ? false : { opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              className="mt-10 grid grid-cols-3 gap-4 border-t border-slate-800/80 pt-6 text-left"
             >
-              {siteConfig.tagline}
-            </motion.p>
-          </motion.div>
+              <div>
+                <p className="text-2xl font-bold text-emerald-400 font-mono">&lt; 850ms</p>
+                <p className="text-xs text-slate-400">Total Loop Latency</p>
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-teal-400 font-mono">16kHz PCM</p>
+                <p className="text-xs text-slate-400">Full-Duplex Stream</p>
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-cyan-400 font-mono">0 Egress</p>
+                <p className="text-xs text-slate-400">Local Kokoro Synthesis</p>
+              </div>
+            </motion.div>
+          </div>
 
-          {/* Interactive visualization */}
-          <motion.div
-            initial={reduce ? false : { opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-            className="relative"
-            aria-hidden="true"
-          >
-            <div className="relative mx-auto max-w-md">
-              {/* Glow */}
-              <div className="absolute inset-0 -z-10 translate-y-4 rounded-[2rem] bg-gradient-to-tr from-brand-from/20 via-brand-via/10 to-brand-to/20 blur-2xl" />
-
-              {/* Glass card */}
-              <div className="glass rounded-[1.75rem] p-6 shadow-glow">
-                {/* Fake waveform */}
-                <div className="flex items-end justify-between gap-1.5 h-24">
-                  {[10, 22, 14, 34, 18, 48, 26, 62, 40, 76, 50, 84, 46, 66, 34, 52, 24, 40, 18, 30, 12, 20, 8].map((h, i) => (
-                    <motion.span
-                      key={i}
-                      className="w-full rounded-full bg-gradient-to-t from-brand-from to-brand-to"
-                      style={{ height: reduce ? `${h}%` : undefined }}
-                      animate={reduce ? undefined : { height: [`${h}%`, `${Math.max(10, h - (i % 5) * 7)}%`, `${h}%`] }}
-                      transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut', delay: i * 0.06 }}
-                    />
-                  ))}
+          {/* Right Column: Live Interactive Visualizer Preview */}
+          <div className="lg:col-span-5">
+            <motion.div
+              initial={reduce ? false : { opacity: 0, scale: 0.96 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.7, delay: 0.2 }}
+              className="relative rounded-2xl border border-slate-800 bg-slate-900/90 p-5 shadow-2xl backdrop-blur-xl ring-1 ring-white/10"
+            >
+              {/* Window Bar */}
+              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                <div className="flex items-center gap-2">
+                  <span className="h-3 w-3 rounded-full bg-red-500/80" />
+                  <span className="h-3 w-3 rounded-full bg-amber-500/80" />
+                  <span className="h-3 w-3 rounded-full bg-emerald-500/80" />
+                  <span className="ml-2 font-mono text-xs text-slate-400">konthora-voice-engine://live</span>
                 </div>
-
-                {/* Status row */}
-                <div className="mt-5 flex items-center justify-between">
-                  <span className="inline-flex items-center gap-2 rounded-full border border-border bg-background/50 px-3 py-1 text-xs font-medium text-muted-foreground">
-                    <span className="relative flex h-2 w-2">
-                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-                      <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-                    </span>
-                    Synthesizing
-                  </span>
-                  <span className="text-xs font-mono text-muted-foreground">af_heart · en-US</span>
+                <div className="flex items-center gap-1.5 text-xs text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-500/30 font-mono">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  WebSocket v3 Active
                 </div>
               </div>
 
-              {/* Floating chips */}
-              <motion.div
-                className="glass absolute -left-6 -top-5 flex items-center gap-2 rounded-2xl px-4 py-2.5 shadow-card"
-                animate={reduce ? undefined : { y: [0, -8, 0] }}
-                transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
-              >
-                <Play className="h-4 w-4 text-primary" />
-                <span className="text-sm font-semibold">MP3 · WAV</span>
-              </motion.div>
+              {/* Streaming Audio Visualizer Wave */}
+              <div className="mt-4 rounded-xl border border-slate-800 bg-slate-950/80 p-3.5">
+                <div className="flex items-center justify-between text-xs text-slate-400 mb-2">
+                  <span className="flex items-center gap-1.5 font-mono">
+                    <Mic className="h-3.5 w-3.5 text-emerald-400" />
+                    16kHz PCM Audio Stream
+                  </span>
+                  <span className="text-[11px] text-emerald-400 font-mono">Acoustic Echo Guard ON</span>
+                </div>
+                <div className="flex items-end justify-between gap-1 h-12 px-1">
+                  {[28, 45, 70, 35, 85, 60, 95, 40, 75, 90, 50, 80, 65, 92, 45, 78, 38, 88, 55, 30].map((h, i) => (
+                    <motion.span
+                      key={i}
+                      className="w-full rounded-full bg-gradient-to-t from-emerald-500 to-cyan-400"
+                      animate={reduce ? undefined : { height: [`${h}%`, `${Math.max(15, (h * 1.3) % 100)}%`, `${h}%`] }}
+                      transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut', delay: i * 0.05 }}
+                      style={{ height: `${h}%` }}
+                    />
+                  ))}
+                </div>
+              </div>
 
-              <motion.div
-                className="glass absolute -bottom-5 -right-4 flex items-center gap-2 rounded-2xl px-4 py-2.5 shadow-card"
-                animate={reduce ? undefined : { y: [0, 8, 0] }}
-                transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
-              >
-                <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary-soft/15 text-primary-soft dark:text-primary-soft">
-                  <Mic2 className="h-3.5 w-3.5" />
-                </span>
-                <span className="text-sm font-semibold">word-level sync</span>
-              </motion.div>
-            </div>
-          </motion.div>
+              {/* Live Spoken Input Transcript */}
+              <div className="mt-3.5 rounded-xl border border-slate-800/80 bg-slate-950/60 p-3">
+                <p className="text-[11px] font-mono uppercase tracking-wider text-slate-400">Spoken Query (Multilingual / Banglish)</p>
+                <p className="mt-1 text-sm font-medium text-slate-200">
+                  &ldquo;Create an invoice for <span className="text-emerald-400 font-semibold">Zenith Corp</span>: 3 Enterprise Voice Licenses at <span className="text-teal-300 font-semibold">$1,200 each</span>, payment due in 15 days.&rdquo;
+                </p>
+                <div className="mt-2 flex items-center gap-2 text-[11px] font-mono text-slate-400">
+                  <span className="rounded bg-slate-800 px-1.5 py-0.5 text-emerald-400 font-semibold">AssemblyAI v3 (99.2% conf)</span>
+                  <span>&rarr;</span>
+                  <span className="rounded bg-slate-800 px-1.5 py-0.5 text-amber-300 font-semibold">Groq Tool: generate_invoice</span>
+                </div>
+              </div>
+
+              {/* Document Output Card */}
+              <div className="mt-3.5 rounded-xl border border-emerald-500/30 bg-gradient-to-b from-slate-900 to-slate-950 p-4 shadow-lg">
+                <div className="flex items-center justify-between border-b border-slate-800 pb-2.5">
+                  <div className="flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-emerald-400" />
+                    <span className="font-mono text-xs font-bold text-white">COMMERCIAL INVOICE #INV-2026-089</span>
+                  </div>
+                  <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-semibold text-emerald-400 border border-emerald-500/30">
+                    GENERATED IN 780ms
+                  </span>
+                </div>
+
+                <div className="mt-3 space-y-2 text-xs">
+                  <div className="flex justify-between text-slate-400">
+                    <span>Billed To:</span>
+                    <span className="font-semibold text-slate-200">Zenith Corp (Attn: Accounts)</span>
+                  </div>
+                  <div className="rounded-lg bg-slate-950 p-2.5 border border-slate-800">
+                    <div className="flex justify-between font-mono text-[11px] text-slate-400 border-b border-slate-800 pb-1 mb-1">
+                      <span>Item</span>
+                      <span>Qty × Rate</span>
+                      <span>Amount</span>
+                    </div>
+                    <div className="flex justify-between text-slate-200 text-xs">
+                      <span>Enterprise Voice Licenses</span>
+                      <span className="text-slate-400">3 × $1,200</span>
+                      <span className="font-mono text-emerald-400 font-semibold">$3,600.00</span>
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center pt-1 font-mono">
+                    <span className="text-slate-400 text-xs">Total Due (Net 15):</span>
+                    <span className="text-base font-bold text-emerald-300">$3,600.00</span>
+                  </div>
+                </div>
+
+                {/* Instant Actions */}
+                <div className="mt-3 flex items-center justify-between pt-2 border-t border-slate-800/80">
+                  <div className="flex items-center gap-1.5 text-[11px] text-cyan-300 font-mono">
+                    <Volume2 className="h-3.5 w-3.5 text-cyan-400" />
+                    <span>Kokoro: &ldquo;Invoice #089 prepared for Zenith Corp.&rdquo;</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      className="inline-flex items-center gap-1 rounded bg-slate-800 px-2 py-1 text-[11px] font-medium text-slate-300 hover:text-white"
+                      title="Download PDF"
+                    >
+                      <Download className="h-3 w-3" /> PDF
+                    </button>
+                    <button
+                      type="button"
+                      className="inline-flex items-center gap-1 rounded bg-slate-800 px-2 py-1 text-[11px] font-medium text-slate-300 hover:text-white"
+                      title="Print Document"
+                    >
+                      <Printer className="h-3 w-3" /> Print
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </div>
         </div>
       </Container>
     </section>

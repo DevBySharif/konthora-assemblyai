@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { headerNavLinks } from '@/config/navigation';
-import { siteConfig } from '@/config/site';
 import { ThemeToggle } from '../ThemeToggle';
 import { Container } from '../ui/Container';
 import { KonthoraBrand } from '../brand/KonthoraBrand';
@@ -87,10 +86,14 @@ export function Header() {
 
           {/* CTA Button (desktop) */}
           <Link
-            href={siteConfig.links.textToSpeech}
-            className="group hidden lg:inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-brand-from to-brand-to px-4 py-2.5 text-sm font-semibold text-white shadow-card-hover transition-all duration-200 hover:-translate-y-0.5 hover:shadow-glow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2"
+            href="/voice-agent"
+            className="group hidden lg:inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-400 px-4 py-2.5 text-sm font-bold text-slate-950 shadow-[0_0_20px_rgba(16,185,129,0.35)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_0_30px_rgba(16,185,129,0.6)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
           >
-            Get Started
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-slate-950 opacity-60" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-slate-950" />
+            </span>
+            <span>Live Demo</span>
             <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" aria-hidden="true" />
           </Link>
 
@@ -175,12 +178,12 @@ export function Header() {
 
                 <div className="mt-4 border-t border-border/70 pt-4">
                   <Link
-                    href={siteConfig.links.textToSpeech}
+                    href="/voice-agent"
                     onClick={handleLinkClick}
-                    className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-brand-from to-brand-to px-4 py-3 text-base font-semibold text-white shadow-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-400 px-4 py-3 text-base font-bold text-slate-950 shadow-[0_0_20px_rgba(16,185,129,0.35)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
                   >
-                    Get Started
-                    <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                    <span>Live Demo</span>
+                    <ArrowRight className="h-4 w-4 text-slate-950" aria-hidden="true" />
                   </Link>
                 </div>
               </Container>

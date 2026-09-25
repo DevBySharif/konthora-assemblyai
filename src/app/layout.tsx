@@ -5,7 +5,6 @@ import { ThemeProvider } from '@/components/ThemeProvider';
 import Analytics from '@/components/analytics/Analytics';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
-import { siteConfig } from '@/config/site';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -19,23 +18,29 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://konthora.dev.bd'),
-  title: `${siteConfig.name} | ${siteConfig.tagline}`,
-  description: siteConfig.description,
+  title: {
+    default: 'Konthora — Real-Time Voice-to-Document Enterprise Engine',
+    template: '%s | Konthora AI',
+  },
+  description:
+    'Built for the AssemblyAI Hackathon. The fastest multilingual voice assistant for dynamic document generation and enterprise operations.',
   alternates: {
     canonical: '/',
   },
   openGraph: {
-    title: `${siteConfig.name} | ${siteConfig.tagline}`,
-    description: siteConfig.description,
+    title: 'Konthora — Real-Time Voice-to-Document Enterprise Engine',
+    description:
+      'Built for the AssemblyAI Hackathon. The fastest multilingual voice assistant for dynamic document generation and enterprise operations.',
     url: 'https://konthora.dev.bd',
-    siteName: siteConfig.name,
+    siteName: 'Konthora AI',
     locale: 'en_US',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: `${siteConfig.name} | ${siteConfig.tagline}`,
-    description: siteConfig.description,
+    title: 'Konthora — Real-Time Voice-to-Document Enterprise Engine',
+    description:
+      'Built for the AssemblyAI Hackathon. The fastest multilingual voice assistant for dynamic document generation and enterprise operations.',
   },
   verification: {
     google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,

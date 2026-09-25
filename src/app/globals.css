@@ -237,3 +237,130 @@ body {
   filter: blur(90px);
   pointer-events: none;
 }
+
+/* Custom internal scrollbar for dashboard panels */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(51, 65, 85, 0.8) rgba(15, 23, 42, 0.6);
+}
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.6);
+  border-radius: 9999px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(51, 65, 85, 0.8);
+  border-radius: 9999px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(16, 185, 129, 0.7);
+}
+
+/* Clean print styling for Enterprise PDF generation */
+@media print {
+  /* Suppress default browser page headers/footers (URLs, date, page titles) */
+  @page {
+    size: A4 portrait;
+    margin: 12mm;
+  }
+
+  /* Hide everything on screen except the target document container */
+  body * {
+    visibility: hidden !important;
+  }
+
+  .print-card-target,
+  .print-card-target * {
+    visibility: visible !important;
+  }
+
+  /* Hide elements marked as non-printable (chat callouts, buttons, status badges) */
+  .no-print,
+  .no-print * {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
+  /* Target Print Container Box: Formal White Business Sheet */
+  .print-card-target {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    max-width: 800px !important;
+    margin: 0 auto !important;
+    padding: 2.2rem !important;
+    box-shadow: none !important;
+    border: 1px solid #cbd5e1 !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+    border-radius: 4px !important;
+    page-break-inside: avoid !important;
+  }
+
+  /* Typography & High-Contrast Overrides */
+  .print-card-target h1,
+  .print-card-target h2,
+  .print-card-target h3,
+  .print-card-target h4,
+  .print-card-target p,
+  .print-card-target span,
+  .print-card-target div,
+  .print-card-target table,
+  .print-card-target th,
+  .print-card-target td {
+    color: #0f172a !important;
+    text-shadow: none !important;
+  }
+
+  /* Neutralize dark card backgrounds inside target for print */
+  .print-card-target .bg-slate-900,
+  .print-card-target .bg-slate-900\/90,
+  .print-card-target .bg-slate-950,
+  .print-card-target .bg-slate-950\/70,
+  .print-card-target .bg-slate-950\/80,
+  .print-card-target .bg-slate-800,
+  .print-card-target .bg-slate-800\/80 {
+    background-color: #ffffff !important;
+    border-color: #e2e8f0 !important;
+  }
+
+  /* Subtle alternating row colors for tables */
+  .print-card-target tr:nth-child(even) {
+    background-color: #f8fafc !important;
+  }
+
+  /* Neutralize border colors */
+  .print-card-target .border-slate-800,
+  .print-card-target .border-slate-700,
+  .print-card-target .border-slate-700\/60,
+  .print-card-target .border-slate-800\/80,
+  .print-card-target .border-emerald-500\/30,
+  .print-card-target .border-cyan-500\/30,
+  .print-card-target .border-purple-500\/30,
+  .print-card-target .border-amber-500\/30 {
+    border-color: #e2e8f0 !important;
+  }
+
+  /* Text color overrides for muted captions */
+  .print-card-target .text-slate-400,
+  .print-card-target .text-slate-500 {
+    color: #64748b !important;
+  }
+
+  .print-card-target .text-white {
+    color: #0f172a !important;
+  }
+
+  /* Hide any explicit floating buttons inside the target if present */
+  iframe,
+  [style*="position: fixed"],
+  [style*="position: absolute"]:not(.print-card-target *) {
+    display: none !important;
+  }
+}
+

@@ -67,6 +67,12 @@ async def process_llm_and_tts_stream(websocket: WebSocket, prompt: str):
         with contextlib.suppress(Exception):
             await websocket.send_json({"type": "text_response", "text": full_text.strip(), "role": "assistant"})
 
+        # Emit action_card with verification hash and audit QR payload
+        action_card = agent_service.resolve_document_action(full_text.strip(), prompt)
+        if action_card and websocket.client_state == WebSocketState.CONNECTED:
+            with contextlib.suppress(Exception):
+                await websocket.send_json(action_card)
+
 @router.websocket("/ws/voice-agent")
 async def voice_agent_websocket(websocket: WebSocket):
     await websocket.accept()
