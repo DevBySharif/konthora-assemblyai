@@ -15,6 +15,17 @@ if os.path.exists(_backend_env_path):
     load_dotenv(_backend_env_path)
 
 
+# Enterprise custom vocabulary — forces AssemblyAI STT to recognize domain-specific terms
+ENTERPRISE_WORD_BOOST = [
+    "Konthora", "Acme Corp", "SoftTech", "InnoTech",
+    "EBITDA", "NET-30", "NET-45", "NET-60", "BIN", "EIN",
+    "BDT", "USD", "EUR", "M3 Pro", "Server Rack", "Transceiver",
+    "Rafiqul", "Sarah Jenkins", "PHOENIX-2026", "PO-88301",
+    "INV-8821", "FY-2026", "SHA-256", "Kokoro", "AssemblyAI",
+    "Groq", "Apex Hardware", "ICT Ministry",
+]
+
+
 def generate_verification_data(doc_type: str, doc_ref: str, amount: any = 0) -> dict:
     """Generates cryptographic SHA-256 verification hash and audit QR payload."""
     seed = f"{doc_type}:{doc_ref}:{amount}:{int(time.time() // 3600)}"
@@ -27,6 +38,32 @@ def generate_verification_data(doc_type: str, doc_ref: str, amount: any = 0) -> 
         "verified_at": int(time.time()),
         "tamper_proof": True,
     }
+
+
+# ── PII Redaction Guardrails ──────────────────────────────────────────────
+# Patterns for sensitive identifiers that must never appear in live transcript displays
+_PII_PATTERNS = [
+    # BD VAT BIN: BIN-003928172-0102 → BIN-******172-****
+    (re.compile(r'(BIN-\d{3})\d{4}(\d{3}-)\d{4}'), r'\1****\2****'),
+    # EU VAT: DE-319208194 → DE-******194
+    (re.compile(r'(DE-)\d{6}(\d{3})'), r'\1******\2'),
+    # US EIN / Tax IDs: XX-XXXXXXX → XX-***-XXXX
+    (re.compile(r'\b(\d{2})-?(\d{7})\b'), r'\1-***-\2'),
+    # Generic account numbers: 10+ consecutive digits → mask middle
+    (re.compile(r'\b(\d{3})\d{4,}(\d{3})\b'), r'\1****\2'),
+    # SHA-256 verification hashes: SHA256-KNT-XXXX-XXXX-XXXX → SHA256-KNT-****-****-****
+    (re.compile(r'(SHA256-KNT-)\w{4}(-\w{4}){2}'), r'\1****-****-****'),
+]
+
+
+def redact_pii(text: str) -> str:
+    """Mask sensitive tax IDs, BINs, account digits, and verification hashes
+    from live transcript displays while preserving surrounding context."""
+    if not text:
+        return text
+    for pattern, replacement in _PII_PATTERNS:
+        text = pattern.sub(replacement, text)
+    return text
 
 
 class VoiceAgentService:

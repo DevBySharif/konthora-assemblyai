@@ -8,7 +8,7 @@ import websockets
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from starlette.websockets import WebSocketState
 from loguru import logger
-from app.services.voice_agent_service import VoiceAgentService
+from app.services.voice_agent_service import VoiceAgentService, ENTERPRISE_WORD_BOOST, redact_pii
 
 # Ensure .env is explicitly loaded
 load_dotenv()
@@ -109,7 +109,7 @@ async def voice_agent_websocket(websocket: WebSocket):
                     except (json.JSONDecodeError, AttributeError):
                         pass
                     if websocket.client_state == WebSocketState.CONNECTED:
-                        await websocket.send_json({"type": "transcript", "text": text_msg, "role": "user", "final": True})
+                        await websocket.send_json({"type": "transcript", "text": redact_pii(text_msg), "role": "user", "final": True})
                     await process_llm_and_tts_stream(websocket, text_msg)
                 elif "bytes" in data and data["bytes"]:
                     pass
@@ -134,6 +134,15 @@ async def voice_agent_websocket(websocket: WebSocket):
         async with websockets.connect(ASSEMBLYAI_V3_WS_URL, **ws_kwargs) as aai_ws:
             logger.info("Successfully connected to AssemblyAI Streaming v3 WebSocket API.")
 
+            # Send enterprise word boost configuration for improved STT accuracy
+            boost_config = {
+                "word_boost": ENTERPRISE_WORD_BOOST,
+                "boost_param": "high",
+            }
+            with contextlib.suppress(Exception):
+                await aai_ws.send(json.dumps(boost_config))
+                logger.info(f"Sent {len(ENTERPRISE_WORD_BOOST)} enterprise vocabulary words to AssemblyAI.")
+
             async def receive_from_browser():
                 try:
                     while websocket.client_state == WebSocketState.CONNECTED:
@@ -156,7 +165,7 @@ async def voice_agent_websocket(websocket: WebSocket):
                             except (json.JSONDecodeError, AttributeError):
                                 pass
                             if websocket.client_state == WebSocketState.CONNECTED:
-                                await websocket.send_json({"type": "transcript", "text": text_data, "role": "user", "final": True})
+                                await websocket.send_json({"type": "transcript", "text": redact_pii(text_data), "role": "user", "final": True})
                             await process_llm_and_tts_stream(websocket, text_data)
                 except (WebSocketDisconnect, RuntimeError):
                     logger.info("Browser client disconnected cleanly.")
@@ -183,7 +192,7 @@ async def voice_agent_websocket(websocket: WebSocket):
                                     if websocket.client_state == WebSocketState.CONNECTED:
                                         await websocket.send_json({
                                             "type": "transcript",
-                                            "text": transcript,
+                                            "text": redact_pii(transcript),
                                             "role": "user",
                                             "final": False
                                         })
@@ -192,7 +201,7 @@ async def voice_agent_websocket(websocket: WebSocket):
                                     if websocket.client_state == WebSocketState.CONNECTED:
                                         await websocket.send_json({
                                             "type": "transcript",
-                                            "text": transcript,
+                                            "text": redact_pii(transcript),
                                             "role": "user",
                                             "final": True
                                         })
