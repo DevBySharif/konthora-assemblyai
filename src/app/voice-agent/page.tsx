@@ -1496,132 +1496,92 @@ function AudioUploadCard({ text }: { text: string }) {
 // Idle / Guide State for Right Panel
 // ─────────────────────────────────────────────────────
 function DocPanelIdle({ onSelectDemo }: { onSelectDemo: (query: string) => void }) {
-  const templates = [
-    {
-      color: "text-emerald-400 border-emerald-500/30 bg-emerald-950/20 hover:border-emerald-500/60",
-      label: "Quotation: PHOENIX-2026",
-      prompt: "Show the PHOENIX-2026 enterprise quotation for Acme Corp voice gateway",
-      tag: "Quote · $27K",
-    },
-    {
-      color: "text-cyan-400 border-cyan-500/30 bg-cyan-950/20 hover:border-cyan-500/60",
-      label: "Purchase Order: PO-88301",
-      prompt: "Generate purchase order PO-88301 for Apex Hardware chips and server racks",
-      tag: "PO · Approved",
-    },
-    {
-      color: "text-amber-400 border-amber-500/30 bg-amber-950/20 hover:border-amber-500/60",
-      label: "Tax & Compliance Summary",
-      prompt: "What is our FY-2026 corporate tax summary and BD VAT registration BIN?",
-      tag: "Tax · VAT BIN",
-    },
-    {
-      color: "text-emerald-400 border-emerald-500/30 bg-emerald-950/20 hover:border-emerald-500/60",
-      label: "Create B2B Invoice",
-      prompt: "Create an invoice for Acme Corp for professional voice engine integration",
-      tag: "Acme · NET-30",
-    },
-    {
-      color: "text-cyan-400 border-cyan-500/30 bg-cyan-950/20 hover:border-cyan-500/60",
-      label: "Q1 Financial Brief",
-      prompt: "What were our Q1 2026 revenue, expenses, and EBITDA margins?",
-      tag: "$142K Revenue",
-    },
-    {
-      color: "text-purple-400 border-purple-500/30 bg-purple-950/20 hover:border-purple-500/60",
-      label: "HR Offer Letter",
-      prompt: "Draft an offer letter for Rafiqul Islam as Senior Full-Stack Engineer",
-      tag: "EMP-1041",
-    },
-    {
-      color: "text-blue-400 border-blue-500/30 bg-blue-950/20 hover:border-blue-500/60",
-      label: "Meeting Minutes",
-      prompt: "Summarize product sync meeting minutes",
-      tag: "MIN-2026-09",
-    },
-    {
-      color: "text-purple-400 border-purple-500/30 bg-purple-950/20 hover:border-purple-500/60",
-      label: "Legal NDA Contract",
-      prompt: "Generate NDA for InnoTech Solutions",
-      tag: "NDA · 2yr",
-    },
-    {
-      color: "text-amber-400 border-amber-500/30 bg-amber-950/20 hover:border-amber-500/60",
-      label: "Expense Claim",
-      prompt: "Create $450 expense claim for Sarah",
-      tag: "EXP-9902",
-    },
-    {
-      color: "text-cyan-400 border-cyan-500/30 bg-cyan-950/20 hover:border-cyan-500/60",
-      label: "Revenue Chart",
-      prompt: "Show Q1 vs Q2 visual revenue chart",
-      tag: "Chart · SVG",
-    },
-    {
-      color: "text-emerald-400 border-emerald-500/30 bg-emerald-950/20 hover:border-emerald-500/60",
-      label: "Email Dispatch",
-      prompt: "Email this quotation to Acme Corp",
-      tag: "SMTP · Sent",
-    },
-    {
-      color: "text-blue-400 border-blue-500/30 bg-blue-950/20 hover:border-blue-500/60",
-      label: "Currency Convert",
-      prompt: "Convert quotation to BDT",
-      tag: "Multi-Currency",
-    },
-    {
-      color: "text-amber-400 border-amber-500/30 bg-amber-950/20 hover:border-amber-500/60",
-      label: "CFO Approval",
-      prompt: "Authorize $27,000 transaction with CFO key KNT-2026",
-      tag: "Guard · $27K",
-    },
-    {
-      color: "text-purple-400 border-purple-500/30 bg-purple-950/20 hover:border-purple-500/60",
-      label: "Document Diff",
-      prompt: "Compare revised quote with original version",
-      tag: "Diff · Compare",
-    },
-    {
-      color: "text-cyan-400 border-cyan-500/30 bg-cyan-950/20 hover:border-cyan-500/60",
-      label: "Slack Dispatch",
-      prompt: "Post meeting summary to Slack #product-strategy",
-      tag: "Webhook · Slack",
-    },
+  const [activeTab, setActiveTab] = useState<"financials" | "legal" | "ops">("financials");
+
+  const tabGroups = {
+    financials: [
+      { icon: "💼", label: "Quotation: PHOENIX-2026", prompt: "Show the PHOENIX-2026 enterprise quotation for Acme Corp voice gateway", tag: "Quote · $27K" },
+      { icon: "📦", label: "Purchase Order: PO-88301", prompt: "Generate purchase order PO-88301 for Apex Hardware chips and server racks", tag: "PO · Approved" },
+      { icon: "🧾", label: "Create B2B Invoice", prompt: "Create an invoice for Acme Corp for professional voice engine integration", tag: "Acme · NET-30" },
+      { icon: "🏛️", label: "Tax & Compliance", prompt: "What is our FY-2026 corporate tax summary and BD VAT registration BIN?", tag: "Tax · VAT" },
+      { icon: "📊", label: "Revenue Chart", prompt: "Show Q1 vs Q2 visual revenue chart", tag: "Chart · SVG" },
+      { icon: "💱", label: "Currency Convert", prompt: "Convert quotation to BDT", tag: "BDT · EUR" },
+    ],
+    legal: [
+      { icon: "👤", label: "HR Offer Letter", prompt: "Draft an offer letter for Rafiqul Islam as Senior Full-Stack Engineer", tag: "EMP-1041" },
+      { icon: "📋", label: "Meeting Minutes", prompt: "Summarize product sync meeting minutes", tag: "MIN-2026" },
+      { icon: "🔒", label: "Legal NDA Contract", prompt: "Generate NDA for InnoTech Solutions", tag: "NDA · 2yr" },
+      { icon: "🔀", label: "Document Diff", prompt: "Compare revised quote with original version", tag: "Diff · Compare" },
+    ],
+    ops: [
+      { icon: "💰", label: "Expense Claim", prompt: "Create $450 expense claim for Sarah", tag: "EXP-9902" },
+      { icon: "📧", label: "Email Dispatch", prompt: "Email this quotation to Acme Corp", tag: "SMTP · Sent" },
+      { icon: "🛡️", label: "CFO Approval", prompt: "Authorize $27,000 transaction with CFO key KNT-2026", tag: "Guard · $27K" },
+      { icon: "💬", label: "Slack Dispatch", prompt: "Post meeting summary to Slack #product-strategy", tag: "Webhook" },
+      { icon: "🎙️", label: "Audio Upload", prompt: "Process uploaded meeting audio recording", tag: "Batch API" },
+    ],
+  };
+
+  const tabs = [
+    { key: "financials" as const, label: "Financials", icon: "💳" },
+    { key: "legal" as const, label: "Legal & HR", icon: "📄" },
+    { key: "ops" as const, label: "Dispatch & Ops", icon: "⚡" },
   ];
 
   return (
-    <div className="flex flex-col items-center justify-center h-full gap-5 px-3 py-6 text-center">
-      <div className="space-y-1.5">
-        <div className="inline-flex p-2.5 rounded-2xl bg-slate-900 border border-slate-800 text-2xl shadow-lg">
-          📄⚡
+    <div className="flex flex-col h-full overflow-hidden">
+      {/* Tab Navigation Header */}
+      <div className="px-5 pt-5 pb-3 shrink-0">
+        <div className="flex items-center gap-2 mb-4">
+          <div className="inline-flex p-2 rounded-xl bg-slate-900 border border-slate-800 text-lg shadow-lg">
+            📄⚡
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-white tracking-tight">Enterprise Document Deck</h3>
+            <p className="text-[11px] text-slate-500">Select a template or speak naturally</p>
+          </div>
         </div>
-        <h3 className="text-base font-bold text-white tracking-tight">Enterprise Document Deck</h3>
-        <p className="text-xs text-slate-400 max-w-sm mx-auto leading-relaxed">
-          Speak in natural English, Bengali, or Banglish. The voice engine queries the local mock enterprise database and synthesizes instant verified document cards.
-        </p>
+
+        <div className="flex gap-1 bg-slate-900/60 border border-slate-800/70 rounded-xl p-1">
+          {tabs.map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all cursor-pointer ${
+                activeTab === tab.key
+                  ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 shadow-[0_0_12px_rgba(16,185,129,0.1)]"
+                  : "text-slate-500 hover:text-slate-300 hover:bg-slate-800/50 border border-transparent"
+              }`}
+            >
+              <span>{tab.icon}</span>
+              <span>{tab.label}</span>
+            </button>
+          ))}
+        </div>
       </div>
 
-      <div className="w-full max-w-md space-y-2 text-left">
-        <div className="text-[10px] font-mono text-slate-500 uppercase tracking-widest px-1">
-          Quick Spoken Intent Simulation
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-          {templates.map((tpl) => (
+      {/* Tab Content Grid */}
+      <div className="flex-1 overflow-y-auto px-5 pb-5 custom-scrollbar">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          {tabGroups[activeTab].map((item) => (
             <button
-              key={tpl.label}
-              onClick={() => onSelectDemo(tpl.prompt)}
-              className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${tpl.color} group`}
+              key={item.label}
+              onClick={() => onSelectDemo(item.prompt)}
+              className="bg-[#0c1017]/80 backdrop-blur-md border border-slate-800/70 hover:border-emerald-500/50 hover:bg-[#111622] rounded-xl p-3.5 transition-all duration-200 cursor-pointer group shadow-lg shadow-black/40 text-left"
             >
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-xs font-semibold text-white group-hover:text-emerald-300 transition-colors">
-                  {tpl.label}
-                </span>
-                <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-slate-900/80 border border-slate-700/50 text-slate-400">
-                  {tpl.tag}
+              <div className="flex items-center justify-between mb-1.5">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm">{item.icon}</span>
+                  <span className="text-xs font-semibold text-slate-200 group-hover:text-emerald-400 transition-colors">
+                    {item.label}
+                  </span>
+                </div>
+                <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-slate-900/80 border border-slate-700/50 text-slate-500 group-hover:text-slate-400 transition-colors">
+                  {item.tag}
                 </span>
               </div>
-              <div className="text-[10px] text-slate-400 line-clamp-1 mt-0.5">
-                &ldquo;{tpl.prompt}&rdquo;
+              <div className="text-[10px] text-slate-500 font-mono mt-0.5 line-clamp-1 group-hover:text-slate-400 transition-colors">
+                &ldquo;{item.prompt}&rdquo;
               </div>
             </button>
           ))}
@@ -2070,19 +2030,19 @@ export default function VoiceAgentPage() {
   const lastAssistantMsg = [...messages].reverse().find((m) => m.role === "assistant" && m.final);
 
   return (
-    <div className="h-[calc(100vh-5rem)] overflow-hidden bg-slate-950 flex flex-col font-sans select-none">
+    <div className="h-[calc(100vh-5rem)] overflow-hidden bg-[#080b10] flex flex-col font-sans select-none">
       {/* ── 2-Panel Split-Screen Command Dashboard ── */}
       <div className="flex-1 flex flex-col lg:flex-row h-full overflow-hidden">
 
         {/* ════════════════════════════════════════
             LEFT PANEL: Cyberpunk Glow Audio Agent Deck
         ════════════════════════════════════════ */}
-        <div className="no-print w-full lg:w-1/2 border-b lg:border-b-0 lg:border-r border-slate-800/80 flex flex-col h-full overflow-hidden bg-slate-950">
+        <div className="no-print w-full lg:w-1/2 border-b lg:border-b-0 lg:border-r border-slate-800/60 flex flex-col h-full overflow-hidden bg-[#080b10]">
           {/* Deck Header */}
-          <div className="px-5 py-2.5 border-b border-slate-800/60 flex items-center justify-between shrink-0">
+          <div className="px-5 py-2.5 border-b border-slate-800/60 flex items-center justify-between shrink-0 bg-slate-950/50 backdrop-blur-sm">
             <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.9)]" />
-              <span className="text-xs font-mono font-bold text-emerald-400 uppercase tracking-widest">Audio Agent Deck</span>
+              <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.9)]" />
+              <span className="text-[11px] font-mono font-bold text-emerald-400 uppercase tracking-widest">Audio Agent Deck</span>
             </div>
             <div className="flex items-center gap-2.5">
               <div className="flex items-center gap-1.5 text-[10px] font-mono">
@@ -2096,14 +2056,14 @@ export default function VoiceAgentPage() {
                   </span>
                 )}
               </div>
-              <span className="w-px h-3 bg-slate-700" />
+              <span className="w-px h-3 bg-slate-800" />
               <div className="flex items-center gap-1.5 text-[10px] font-mono text-slate-500">
                 <Cpu className={`w-3 h-3 ${groqStatus === "processing" ? "text-cyan-400 animate-spin" : "text-slate-600"}`} />
                 <span className={groqStatus === "processing" ? "text-cyan-400" : ""}>
-                  {groqStatus === "processing" ? "Groq Inferencing..." : "Groq 70B"}
+                  {groqStatus === "processing" ? "Inferencing..." : "Groq 70B"}
                 </span>
               </div>
-              <span className="w-px h-3 bg-slate-700" />
+              <span className="w-px h-3 bg-slate-800" />
               <span className="hidden sm:flex items-center gap-1 text-[10px] font-mono text-slate-500">
                 <Zap className="w-3 h-3 text-emerald-500" /> v3
               </span>
@@ -2162,20 +2122,39 @@ export default function VoiceAgentPage() {
             </div>
 
             {messages.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-48 text-center space-y-3">
-                <div className="relative flex items-center justify-center h-28 w-28">
-                  <span className="absolute inset-0 rounded-full bg-emerald-500/5 border border-emerald-500/20 shadow-[0_0_30px_rgba(16,185,129,0.1)] animate-ping [animation-duration:3s] opacity-40" />
-                  <span className="absolute inset-2 rounded-full bg-emerald-500/5 border border-emerald-500/15 shadow-[0_0_20px_rgba(16,185,129,0.08)] animate-ping [animation-duration:4s] opacity-30" />
-                  <span className="absolute inset-4 rounded-full bg-emerald-500/5 border border-emerald-500/10 animate-ping [animation-duration:5s] opacity-20" />
-                  <div className="relative z-10 w-16 h-16 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shadow-[0_0_25px_rgba(16,185,129,0.2)]">
-                    <Mic className="w-7 h-7" />
-                  </div>
+              <div className="flex flex-col items-center justify-center h-48 text-center space-y-4">
+                {/* Ambient Glowing Mic Halo */}
+                <div className="relative flex items-center justify-center my-4">
+                  <div className="absolute w-36 h-36 rounded-full bg-emerald-500/10 animate-ping opacity-20 pointer-events-none" />
+                  <div className="absolute w-28 h-28 rounded-full bg-emerald-500/15 border border-emerald-500/30 blur-sm pointer-events-none" />
+                  <div className="absolute w-20 h-20 rounded-full bg-emerald-500/5 border border-emerald-500/20 animate-ping [animation-duration:4s] opacity-30 pointer-events-none" />
+                  <button
+                    type="button"
+                    onClick={isListening ? stopMicrophone : startMicrophone}
+                    className="relative z-10 h-20 w-20 rounded-full bg-slate-900/90 border border-emerald-500/40 flex items-center justify-center text-emerald-400 hover:scale-105 hover:border-emerald-400 transition-all shadow-[0_0_40px_rgba(16,185,129,0.25)] cursor-pointer"
+                  >
+                    {isListening ? <Square className="w-8 h-8" /> : <Mic className="w-8 h-8" />}
+                  </button>
                 </div>
-                <div className="text-xs font-semibold text-slate-300">Awaiting Spoken Utterance</div>
-                <div className="flex items-center gap-1.5 flex-wrap justify-center">
-                  <span className="text-[9px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">System Ready</span>
-                  <span className="text-[9px] font-mono px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">Full Duplex AEC Active</span>
-                  <span className="text-[9px] font-mono px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/20">16kHz PCM</span>
+
+                <div className="text-xs font-semibold text-slate-300">
+                  {isListening ? "Listening — Speak Now" : "Tap to Start Voice Engine"}
+                </div>
+
+                {/* Hardware Status Chips */}
+                <div className="flex items-center gap-2 flex-wrap justify-center">
+                  <span className="text-[10px] font-mono tracking-wider uppercase px-2.5 py-1 rounded-md bg-slate-900 border border-slate-800 text-slate-400">
+                    {isConnected ? "🟢 Connected" : "🔴 Offline"}
+                  </span>
+                  <span className="text-[10px] font-mono tracking-wider uppercase px-2.5 py-1 rounded-md bg-slate-900 border border-slate-800 text-slate-400">
+                    AssemblyAI v3
+                  </span>
+                  <span className="text-[10px] font-mono tracking-wider uppercase px-2.5 py-1 rounded-md bg-slate-900 border border-slate-800 text-slate-400">
+                    16kHz PCM
+                  </span>
+                  <span className="text-[10px] font-mono tracking-wider uppercase px-2.5 py-1 rounded-md bg-slate-900 border border-slate-800 text-slate-400">
+                    Full Duplex
+                  </span>
                 </div>
               </div>
             ) : (
@@ -2222,7 +2201,7 @@ export default function VoiceAgentPage() {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Unified Input Dock */}
+          {/* Unified Input Dock — Floating Glass Bar */}
           <div className="p-3 border-t border-slate-800/80 bg-slate-950/95 shrink-0">
             <form
               onSubmit={(e) => {
@@ -2234,25 +2213,24 @@ export default function VoiceAgentPage() {
               <button
                 type="button"
                 onClick={isListening ? stopMicrophone : startMicrophone}
-                className={`shrink-0 px-5 py-2 rounded-full text-[11px] font-medium tracking-wide flex items-center gap-2 transition-all cursor-pointer border ${
+                className={`shrink-0 h-10 w-10 rounded-xl flex items-center justify-center transition-all cursor-pointer border ${
                   isListening
                     ? "bg-red-500/10 border-red-500/40 text-red-400 hover:bg-red-500/20 shadow-[0_0_20px_rgba(239,68,68,0.2)]"
                     : "bg-emerald-500/10 border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/20 shadow-[0_0_20px_rgba(16,185,129,0.2)]"
                 }`}
               >
-                {isListening ? <Square className="w-3 h-3" /> : <Mic className="w-3 h-3" />}
-                {isListening ? "Stop" : "Voice"}
+                {isListening ? <Square className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
               </button>
               <input
                 type="text"
                 value={textInput}
                 onChange={(e) => setTextInput(e.target.value)}
                 placeholder="Type a command or revision..."
-                className="flex-1 bg-slate-900 border border-slate-800 rounded-full px-4 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500/50 transition-colors"
+                className="flex-1 bg-slate-950/60 border border-slate-800/80 rounded-xl px-4 py-2.5 text-xs text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-emerald-500/50 font-mono transition-colors"
               />
               <button
                 type="submit"
-                className="shrink-0 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-full border border-slate-700 transition-colors cursor-pointer"
+                className="shrink-0 px-5 py-2.5 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 text-xs font-semibold rounded-xl transition-all cursor-pointer"
               >
                 Send
               </button>
@@ -2263,12 +2241,12 @@ export default function VoiceAgentPage() {
         {/* ════════════════════════════════════════
             RIGHT PANEL: Dynamic Enterprise Document Deck & Actions
         ════════════════════════════════════════ */}
-        <div className="w-full lg:w-1/2 flex flex-col h-full overflow-hidden bg-slate-950/90 backdrop-blur-sm">
+        <div className="w-full lg:w-1/2 flex flex-col h-full overflow-hidden bg-[#0a0d12] backdrop-blur-sm">
           {/* Deck Header & Action Bar */}
-          <div className="no-print px-5 py-2.5 border-b border-slate-800/60 flex items-center justify-between shrink-0">
+          <div className="no-print px-5 py-2.5 border-b border-slate-800/60 flex items-center justify-between shrink-0 bg-slate-950/50 backdrop-blur-sm">
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.9)]" />
-              <span className="text-xs font-mono font-bold text-cyan-400 uppercase tracking-widest">
+              <span className="text-[11px] font-mono font-bold text-cyan-400 uppercase tracking-widest">
                 Enterprise Document Deck
               </span>
             </div>
@@ -2576,16 +2554,16 @@ export default function VoiceAgentPage() {
       </div>
 
       {/* Fixed Global Status Bar */}
-      <div className="no-print fixed bottom-0 left-0 right-0 z-50 bg-slate-950/90 border-t border-slate-800/80 px-4 py-1.5 text-[11px] flex items-center justify-between text-slate-400 backdrop-blur-md">
+      <div className="no-print fixed bottom-0 left-0 right-0 z-50 bg-[#0a0d14]/90 backdrop-blur-xl border-t border-slate-800/60 px-4 py-1.5 text-[10px] flex items-center justify-between text-slate-400">
         <div className="flex items-center gap-3">
-          <span className="text-emerald-500 font-mono">AssemblyAI v3</span>
-          <span className="text-slate-700">·</span>
-          <span className="text-cyan-500 font-mono">Groq 70B</span>
-          <span className="text-slate-700">·</span>
-          <span className="text-purple-400 font-mono">Kokoro-82M</span>
+          <span className="font-mono tracking-wider uppercase text-emerald-500/80">AssemblyAI v3</span>
+          <span className="text-slate-800">·</span>
+          <span className="font-mono tracking-wider uppercase text-cyan-500/80">Groq 70B</span>
+          <span className="text-slate-800">·</span>
+          <span className="font-mono tracking-wider uppercase text-purple-400/80">Kokoro-82M</span>
         </div>
-        <div className="text-slate-500 font-mono">
-          Audit: <span className="text-emerald-400 font-semibold">SHA-256 + QR</span>
+        <div className="text-slate-600 font-mono">
+          <span className="text-emerald-500/70">SHA-256</span> + <span className="text-cyan-500/70">QR Audit</span>
         </div>
       </div>
     </div>
