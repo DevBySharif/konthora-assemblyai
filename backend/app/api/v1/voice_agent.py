@@ -143,18 +143,23 @@ async def voice_agent_websocket(websocket: WebSocket):
                 pass
 
             # Send enterprise word boost configuration for improved STT accuracy
+            # Runtime sanitization: strip non-alphanumeric chars, filter short tokens
             # Wrapped in try-except: if word_boost triggers Code 3006, session stays alive
             try:
-                boost_config = {
-                    "word_boost": ENTERPRISE_WORD_BOOST,
-                    "boost_param": "high",
-                }
-                await aai_ws.send(json.dumps(boost_config))
-                logger.info(f"Sent {len(ENTERPRISE_WORD_BOOST)} enterprise vocabulary words to AssemblyAI.")
+                import re
+                sanitized_boost = [re.sub(r'[^a-zA-Z0-9]', '', word) for word in ENTERPRISE_WORD_BOOST if word.strip()]
+                sanitized_boost = [w for w in sanitized_boost if len(w) > 1]
+                if sanitized_boost:
+                    boost_config = {
+                        "word_boost": sanitized_boost,
+                        "boost_param": "high",
+                    }
+                    await aai_ws.send(json.dumps(boost_config))
+                    logger.info(f"Sent {len(sanitized_boost)} sanitized enterprise vocabulary words to AssemblyAI.")
             except websockets.exceptions.ConnectionClosed as e:
                 logger.warning(f"Word boost caused connection close ({e}), continuing with standard streaming.")
             except Exception as e:
-                logger.warning(f"Word boost config failed ({e}), proceeding with standard streaming.")
+                logger.warning(f"AssemblyAI Word Boost optional payload skipped due to notice: {e}. Continuing STT stream.")
 
             async def receive_from_browser():
                 try:

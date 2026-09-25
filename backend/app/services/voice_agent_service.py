@@ -16,13 +16,12 @@ if os.path.exists(_backend_env_path):
 
 
 # Enterprise custom vocabulary — forces AssemblyAI STT to recognize domain-specific terms
+# AssemblyAI v3 Strict Word Boost List — alphanumeric single words only
+# Hyphens, numbers, and special symbols cause Code 3006 connection drops
 ENTERPRISE_WORD_BOOST = [
-    "Konthora", "Acme Corp", "SoftTech", "InnoTech",
-    "EBITDA", "NET-30", "NET-45", "NET-60", "BIN", "EIN",
-    "BDT", "USD", "EUR", "M3 Pro", "Server Rack", "Transceiver",
-    "Rafiqul", "Sarah Jenkins", "PHOENIX-2026", "PO-88301",
-    "INV-8821", "FY-2026", "SHA-256", "Kokoro", "AssemblyAI",
-    "Groq", "Apex Hardware", "ICT Ministry",
+    "Konthora", "Acme", "SoftTech", "InnoTech",
+    "EBITDA", "NET", "BIN", "EIN", "BDT", "USD", "EUR",
+    "Rafiqul", "Sarah", "Jenkins", "Phoenix", "Quotation",
 ]
 
 
