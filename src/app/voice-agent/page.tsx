@@ -1149,6 +1149,20 @@ export default function VoiceAgentPage() {
   const [jsonCopied, setJsonCopied] = useState(false);
   const [isRevisedPulse, setIsRevisedPulse] = useState(false);
 
+  // Deduplication helper — rejects identical consecutive messages
+  const appendMessage = useCallback(
+    (newMsg: { role: "user" | "assistant"; text: string; final?: boolean; timestamp: number }) => {
+      setMessages((prev) => {
+        const last = prev[prev.length - 1];
+        if (last && last.role === newMsg.role && last.text.trim() === newMsg.text.trim()) {
+          return prev; // Reject exact consecutive duplicate
+        }
+        return [...prev, newMsg];
+      });
+    },
+    []
+  );
+
   const wsRef = useRef<WebSocket | null>(null);
   const isSpeakingRef = useRef(false);
   const audioQueueRef = useRef<Blob[]>([]);
@@ -1247,6 +1261,12 @@ export default function VoiceAgentPage() {
         if (data.type === "transcript") {
           setMessages((prev) => {
             const filtered = prev.filter((m) => m.final !== false);
+            if (data.final) {
+              const last = filtered[filtered.length - 1];
+              if (last && last.role === "user" && last.text.trim() === (data.text ?? "").trim() && last.final) {
+                return filtered; // Skip exact duplicate final transcript
+              }
+            }
             return [...filtered, { role: "user", text: data.text, final: data.final, timestamp: Date.now() }];
           });
           if (data.final) setGroqStatus("processing");
@@ -1382,17 +1402,13 @@ export default function VoiceAgentPage() {
 
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
       wsRef.current.send(text);
-      setMessages((prev) => [
-        ...prev,
-        { role: "user", text, final: true, timestamp: Date.now() },
-      ]);
+      // In online mode, do NOT append the user message locally —
+      // the backend streams back a `transcript` message that will
+      // be handled by the WS onmessage listener, preventing duplicates.
       setGroqStatus("processing");
     } else {
       // Offline / Local Simulation Mode
-      setMessages((prev) => [
-        ...prev,
-        { role: "user", text, final: true, timestamp: Date.now() },
-      ]);
+      appendMessage({ role: "user", text, final: true, timestamp: Date.now() });
       setGroqStatus("processing");
 
       setTimeout(() => {
@@ -1434,10 +1450,7 @@ export default function VoiceAgentPage() {
           });
           triggerRevisionPulse();
 
-          setMessages((prev) => [
-            ...prev,
-            { role: "assistant", text: revisionReply, final: true, timestamp: now },
-          ]);
+          appendMessage({ role: "assistant", text: revisionReply, final: true, timestamp: now });
         } else {
           // Standard creation
           let reply = "";
@@ -1473,10 +1486,7 @@ export default function VoiceAgentPage() {
             revised: false,
           });
 
-          setMessages((prev) => [
-            ...prev,
-            { role: "assistant", text: reply, final: true, timestamp: now },
-          ]);
+          appendMessage({ role: "assistant", text: reply, final: true, timestamp: now });
         }
 
         setGroqStatus("done");
@@ -1505,49 +1515,6 @@ export default function VoiceAgentPage() {
 
   return (
     <div className="h-[calc(100vh-5rem)] overflow-hidden bg-slate-950 flex flex-col font-sans select-none">
-      {/* ── Top Futuristic Control Bar (no-print) ── */}
-      <div className="no-print border-b border-slate-800/80 bg-slate-950/95 backdrop-blur-md px-4 sm:px-6 py-2.5 flex items-center justify-between gap-3 text-xs shrink-0">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 font-mono font-bold text-emerald-400 text-sm">
-            <span className="p-1 rounded bg-emerald-500/10 border border-emerald-500/30">🎙️⚡</span>
-            <span>Konthora AI</span>
-            <span className="text-slate-600 font-normal">/</span>
-            <span className="text-slate-300 font-normal text-xs">Voice-to-Document Operations Deck</span>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3">
-          {/* Engine Status */}
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-900 border border-slate-800">
-            {isConnected ? (
-              <>
-                <Wifi className="w-3 h-3 text-emerald-400" />
-                <span className="text-emerald-400 font-mono text-[11px] font-semibold">Live WS Connected</span>
-              </>
-            ) : (
-              <>
-                <WifiOff className="w-3 h-3 text-amber-400" />
-                <span className="text-amber-400 font-mono text-[11px]">Local Simulation Ready</span>
-              </>
-            )}
-          </div>
-
-          {/* Groq LPU Badge */}
-          <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-900 border border-slate-800 text-[11px] font-mono">
-            <Cpu className={`w-3 h-3 ${groqStatus === "processing" ? "text-cyan-400 animate-spin" : "text-cyan-600"}`} />
-            <span className={groqStatus === "processing" ? "text-cyan-400 font-bold" : "text-slate-400"}>
-              {groqStatus === "processing" ? "Groq LPU Inferencing..." : "Groq 70B Engine"}
-            </span>
-          </div>
-
-          {/* Stream Spec */}
-          <div className="hidden md:flex items-center gap-1.5 text-slate-500 font-mono text-[11px]">
-            <Zap className="w-3 h-3 text-emerald-500" />
-            <span>AssemblyAI v3 · 16kHz PCM</span>
-          </div>
-        </div>
-      </div>
-
       {/* ── 2-Panel Split-Screen Command Dashboard ── */}
       <div className="flex-1 flex flex-col lg:flex-row h-full overflow-hidden">
 
@@ -1561,7 +1528,30 @@ export default function VoiceAgentPage() {
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.9)]" />
               <span className="text-xs font-mono font-bold text-emerald-400 uppercase tracking-widest">Audio Agent Deck</span>
             </div>
-            <span className="text-[10px] font-mono text-slate-500">Kokoro-82M Voice Synthesis</span>
+            <div className="flex items-center gap-2.5">
+              <div className="flex items-center gap-1.5 text-[10px] font-mono">
+                {isConnected ? (
+                  <span className="flex items-center gap-1 text-emerald-400">
+                    <Wifi className="w-3 h-3" /> Live
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-1 text-amber-400">
+                    <WifiOff className="w-3 h-3" /> Offline
+                  </span>
+                )}
+              </div>
+              <span className="w-px h-3 bg-slate-700" />
+              <div className="flex items-center gap-1.5 text-[10px] font-mono text-slate-500">
+                <Cpu className={`w-3 h-3 ${groqStatus === "processing" ? "text-cyan-400 animate-spin" : "text-slate-600"}`} />
+                <span className={groqStatus === "processing" ? "text-cyan-400" : ""}>
+                  {groqStatus === "processing" ? "Groq Inferencing..." : "Groq 70B"}
+                </span>
+              </div>
+              <span className="w-px h-3 bg-slate-700" />
+              <span className="hidden sm:flex items-center gap-1 text-[10px] font-mono text-slate-500">
+                <Zap className="w-3 h-3 text-emerald-500" /> v3
+              </span>
+            </div>
           </div>
 
           {/* Live Audio Visualizer Deck */}
@@ -1587,13 +1577,20 @@ export default function VoiceAgentPage() {
             </div>
 
             {messages.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-48 text-center space-y-2.5">
-                <div className="w-11 h-11 rounded-2xl bg-emerald-950/60 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.15)]">
-                  <Mic className="w-5 h-5" />
+              <div className="flex flex-col items-center justify-center h-48 text-center space-y-3">
+                <div className="relative flex items-center justify-center h-28 w-28">
+                  <span className="absolute inset-0 rounded-full bg-emerald-500/5 border border-emerald-500/20 shadow-[0_0_30px_rgba(16,185,129,0.1)] animate-ping [animation-duration:3s] opacity-40" />
+                  <span className="absolute inset-2 rounded-full bg-emerald-500/5 border border-emerald-500/15 shadow-[0_0_20px_rgba(16,185,129,0.08)] animate-ping [animation-duration:4s] opacity-30" />
+                  <span className="absolute inset-4 rounded-full bg-emerald-500/5 border border-emerald-500/10 animate-ping [animation-duration:5s] opacity-20" />
+                  <div className="relative z-10 w-16 h-16 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shadow-[0_0_25px_rgba(16,185,129,0.2)]">
+                    <Mic className="w-7 h-7" />
+                  </div>
                 </div>
                 <div className="text-xs font-semibold text-slate-300">Awaiting Spoken Utterance</div>
-                <div className="text-[11px] text-slate-500 max-w-xs">
-                  Click <span className="text-emerald-400 font-medium">Activate Microphone</span> below or trigger an intent card from the right deck.
+                <div className="flex items-center gap-1.5 flex-wrap justify-center">
+                  <span className="text-[9px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">System Ready</span>
+                  <span className="text-[9px] font-mono px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">Full Duplex AEC Active</span>
+                  <span className="text-[9px] font-mono px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/20">16kHz PCM</span>
                 </div>
               </div>
             ) : (
@@ -1640,50 +1637,37 @@ export default function VoiceAgentPage() {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Audio Agent Deck Controls */}
-          <div className="p-3 border-t border-slate-800/80 bg-slate-950/95 space-y-2 shrink-0">
-            <div className="flex gap-2">
-              {!isListening ? (
-                <button
-                  type="button"
-                  onClick={startMicrophone}
-                  className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer
-                    bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-[0_0_20px_rgba(16,185,129,0.4)]"
-                >
-                  <Mic className="w-4 h-4" />
-                  Activate Voice Engine
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={stopMicrophone}
-                  className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer
-                    bg-red-600 hover:bg-red-500 text-white border border-red-500/50 shadow-[0_0_20px_rgba(239,68,68,0.5)] animate-pulse"
-                >
-                  <Square className="w-4 h-4" />
-                  Stop Microphone
-                </button>
-              )}
-            </div>
-
-            {/* Quick Text Command Input */}
+          {/* Unified Input Dock */}
+          <div className="p-3 border-t border-slate-800/80 bg-slate-950/95 shrink-0">
             <form
               onSubmit={(e) => {
                 e.preventDefault();
                 sendTextCommand(textInput);
               }}
-              className="flex gap-2"
+              className="flex items-center gap-2"
             >
+              <button
+                type="button"
+                onClick={isListening ? stopMicrophone : startMicrophone}
+                className={`shrink-0 px-5 py-2 rounded-full text-[11px] font-medium tracking-wide flex items-center gap-2 transition-all cursor-pointer border ${
+                  isListening
+                    ? "bg-red-500/10 border-red-500/40 text-red-400 hover:bg-red-500/20 shadow-[0_0_20px_rgba(239,68,68,0.2)]"
+                    : "bg-emerald-500/10 border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/20 shadow-[0_0_20px_rgba(16,185,129,0.2)]"
+                }`}
+              >
+                {isListening ? <Square className="w-3 h-3" /> : <Mic className="w-3 h-3" />}
+                {isListening ? "Stop" : "Voice"}
+              </button>
               <input
                 type="text"
                 value={textInput}
                 onChange={(e) => setTextInput(e.target.value)}
-                placeholder="Type or revise (e.g., 'Change discount to 10%', 'Add fee of $200')..."
-                className="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500/50 transition-colors"
+                placeholder="Type a command or revision..."
+                className="flex-1 bg-slate-900 border border-slate-800 rounded-full px-4 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500/50 transition-colors"
               />
               <button
                 type="submit"
-                className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl border border-slate-700 transition-colors cursor-pointer"
+                className="shrink-0 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-full border border-slate-700 transition-colors cursor-pointer"
               >
                 Send
               </button>
@@ -1946,20 +1930,20 @@ export default function VoiceAgentPage() {
               </div>
             )}
           </div>
+        </div>
+      </div>
 
-          {/* Bottom Deck Footer Metrics (no-print) */}
-          <div className="no-print px-5 py-2.5 border-t border-slate-800/80 flex items-center justify-between text-[10.5px] font-mono text-slate-500 bg-slate-950 shrink-0">
-            <div className="flex items-center gap-3">
-              <span className="text-emerald-500">AssemblyAI v3</span>
-              <span>·</span>
-              <span className="text-cyan-500">Groq 70B</span>
-              <span>·</span>
-              <span className="text-purple-400">Kokoro-82M</span>
-            </div>
-            <div className="text-slate-400">
-              Audit Seal: <span className="text-emerald-400 font-semibold">Cryptographic SHA-256 + QR</span>
-            </div>
-          </div>
+      {/* Fixed Global Status Bar */}
+      <div className="no-print fixed bottom-0 left-0 right-0 z-50 bg-slate-950/90 border-t border-slate-800/80 px-4 py-1.5 text-[11px] flex items-center justify-between text-slate-400 backdrop-blur-md">
+        <div className="flex items-center gap-3">
+          <span className="text-emerald-500 font-mono">AssemblyAI v3</span>
+          <span className="text-slate-700">·</span>
+          <span className="text-cyan-500 font-mono">Groq 70B</span>
+          <span className="text-slate-700">·</span>
+          <span className="text-purple-400 font-mono">Kokoro-82M</span>
+        </div>
+        <div className="text-slate-500 font-mono">
+          Audit: <span className="text-emerald-400 font-semibold">SHA-256 + QR</span>
         </div>
       </div>
     </div>

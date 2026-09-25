@@ -1,5 +1,8 @@
+'use client';
+
 import React from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Mail, ExternalLink, Zap, Mic, Cpu } from 'lucide-react';
 import { Container } from '../ui/Container';
 import { KonthoraBrand } from '../brand/KonthoraBrand';
@@ -57,7 +60,10 @@ const footerColumns = [
 ];
 
 export function Footer() {
+  const pathname = usePathname();
   const currentYear = new Date().getFullYear();
+
+  if (pathname === '/voice-agent') return null;
 
   return (
     <footer className="border-t border-border/70 bg-card/60 text-foreground transition-colors duration-200" aria-labelledby="footer-heading">
