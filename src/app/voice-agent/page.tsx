@@ -1748,6 +1748,11 @@ export default function VoiceAgentPage() {
 
   // WebSocket lifecycle
   useEffect(() => {
+    // Prevent duplicate connections from React 18 StrictMode double-mount
+    if (wsRef.current && (wsRef.current.readyState === WebSocket.OPEN || wsRef.current.readyState === WebSocket.CONNECTING)) {
+      return;
+    }
+
     let isMounted = true;
     const wsUrl = process.env.NEXT_PUBLIC_WS_URL || "ws://localhost:8000/api/v1/ws/voice-agent";
     const ws = new WebSocket(wsUrl);
@@ -1857,8 +1862,10 @@ export default function VoiceAgentPage() {
       isMounted = false;
       stopMicrophone();
       stopPlayback();
-      if (ws.readyState === WebSocket.OPEN) ws.close(1000, "Component unmounted");
-      else if (ws.readyState === WebSocket.CONNECTING) ws.onopen = () => ws.close(1000, "Component unmounted");
+      // Close cleanly if open, otherwise abort if still connecting
+      if (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING) {
+        ws.close(1000, "Component unmounted");
+      }
       wsRef.current = null;
     };
   }, [playNextAudioChunk, stopMicrophone, stopPlayback, interruptPlayback]);
