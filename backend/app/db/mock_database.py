@@ -213,6 +213,67 @@ MOCK_ENTERPRISE_DB = {
             "united_states": {"reg_name": "Konthora US Inc.", "ein": "12-9920194", "state_nexus": "California"},
         },
     },
+
+    "meeting_minutes": {
+        "min_2026_09": {
+            "id": "MIN-2026-09",
+            "title": "Product Strategy Sync",
+            "date": "2026-09-20",
+            "time": "10:00 AM - 11:30 AM BST",
+            "agenda": "AI Voice Gateway Scale",
+            "attendees": ["Rafiqul Islam", "Sarah Jenkins"],
+            "decisions": [
+                "Migrate Kokoro to Edge Cluster",
+                "Approve FY26 Q4 Budget",
+            ],
+            "action_items": [
+                {"task": "Deploy PII Redaction", "owner": "Rafiqul", "deadline": "2026-10-05"},
+                {"task": "Prepare Q4 Budget Report", "owner": "Sarah", "deadline": "2026-10-10"},
+            ],
+            "status": "Completed",
+            "aliases": ["meeting", "minutes", "sync", "strategy", "সভা", "মিটিং"],
+        },
+    },
+
+    "legal_contracts": {
+        "nda_2026_88": {
+            "id": "NDA-2026-88",
+            "title": "Mutual Non-Disclosure Agreement",
+            "parties": ["Konthora AI Global Ltd.", "InnoTech GmbH"],
+            "type": "NDA",
+            "duration": "2 Years",
+            "ip_protection": "Strict",
+            "effective_date": "2026-10-01",
+            "governing_law": "Bangladesh Arbitration Act 2001",
+            "status": "Draft - Pending Digital Signature",
+            "aliases": ["nda", "contract", "agreement", "non-disclosure", "চুক্তি", "এনডিএ"],
+        },
+    },
+
+    "expense_vouchers": {
+        "exp_9902": {
+            "id": "EXP-9902",
+            "claimant": "Sarah Jenkins",
+            "employee_id": "EMP-0021",
+            "amount": 450.00,
+            "currency": "USD",
+            "category": "Hardware & Client Travel",
+            "receipt_ref": "REC-4410",
+            "description": "Client site visit to Acme Corp SF office + hardware procurement",
+            "manager_approval": "APPROVED by CFO",
+            "submitted_date": "2026-09-18",
+            "aliases": ["expense", "voucher", "claim", "reimbursement", "খরচ", "ব্যয়"],
+        },
+    },
+
+    "analytics_chart_data": {
+        "revenue_comparison": [
+            {"label": "Q1 Revenue", "val": 142000, "color": "#10b981"},
+            {"label": "Q1 Expenses", "val": 85000, "color": "#ef4444"},
+            {"label": "Q2 Projected", "val": 185000, "color": "#3b82f6"},
+            {"label": "Q2 Est. EBITDA", "val": 52000, "color": "#8b5cf6"},
+        ],
+    },
 }
 
 
@@ -349,3 +410,48 @@ def get_financials(period: str = "Q1"):
 def get_tax_compliance():
     """Return corporate tax and VAT registration summaries."""
     return MOCK_ENTERPRISE_DB["tax_and_compliance"]
+
+
+def query_meeting_minutes(query_str: str) -> dict | None:
+    """Fuzzy-match meeting minutes by ID, title, or alias."""
+    q = query_str.lower().strip()
+    meetings = MOCK_ENTERPRISE_DB["meeting_minutes"]
+    for key, m in meetings.items():
+        if q in key or q in m["id"].lower() or q in m["title"].lower():
+            return m
+        for alias in m.get("aliases", []):
+            if q in alias or alias in q:
+                return m
+    return next(iter(meetings.values()), None)
+
+
+def query_legal_contract(query_str: str) -> dict | None:
+    """Fuzzy-match legal contracts by ID, title, or alias."""
+    q = query_str.lower().strip()
+    contracts = MOCK_ENTERPRISE_DB["legal_contracts"]
+    for key, c in contracts.items():
+        if q in key or q in c["id"].lower() or q in c["title"].lower():
+            return c
+        for alias in c.get("aliases", []):
+            if q in alias or alias in q:
+                return c
+    return next(iter(contracts.values()), None)
+
+
+def query_expense_voucher(query_str: str) -> dict | None:
+    """Fuzzy-match expense vouchers by ID, claimant, or alias."""
+    q = query_str.lower().strip()
+    vouchers = MOCK_ENTERPRISE_DB["expense_vouchers"]
+    for key, v in vouchers.items():
+        if q in key or q in v["id"].lower() or q in v["claimant"].lower():
+            return v
+        for alias in v.get("aliases", []):
+            if q in alias or alias in q:
+                return v
+    return next(iter(vouchers.values()), None)
+
+
+def get_chart_analytics(chart_type: str = "revenue_comparison") -> list:
+    """Return chart data for the given analytics type."""
+    charts = MOCK_ENTERPRISE_DB["analytics_chart_data"]
+    return charts.get(chart_type, charts.get("revenue_comparison", []))

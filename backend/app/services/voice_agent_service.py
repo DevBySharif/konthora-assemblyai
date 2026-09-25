@@ -81,10 +81,16 @@ class VoiceAgentService:
             "- Quotations: PHOENIX-2026 ($27,075 USD for Acme Corp voice gateway), BD-GOV-TENDER-09 (4,500,000 BDT for ICT Ministry portal voice accessibility).\n"
             "- Purchase Orders: PO-88301 ($15,050 USD to Apex Hardware for 20 M3 chips and 2 server racks approved by Sarah Jenkins).\n"
             "- Tax & Compliance: FY-2026 Tax Summary ($11,400 due, $3,200 withholding paid), BD VAT BIN-003928172-0102, EU VAT DE-319208194.\n"
+            "- Meeting Minutes: MIN-2026-09 Product Strategy Sync with decisions on Kokoro Edge migration and FY26 Q4 budget.\n"
+            "- Legal Contracts: NDA-2026-88 Mutual NDA between Konthora and InnoTech GmbH, 2-year term, strict IP protection.\n"
+            "- Expense Vouchers: EXP-9902 Sarah Jenkins $450 hardware & travel claim, APPROVED by CFO.\n"
+            "- Email Dispatch: Can dispatch documents via enterprise SMTP to client emails (e.g., billing@acme.com).\n"
+            "- Analytics: Q1 vs Q2 revenue comparison chart data available.\n"
             "CRITICAL VOICE & MULTILINGUAL RULES:\n"
             "1. CONCISE RESPONSES: Keep answers strictly to 1 to 2 short sentences for immediate audio synthesis.\n"
             "2. ENGLISH-ONLY OUTPUT: Always respond in English regardless of the input language. Even if the user speaks Bangla, Hindi, or any other language, you MUST reply in clear English. Never output Devanagari, Bengali, or any non-Latin script. Transliterate any foreign terms into English if needed.\n"
-            "3. ACCURACY: Always quote specific client names, IDs, currencies, and numbers from the database when handling document requests."
+            "3. ACCURACY: Always quote specific client names, IDs, currencies, and numbers from the database when handling document requests.\n"
+            "4. INTENT CLASSIFICATION: Recognize these intents — meeting minutes/summarize meeting -> meeting_minutes, NDA/contract/agreement -> legal_contract, expense/reimbursement/claim -> expense_voucher, email/dispatch/send -> dispatch_notification, chart/graph/visual revenue -> analytics_chart."
         )
         self._cached_model = None
 
@@ -205,6 +211,16 @@ class VoiceAgentService:
             return "Appointment offer letter generated for Rafiqul Islam as Senior Full-Stack Engineer at 120,000 BDT."
         if any(w in lowered for w in ["inventory", "stock", "warehouse", "m3", "rack"]):
             return "Inventory audit shows 42 Apple M3 Pro chips and 8 server racks available in active warehouses."
+        if any(w in lowered for w in ["meeting", "minutes", "sync", "strategy", "summarize meeting"]):
+            return "Meeting Minutes MIN-2026-09 loaded: Product Strategy Sync with 2 decisions and 2 action items for Rafiqul and Sarah."
+        if any(w in lowered for w in ["nda", "contract", "agreement", "non-disclosure"]):
+            return "Legal Contract NDA-2026-88 loaded: Mutual NDA between Konthora and InnoTech GmbH, 2-year term, pending digital signature."
+        if any(w in lowered for w in ["expense", "reimbursement", "claim", "voucher"]):
+            return "Expense Voucher EXP-9902 loaded: Sarah Jenkins claim of $450.00 for hardware and client travel, approved by CFO."
+        if any(w in lowered for w in ["email", "dispatch", "send quotation", "send invoice"]):
+            return "Enterprise dispatch confirmed. Document PHOENIX-2026 sent via SMTP to billing@acme.com with delivery receipt logged."
+        if any(w in lowered for w in ["chart", "graph", "visual", "revenue chart"]):
+            return "Analytics chart loaded: Q1 Revenue $142K vs Q2 Projected $185K with EBITDA margin expansion to 31%."
 
         return f"Voice-to-document engine processed your request for: '{clean_prompt}'. Document card is ready."
 
@@ -251,6 +267,26 @@ class VoiceAgentService:
                 doc_type = "inventory"
                 doc_ref = "INV-LOG-2026"
                 amount = 62900
+            elif any(w in combined for w in ["meeting", "minutes", "sync", "strategy", "সভা", "মিটিং"]):
+                doc_type = "meeting_minutes"
+                doc_ref = "MIN-2026-09"
+                amount = 0
+            elif any(w in combined for w in ["nda", "contract", "agreement", "non-disclosure", "চুক্তি", "এনডিএ"]):
+                doc_type = "legal_contract"
+                doc_ref = "NDA-2026-88"
+                amount = 0
+            elif any(w in combined for w in ["expense", "reimbursement", "claim", "voucher", "খরচ", "ব্যয়"]):
+                doc_type = "expense_voucher"
+                doc_ref = "EXP-9902"
+                amount = 450
+            elif any(w in combined for w in ["chart", "graph", "visual", "revenue chart"]):
+                doc_type = "analytics_chart"
+                doc_ref = "CHART-2026-Q1Q2"
+                amount = 0
+            elif any(w in combined for w in ["email", "dispatch", "send quotation", "send invoice"]):
+                doc_type = "dispatch_notification"
+                doc_ref = "DISP-2026"
+                amount = 0
 
         if not doc_type:
             return None

@@ -19,6 +19,11 @@ import {
   RefreshCw,
   Sliders,
   ShieldAlert,
+  FileText,
+  Scale,
+  Receipt,
+  BarChart3,
+  Send,
 } from "lucide-react";
 
 // ─────────────────────────────────────────────────────
@@ -32,7 +37,7 @@ interface Message {
 }
 
 interface DocumentCard {
-  type: "invoice" | "financial" | "hr_letter" | "inventory" | "quotation" | "purchase_order" | "tax_compliance" | "none";
+  type: "invoice" | "financial" | "hr_letter" | "inventory" | "quotation" | "purchase_order" | "tax_compliance" | "meeting_minutes" | "legal_contract" | "expense_voucher" | "analytics_chart" | "dispatch_notification" | "none";
   title: string;
   payload: Record<string, unknown>;
   timestamp: number;
@@ -1052,6 +1057,246 @@ function InventoryCard({
 }
 
 // ─────────────────────────────────────────────────────
+// Meeting Minutes Card
+// ─────────────────────────────────────────────────────
+function MeetingMinutesCard({ text, verificationHash }: { text: string; verificationHash?: string }) {
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <FileText className="w-4 h-4 text-blue-400" />
+          <span className="text-sm font-bold text-white">Executive Meeting Minutes</span>
+        </div>
+        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">MIN-2026-09</span>
+      </div>
+      <div className="text-xs text-slate-300 font-semibold">Product Strategy Sync — 20 Sep 2026, 10:00 AM BST</div>
+      <div className="space-y-2">
+        <div className="text-[10px] font-mono text-slate-500 uppercase tracking-wider">Attendees</div>
+        <div className="flex gap-1.5">
+          <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Rafiqul Islam</span>
+          <span className="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">Sarah Jenkins</span>
+        </div>
+      </div>
+      <div className="space-y-1.5">
+        <div className="text-[10px] font-mono text-slate-500 uppercase tracking-wider">Decisions</div>
+        <ul className="space-y-1">
+          <li className="text-xs text-slate-300 flex items-start gap-1.5"><CheckCircle2 className="w-3 h-3 text-emerald-400 shrink-0 mt-0.5" />Migrate Kokoro to Edge Cluster</li>
+          <li className="text-xs text-slate-300 flex items-start gap-1.5"><CheckCircle2 className="w-3 h-3 text-emerald-400 shrink-0 mt-0.5" />Approve FY26 Q4 Budget</li>
+        </ul>
+      </div>
+      <div className="space-y-1.5">
+        <div className="text-[10px] font-mono text-slate-500 uppercase tracking-wider">Action Items</div>
+        <div className="bg-slate-950/60 rounded-lg border border-slate-800 divide-y divide-slate-800/50">
+          <div className="px-3 py-2 flex items-center justify-between text-[11px]">
+            <span className="text-slate-300">Deploy PII Redaction</span>
+            <div className="flex items-center gap-2">
+              <span className="text-emerald-400 font-mono">Rafiqul</span>
+              <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">2026-10-05</span>
+            </div>
+          </div>
+          <div className="px-3 py-2 flex items-center justify-between text-[11px]">
+            <span className="text-slate-300">Prepare Q4 Budget Report</span>
+            <div className="flex items-center gap-2">
+              <span className="text-cyan-400 font-mono">Sarah</span>
+              <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">2026-10-10</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="no-print text-[11px] text-slate-400 bg-blue-950/20 border border-blue-500/20 rounded-lg p-2.5 flex items-start gap-2">
+        <Sparkles className="w-3.5 h-3.5 text-blue-400 shrink-0 mt-0.5" />
+        <span className="line-clamp-2">{text || "Product strategy sync meeting completed with decisions on infrastructure migration and budget approval."}</span>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────
+// Legal Contract / NDA Card
+// ─────────────────────────────────────────────────────
+function LegalContractCard({ text, verificationHash }: { text: string; verificationHash?: string }) {
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Scale className="w-4 h-4 text-purple-400" />
+          <span className="text-sm font-bold text-white">Legal Agreement</span>
+        </div>
+        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-purple-500/10 text-purple-400 border border-purple-500/20">NDA-2026-88</span>
+      </div>
+      <div className="border border-purple-500/30 rounded-xl p-4 space-y-3 bg-purple-950/10">
+        <div className="text-center text-xs font-bold text-purple-300 uppercase tracking-widest">Mutual Non-Disclosure Agreement</div>
+        <div className="grid grid-cols-2 gap-3 text-[11px]">
+          <div><span className="text-slate-500">Effective:</span> <span className="text-slate-300">2026-10-01</span></div>
+          <div><span className="text-slate-500">Duration:</span> <span className="text-slate-300">2 Years</span></div>
+          <div><span className="text-slate-500">IP Protection:</span> <span className="text-purple-400 font-semibold">Strict</span></div>
+          <div><span className="text-slate-500">Status:</span> <span className="text-amber-400">Draft — Pending Signature</span></div>
+        </div>
+        <div className="text-[10px] text-slate-400 border-t border-purple-500/20 pt-2">
+          <span className="text-slate-500">Parties:</span> Konthora AI Global Ltd. &amp; InnoTech GmbH
+        </div>
+        <div className="text-[10px] text-slate-400">
+          <span className="text-slate-500">Governing Law:</span> Bangladesh Arbitration Act 2001
+        </div>
+        <div className="text-[10px] text-slate-500 italic border-t border-purple-500/20 pt-2">
+          Section 4.2 — All proprietary information shared between parties shall remain strictly confidential for the duration of this agreement and 3 years thereafter.
+        </div>
+      </div>
+      <div className="no-print flex items-center justify-between text-[10px] text-slate-500">
+        <span>Digital Signature: <span className="text-amber-400">Pending</span></span>
+        <span className="font-mono">SHA-256 Sealed</span>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────
+// Expense Voucher Card
+// ─────────────────────────────────────────────────────
+function ExpenseVoucherCard({ text, verificationHash }: { text: string; verificationHash?: string }) {
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Receipt className="w-4 h-4 text-amber-400" />
+          <span className="text-sm font-bold text-white">Expense Voucher</span>
+        </div>
+        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">EXP-9902</span>
+      </div>
+      <div className="grid grid-cols-2 gap-3 text-[11px]">
+        <div><span className="text-slate-500">Claimant:</span> <span className="text-slate-300">Sarah Jenkins</span></div>
+        <div><span className="text-slate-500">Employee ID:</span> <span className="text-slate-300 font-mono">EMP-0021</span></div>
+        <div><span className="text-slate-500">Category:</span> <span className="text-amber-400">Hardware &amp; Client Travel</span></div>
+        <div><span className="text-slate-500">Receipt:</span> <span className="text-slate-300 font-mono">REC-4410</span></div>
+      </div>
+      <div className="border border-slate-700 rounded-xl overflow-hidden">
+        <div className="bg-slate-900/80 px-3 py-1.5 text-[10px] font-mono text-slate-500 uppercase">Line Items</div>
+        <div className="divide-y divide-slate-800/50">
+          <div className="px-3 py-2 flex items-center justify-between text-[11px]">
+            <span className="text-slate-300">Client site visit — Acme Corp SF</span>
+            <span className="text-slate-400 font-mono">$280.00</span>
+          </div>
+          <div className="px-3 py-2 flex items-center justify-between text-[11px]">
+            <span className="text-slate-300">Hardware procurement</span>
+            <span className="text-slate-400 font-mono">$170.00</span>
+          </div>
+        </div>
+        <div className="px-3 py-2 bg-slate-900/60 flex items-center justify-between text-[11px] font-bold">
+          <span className="text-slate-300">Total Reimbursement</span>
+          <span className="text-emerald-400 font-mono">$450.00 USD</span>
+        </div>
+      </div>
+      <div className="relative overflow-hidden rounded-lg border border-emerald-500/30 bg-emerald-950/20 p-3 text-center">
+        <div className="absolute inset-0 flex items-center justify-center opacity-10 pointer-events-none">
+          <span className="text-4xl font-black text-emerald-400 -rotate-12 select-none">APPROVED</span>
+        </div>
+        <div className="relative text-xs text-emerald-400 font-semibold">APPROVED by CFO</div>
+        <div className="relative text-[10px] text-slate-500 mt-0.5">Submitted 2026-09-18 · Processed</div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────
+// Analytics Chart Card (SVG Bar Chart)
+// ─────────────────────────────────────────────────────
+function AnalyticsChartCard({ text }: { text: string }) {
+  const data = [
+    { label: "Q1 Rev", val: 142000, color: "#10b981" },
+    { label: "Q1 Exp", val: 85000, color: "#ef4444" },
+    { label: "Q2 Proj", val: 185000, color: "#3b82f6" },
+    { label: "Q2 EBITDA", val: 52000, color: "#8b5cf6" },
+  ];
+  const maxVal = Math.max(...data.map((d) => d.val));
+  const chartH = 140;
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <BarChart3 className="w-4 h-4 text-cyan-400" />
+          <span className="text-sm font-bold text-white">Revenue Analytics</span>
+        </div>
+        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">Q1 vs Q2</span>
+      </div>
+      <div className="bg-slate-950/60 rounded-xl border border-slate-800 p-4">
+        <svg viewBox={`0 0 400 ${chartH + 40}`} className="w-full">
+          {data.map((d, i) => {
+            const barW = 70;
+            const gap = 20;
+            const x = 30 + i * (barW + gap);
+            const barH = (d.val / maxVal) * chartH;
+            const y = chartH - barH + 10;
+            return (
+              <g key={i}>
+                <rect x={x} y={y} width={barW} height={barH} rx={4} fill={d.color} opacity={0.85} />
+                <text x={x + barW / 2} y={y - 6} textAnchor="middle" fill="#e2e8f0" fontSize="10" fontFamily="monospace">
+                  ${(d.val / 1000).toFixed(0)}K
+                </text>
+                <text x={x + barW / 2} y={chartH + 25} textAnchor="middle" fill="#94a3b8" fontSize="9" fontFamily="monospace">
+                  {d.label}
+                </text>
+              </g>
+            );
+          })}
+          <line x1="25" y1={chartH + 10} x2="390" y2={chartH + 10} stroke="#334155" strokeWidth="1" />
+        </svg>
+      </div>
+      <div className="grid grid-cols-2 gap-2 text-[10px]">
+        <div className="bg-slate-900/60 rounded-lg p-2 border border-slate-800">
+          <span className="text-slate-500">Q1→Q2 Growth</span>
+          <div className="text-emerald-400 font-bold font-mono">+30.3%</div>
+        </div>
+        <div className="bg-slate-900/60 rounded-lg p-2 border border-slate-800">
+          <span className="text-slate-500">EBITDA Margin</span>
+          <div className="text-purple-400 font-bold font-mono">28.5% → 31%</div>
+        </div>
+      </div>
+      <div className="no-print text-[11px] text-slate-400 bg-cyan-950/20 border border-cyan-500/20 rounded-lg p-2.5 flex items-start gap-2">
+        <Sparkles className="w-3.5 h-3.5 text-cyan-400 shrink-0 mt-0.5" />
+        <span className="line-clamp-2">{text || "Q1 to Q2 revenue comparison showing strong growth trajectory with EBITDA margin expansion."}</span>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────
+// Dispatch Notification Card (Email Send Confirmation)
+// ─────────────────────────────────────────────────────
+function DispatchNotificationCard({ text }: { text: string }) {
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Send className="w-4 h-4 text-emerald-400" />
+          <span className="text-sm font-bold text-white">Email Dispatch</span>
+        </div>
+        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">SENT</span>
+      </div>
+      <div className="border border-emerald-500/40 rounded-xl bg-emerald-950/20 p-4 space-y-3">
+        <div className="flex items-center gap-2 text-emerald-400">
+          <CheckCircle2 className="w-5 h-5" />
+          <span className="text-xs font-bold uppercase tracking-wider">Official Dispatch Confirmed</span>
+        </div>
+        <div className="text-[11px] text-slate-300 space-y-1.5">
+          <div><span className="text-slate-500">Document:</span> <span className="text-white font-semibold">PHOENIX-2026 Quotation</span></div>
+          <div><span className="text-slate-500">Recipient:</span> <span className="text-emerald-400 font-mono">billing@acme.com</span></div>
+          <div><span className="text-slate-500">Method:</span> <span className="text-slate-300">Enterprise SMTP Relay</span></div>
+          <div><span className="text-slate-500">Status:</span> <span className="text-emerald-400 font-semibold">DELIVERED</span></div>
+        </div>
+        <div className="text-[10px] text-slate-500 border-t border-emerald-500/20 pt-2 font-mono">
+          Delivery Receipt: DR-2026-09-001 · Timestamp: {new Date().toLocaleTimeString()}
+        </div>
+      </div>
+      <div className="no-print text-[11px] text-slate-400 bg-emerald-950/20 border border-emerald-500/20 rounded-lg p-2.5 flex items-start gap-2">
+        <Sparkles className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
+        <span className="line-clamp-2">{text || "Enterprise document dispatched via secure SMTP with delivery receipt logged."}</span>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────
 // Idle / Guide State for Right Panel
 // ─────────────────────────────────────────────────────
 function DocPanelIdle({ onSelectDemo }: { onSelectDemo: (query: string) => void }) {
@@ -1091,6 +1336,36 @@ function DocPanelIdle({ onSelectDemo }: { onSelectDemo: (query: string) => void 
       label: "HR Offer Letter",
       prompt: "Draft an offer letter for Rafiqul Islam as Senior Full-Stack Engineer",
       tag: "EMP-1041",
+    },
+    {
+      color: "text-blue-400 border-blue-500/30 bg-blue-950/20 hover:border-blue-500/60",
+      label: "Meeting Minutes",
+      prompt: "Summarize product sync meeting minutes",
+      tag: "MIN-2026-09",
+    },
+    {
+      color: "text-purple-400 border-purple-500/30 bg-purple-950/20 hover:border-purple-500/60",
+      label: "Legal NDA Contract",
+      prompt: "Generate NDA for InnoTech Solutions",
+      tag: "NDA · 2yr",
+    },
+    {
+      color: "text-amber-400 border-amber-500/30 bg-amber-950/20 hover:border-amber-500/60",
+      label: "Expense Claim",
+      prompt: "Create $450 expense claim for Sarah",
+      tag: "EXP-9902",
+    },
+    {
+      color: "text-cyan-400 border-cyan-500/30 bg-cyan-950/20 hover:border-cyan-500/60",
+      label: "Revenue Chart",
+      prompt: "Show Q1 vs Q2 visual revenue chart",
+      tag: "Chart · SVG",
+    },
+    {
+      color: "text-emerald-400 border-emerald-500/30 bg-emerald-950/20 hover:border-emerald-500/60",
+      label: "Email Dispatch",
+      prompt: "Email this quotation to Acme Corp",
+      tag: "SMTP · Sent",
     },
   ];
 
@@ -1933,6 +2208,34 @@ export default function VoiceAgentPage() {
                       text={lastAssistantMsg?.text ?? ""}
                       verificationHash={docCard.verification_hash}
                       qrPayload={docCard.qr_payload}
+                    />
+                  )}
+                  {docCard.type === "meeting_minutes" && (
+                    <MeetingMinutesCard
+                      text={lastAssistantMsg?.text ?? ""}
+                      verificationHash={docCard.verification_hash}
+                    />
+                  )}
+                  {docCard.type === "legal_contract" && (
+                    <LegalContractCard
+                      text={lastAssistantMsg?.text ?? ""}
+                      verificationHash={docCard.verification_hash}
+                    />
+                  )}
+                  {docCard.type === "expense_voucher" && (
+                    <ExpenseVoucherCard
+                      text={lastAssistantMsg?.text ?? ""}
+                      verificationHash={docCard.verification_hash}
+                    />
+                  )}
+                  {docCard.type === "analytics_chart" && (
+                    <AnalyticsChartCard
+                      text={lastAssistantMsg?.text ?? ""}
+                    />
+                  )}
+                  {docCard.type === "dispatch_notification" && (
+                    <DispatchNotificationCard
+                      text={lastAssistantMsg?.text ?? ""}
                     />
                   )}
                 </div>
