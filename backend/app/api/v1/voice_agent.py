@@ -134,8 +134,16 @@ async def voice_agent_websocket(websocket: WebSocket):
         async with websockets.connect(ASSEMBLYAI_V3_WS_URL, **ws_kwargs) as aai_ws:
             logger.info("Successfully connected to AssemblyAI Streaming v3 WebSocket API.")
 
+            # Send silent PCM frame FIRST to satisfy AssemblyAI initial audio requirement
+            # and prevent instant keep-alive timeout (Code 3006)
+            try:
+                await aai_ws.send(b'\x00' * 320)
+                logger.debug("Sent silence keep-alive frame to AssemblyAI.")
+            except Exception:
+                pass
+
             # Send enterprise word boost configuration for improved STT accuracy
-            # Wrapped in try-except: if word_boost causes Code 3006, reconnect without it
+            # Wrapped in try-except: if word_boost triggers Code 3006, session stays alive
             try:
                 boost_config = {
                     "word_boost": ENTERPRISE_WORD_BOOST,
@@ -143,15 +151,10 @@ async def voice_agent_websocket(websocket: WebSocket):
                 }
                 await aai_ws.send(json.dumps(boost_config))
                 logger.info(f"Sent {len(ENTERPRISE_WORD_BOOST)} enterprise vocabulary words to AssemblyAI.")
+            except websockets.exceptions.ConnectionClosed as e:
+                logger.warning(f"Word boost caused connection close ({e}), continuing with standard streaming.")
             except Exception as e:
                 logger.warning(f"Word boost config failed ({e}), proceeding with standard streaming.")
-
-            # Send silent PCM frame immediately to prevent initial audio timeout (Code 3006)
-            try:
-                await aai_ws.send(b'\x00' * 320)
-                logger.debug("Sent silence keep-alive frame to AssemblyAI.")
-            except Exception:
-                pass
 
             async def receive_from_browser():
                 try:
