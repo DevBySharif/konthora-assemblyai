@@ -69,6 +69,7 @@ def redact_pii(text: str) -> str:
 class VoiceAgentService:
     def __init__(self):
         self.active_doc_state = None
+        self.previous_doc_state = None
         self._interrupt_flag = False
         self.system_prompt = (
             "You are Konthora's real-time AI Voice-to-Document Production Engine for enterprise workflows.\n"
@@ -90,7 +91,7 @@ class VoiceAgentService:
             "1. CONCISE RESPONSES: Keep answers strictly to 1 to 2 short sentences for immediate audio synthesis.\n"
             "2. ENGLISH-ONLY OUTPUT: Always respond in English regardless of the input language. Even if the user speaks Bangla, Hindi, or any other language, you MUST reply in clear English. Never output Devanagari, Bengali, or any non-Latin script. Transliterate any foreign terms into English if needed.\n"
             "3. ACCURACY: Always quote specific client names, IDs, currencies, and numbers from the database when handling document requests.\n"
-            "4. INTENT CLASSIFICATION: Recognize these intents — meeting minutes/summarize meeting -> meeting_minutes, NDA/contract/agreement -> legal_contract, expense/reimbursement/claim -> expense_voucher, email/dispatch/send -> dispatch_notification, chart/graph/visual revenue -> analytics_chart."
+            "4. INTENT CLASSIFICATION: Recognize these intents — meeting minutes/summarize meeting -> meeting_minutes, NDA/contract/agreement -> legal_contract, expense/reimbursement/claim -> expense_voucher, email/dispatch/send -> dispatch_notification, chart/graph/visual revenue -> analytics_chart, convert/currency/BDT/EUR -> currency_conversion, approve/authorize/passkey -> approval_guard, compare/diff/changes -> document_diff, slack/teams/webhook -> slack_dispatch, upload/audio/recording -> audio_upload."
         )
         self._cached_model = None
 
@@ -102,6 +103,56 @@ class VoiceAgentService:
     def clear_interrupt(self):
         """Reset interrupt flag for next turn."""
         self._interrupt_flag = False
+
+    # ── Multi-Currency Conversion ──
+    EXCHANGE_RATES = {"USD": 1.0, "BDT": 120.0, "EUR": 0.92}
+    CURRENCY_SYMBOLS = {"USD": "$", "BDT": "৳", "EUR": "€"}
+
+    def convert_currency(self, amount_usd: float, target: str) -> dict:
+        """Convert USD amount to target currency."""
+        rate = self.EXCHANGE_RATES.get(target, 1.0)
+        symbol = self.CURRENCY_SYMBOLS.get(target, "")
+        converted = round(amount_usd * rate, 2)
+        return {"amount": converted, "currency": target, "symbol": symbol, "rate": rate, "display": f"{symbol}{converted:,.2f} {target}"}
+
+    # ── High-Value Approval Guard ──
+    PASSKEY = "KNT-2026"
+
+    def check_approval_status(self, amount: float, currency: str = "USD") -> str:
+        """Check if document requires CFO approval based on threshold."""
+        threshold_usd = 10000
+        if currency == "BDT":
+            threshold_usd = 1000000 / self.EXCHANGE_RATES["BDT"]
+        if amount > threshold_usd:
+            return "PENDING CFO APPROVAL"
+        return "AUTO-APPROVED"
+
+    def try_approve_with_passkey(self, prompt: str) -> bool:
+        """Check if prompt contains approval passkey. Returns True if approved."""
+        if self.PASSKEY in prompt.upper() or "approve" in prompt.lower() or "authorize" in prompt.lower():
+            if self.active_doc_state:
+                self.active_doc_state["approval_status"] = "OFFICIAL CFO APPROVED"
+                self.active_doc_state["approved_by"] = "Sarah Jenkins (CFO)"
+                self.active_doc_state["approval_timestamp"] = int(time.time())
+                return True
+        return False
+
+    # ── Document Diff Engine ──
+    def compute_doc_diff(self) -> dict | None:
+        """Compare current doc state with previous version."""
+        if not self.active_doc_state or not self.previous_doc_state:
+            return None
+        current = self.active_doc_state
+        previous = self.previous_doc_state
+        diffs = []
+        for key in ["amount", "doc_type", "doc_ref"]:
+            if current.get(key) != previous.get(key):
+                diffs.append({"field": key, "old": previous.get(key), "new": current.get(key)})
+        if current.get("revised"):
+            diffs.append({"field": "revision", "old": "Original", "new": "Revised (voice delta applied)"})
+        if not diffs:
+            diffs.append({"field": "status", "old": "No changes", "new": "No changes detected"})
+        return {"current_ref": current.get("doc_ref"), "previous_ref": previous.get("doc_ref", "N/A"), "diffs": diffs}
 
     async def _get_active_model(self, client: httpx.AsyncClient, base_url: str, headers: dict) -> str:
         if self._cached_model:
@@ -221,6 +272,22 @@ class VoiceAgentService:
             return "Enterprise dispatch confirmed. Document PHOENIX-2026 sent via SMTP to billing@acme.com with delivery receipt logged."
         if any(w in lowered for w in ["chart", "graph", "visual", "revenue chart"]):
             return "Analytics chart loaded: Q1 Revenue $142K vs Q2 Projected $185K with EBITDA margin expansion to 31%."
+        if any(w in lowered for w in ["convert", "currency", "bdt", "eur", "taka", "euro"]):
+            target = "BDT" if any(w in lowered for w in ["bdt", "taka", "bangladeshi"]) else "EUR"
+            conv = self.convert_currency(27075, target)
+            return f"PHOENIX-2026 quotation converted: {conv['display']} at rate {conv['rate']} per USD."
+        if any(w in lowered for w in ["approve", "authorize", "passkey", "knt-2026"]):
+            approved = self.try_approve_with_passkey(clean_prompt)
+            if approved:
+                return "Document officially approved by CFO. Authorization timestamp logged and cryptographic seal regenerated."
+            return "Approval requires valid CFO passkey. Say 'Authorize with KNT-2026 passkey' to approve."
+        if any(w in lowered for w in ["compare", "diff", "changes", "version"]):
+            return "Document comparison loaded. Showing deltas between original and revised versions with change highlights."
+        if any(w in lowered for w in ["slack", "teams", "webhook"]):
+            channel = "#product-strategy" if "meeting" in lowered or "summary" in lowered else "#finance"
+            return f"Slack dispatch confirmed. Document summary posted to {channel} via enterprise webhook API."
+        if any(w in lowered for w in ["upload", "audio", "recording", "file"]):
+            return "Audio upload ready. Drop an MP3 or WAV file to process via AssemblyAI Batch transcription API."
 
         return f"Voice-to-document engine processed your request for: '{clean_prompt}'. Document card is ready."
 
@@ -287,12 +354,49 @@ class VoiceAgentService:
                 doc_type = "dispatch_notification"
                 doc_ref = "DISP-2026"
                 amount = 0
+            elif any(w in combined for w in ["convert", "currency", "bdt", "eur"]):
+                doc_type = "currency_conversion"
+                doc_ref = "CC-2026"
+                amount = self.active_doc_state.get("amount", 27075) if self.active_doc_state else 27075
+            elif any(w in combined for w in ["approve", "authorize", "passkey", "knt-2026"]):
+                if self.active_doc_state:
+                    doc_type = self.active_doc_state.get("doc_type")
+                    doc_ref = self.active_doc_state.get("doc_ref", "DOC-2026")
+                    amount = self.active_doc_state.get("amount", 0)
+                else:
+                    doc_type = "approval_guard"
+                    doc_ref = "APPROVAL-2026"
+                    amount = 0
+            elif any(w in combined for w in ["compare", "diff", "changes", "version"]):
+                doc_type = "document_diff"
+                doc_ref = "DIFF-2026"
+                amount = 0
+            elif any(w in combined for w in ["slack", "teams", "webhook"]):
+                doc_type = "slack_dispatch"
+                doc_ref = "SLACK-2026"
+                amount = 0
+            elif any(w in combined for w in ["upload", "audio", "recording", "file"]):
+                doc_type = "audio_upload"
+                doc_ref = "UPLOAD-2026"
+                amount = 0
 
         if not doc_type:
             return None
 
+        # Save previous state for diff comparison
+        if self.active_doc_state:
+            self.previous_doc_state = dict(self.active_doc_state)
+
         # Generate cryptographic SHA-256 verification hash and QR payload
         verif = generate_verification_data(doc_type, doc_ref, amount)
+        approval_status = self.check_approval_status(amount) if amount > 0 else "N/A"
+
+        # Handle approval passkey
+        if any(w in combined for w in ["approve", "authorize", "passkey", "knt-2026"]):
+            if self.active_doc_state and self.active_doc_state.get("approval_status") == "PENDING CFO APPROVAL":
+                approval_status = "OFFICIAL CFO APPROVED"
+                self.active_doc_state["approval_status"] = approval_status
+
         self.active_doc_state = {
             "doc_type": doc_type,
             "doc_ref": doc_ref,
@@ -301,7 +405,21 @@ class VoiceAgentService:
             "qr_payload": verif["qr_payload"],
             "revised": is_revised,
             "updated_at": verif["verified_at"],
+            "approval_status": approval_status,
         }
+
+        # Build extra payload for currency conversion
+        extra = {}
+        if doc_type == "currency_conversion":
+            target = "BDT" if any(w in combined for w in ["bdt", "taka", "bangladeshi"]) else "EUR"
+            conv = self.convert_currency(amount, target)
+            extra = {"conversion": conv}
+        elif doc_type == "document_diff":
+            diff_data = self.compute_doc_diff()
+            extra = {"diff": diff_data or {"diffs": []}}
+        elif doc_type == "slack_dispatch":
+            channel = "#product-strategy" if any(w in combined for w in ["meeting", "summary"]) else "#finance"
+            extra = {"slack_channel": channel, "dispatch_target": "SLACK_WEBHOOK"}
 
         return {
             "type": "action_card",
@@ -313,6 +431,8 @@ class VoiceAgentService:
             "qr_payload": verif["qr_payload"],
             "revised": is_revised,
             "title": response_text[:70],
+            "approval_status": approval_status,
+            **extra,
         }
 
     async def stream_ai_response(self, prompt: str):

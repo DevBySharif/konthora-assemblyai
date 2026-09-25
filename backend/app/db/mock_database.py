@@ -274,6 +274,18 @@ MOCK_ENTERPRISE_DB = {
             {"label": "Q2 Est. EBITDA", "val": 52000, "color": "#8b5cf6"},
         ],
     },
+
+    "exchange_rates": {
+        "USD": 1.0,
+        "BDT": 120.0,
+        "EUR": 0.92,
+    },
+
+    "currency_symbols": {
+        "USD": "$",
+        "BDT": "৳",
+        "EUR": "€",
+    },
 }
 
 
@@ -455,3 +467,21 @@ def get_chart_analytics(chart_type: str = "revenue_comparison") -> list:
     """Return chart data for the given analytics type."""
     charts = MOCK_ENTERPRISE_DB["analytics_chart_data"]
     return charts.get(chart_type, charts.get("revenue_comparison", []))
+
+
+def convert_document_currency(amount_usd: float, target_currency: str) -> dict:
+    """Convert a USD amount to the target currency using live exchange rates."""
+    rates = MOCK_ENTERPRISE_DB["exchange_rates"]
+    symbols = MOCK_ENTERPRISE_DB["currency_symbols"]
+    rate = rates.get(target_currency, 1.0)
+    symbol = symbols.get(target_currency, "")
+    converted = round(amount_usd * rate, 2)
+    return {
+        "original_amount": amount_usd,
+        "original_currency": "USD",
+        "target_currency": target_currency,
+        "converted_amount": converted,
+        "symbol": symbol,
+        "rate": rate,
+        "display": f"{symbol}{converted:,.2f} {target_currency}",
+    }

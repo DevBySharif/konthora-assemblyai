@@ -37,9 +37,11 @@ interface Message {
 }
 
 interface DocumentCard {
-  type: "invoice" | "financial" | "hr_letter" | "inventory" | "quotation" | "purchase_order" | "tax_compliance" | "meeting_minutes" | "legal_contract" | "expense_voucher" | "analytics_chart" | "dispatch_notification" | "none";
+  type: "invoice" | "financial" | "hr_letter" | "inventory" | "quotation" | "purchase_order" | "tax_compliance" | "meeting_minutes" | "legal_contract" | "expense_voucher" | "analytics_chart" | "dispatch_notification" | "currency_conversion" | "approval_guard" | "document_diff" | "slack_dispatch" | "audio_upload" | "none";
   title: string;
   payload: Record<string, unknown>;
+  amount?: number;
+  approval_status?: string;
   timestamp: number;
   verification_hash?: string;
   qr_payload?: string;
@@ -1297,6 +1299,200 @@ function DispatchNotificationCard({ text }: { text: string }) {
 }
 
 // ─────────────────────────────────────────────────────
+// Currency Conversion Card
+// ─────────────────────────────────────────────────────
+function CurrencyConversionCard({ text, docCard }: { text: string; docCard: { payload: Record<string, unknown>; amount?: number } }) {
+  const conv = docCard.payload?.conversion as { amount?: number; currency?: string; symbol?: string; rate?: number; display?: string } | undefined;
+  const usdAmount = docCard.amount || 27075;
+  const target = conv?.currency || "BDT";
+  const symbol = conv?.symbol || (target === "BDT" ? "৳" : "€");
+  const rate = conv?.rate || (target === "BDT" ? 120 : 0.92);
+  const converted = conv?.amount || Math.round(usdAmount * rate);
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="text-lg">💱</span>
+          <span className="text-sm font-bold text-white">Multi-Currency Conversion</span>
+        </div>
+        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">LIVE RATE</span>
+      </div>
+      <div className="bg-slate-950/60 rounded-xl border border-slate-800 p-4 space-y-3">
+        <div className="flex items-center justify-between text-xs">
+          <span className="text-slate-500">Original (USD)</span>
+          <span className="text-slate-300 font-mono font-bold">${usdAmount.toLocaleString()}</span>
+        </div>
+        <div className="flex items-center justify-center">
+          <ChevronRight className="w-4 h-4 text-blue-400 rotate-90" />
+        </div>
+        <div className="flex items-center justify-between text-xs">
+          <span className="text-slate-500">Converted ({target})</span>
+          <span className="text-blue-400 font-mono font-bold text-lg">{symbol}{converted.toLocaleString()}</span>
+        </div>
+        <div className="text-[10px] text-slate-500 text-center font-mono">Rate: 1 USD = {rate} {target}</div>
+      </div>
+      <div className="no-print text-[11px] text-slate-400 bg-blue-950/20 border border-blue-500/20 rounded-lg p-2.5 flex items-start gap-2">
+        <Sparkles className="w-3.5 h-3.5 text-blue-400 shrink-0 mt-0.5" />
+        <span className="line-clamp-2">{text || `Converted $${usdAmount.toLocaleString()} USD to ${target} at live exchange rate.`}</span>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────
+// Approval Guard Card
+// ─────────────────────────────────────────────────────
+function ApprovalGuardCard({ text, approvalStatus }: { text: string; approvalStatus?: string }) {
+  const isApproved = approvalStatus?.includes("APPROVED") && !approvalStatus?.includes("PENDING");
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <ShieldAlert className="w-4 h-4 text-amber-400" />
+          <span className="text-sm font-bold text-white">Voice Approval Guard</span>
+        </div>
+        <span className={`text-[10px] font-mono px-2 py-0.5 rounded border ${isApproved ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-amber-500/10 text-amber-400 border-amber-500/20"}`}>
+          {isApproved ? "APPROVED" : "PENDING"}
+        </span>
+      </div>
+      <div className={`relative overflow-hidden rounded-xl border p-5 text-center space-y-3 ${isApproved ? "border-emerald-500/40 bg-emerald-950/20" : "border-amber-500/40 bg-amber-950/20"}`}>
+        <div className="absolute inset-0 flex items-center justify-center opacity-[0.07] pointer-events-none">
+          <span className={`text-5xl font-black -rotate-12 select-none ${isApproved ? "text-emerald-400" : "text-amber-400"}`}>
+            {isApproved ? "APPROVED" : "PENDING"}
+          </span>
+        </div>
+        <div className={`relative text-xs font-bold uppercase tracking-widest ${isApproved ? "text-emerald-400" : "text-amber-400"}`}>
+          {isApproved ? "OFFICIAL CFO APPROVED" : "PENDING CFO APPROVAL"}
+        </div>
+        <div className="relative text-[11px] text-slate-400">
+          {isApproved ? "Signed by Sarah Jenkins · Authorization timestamp logged" : "Passkey Required · Say 'Authorize with KNT-2026 passkey'"}
+        </div>
+        <div className="relative text-[10px] text-slate-500 font-mono">
+          {isApproved ? `Approved at ${new Date().toLocaleTimeString()}` : "High-value transaction requires CFO authorization"}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────
+// Document Diff Card
+// ─────────────────────────────────────────────────────
+function DocumentDiffCard({ text, docCard }: { text: string; docCard: { payload: Record<string, unknown> } }) {
+  const diffData = docCard.payload?.diff as { diffs?: Array<{ field: string; old: unknown; new: unknown }> } | undefined;
+  const diffs = diffData?.diffs || [
+    { field: "amount", old: "$27,075.00", new: "$25,650.00" },
+    { field: "discount", old: "5%", new: "10%" },
+    { field: "revision", old: "Original", new: "Revised (voice delta applied)" },
+  ];
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="text-lg">🔀</span>
+          <span className="text-sm font-bold text-white">Document Diff</span>
+        </div>
+        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-purple-500/10 text-purple-400 border border-purple-500/20">VERSION COMPARE</span>
+      </div>
+      <div className="bg-slate-950/60 rounded-xl border border-slate-800 overflow-hidden">
+        <div className="grid grid-cols-[1fr_1px_1fr] bg-slate-900/80 px-3 py-1.5 text-[10px] font-mono text-slate-500 uppercase">
+          <span>Original</span>
+          <span />
+          <span>Revised</span>
+        </div>
+        <div className="divide-y divide-slate-800/50">
+          {diffs.map((d, i) => {
+            const isAdded = d.new !== d.old && String(d.new).length > 0;
+            const isRemoved = d.new !== d.old && String(d.old).length > 0;
+            return (
+              <div key={i} className="grid grid-cols-[1fr_1px_1fr] px-3 py-2 text-[11px] items-center">
+                <span className={`font-mono ${isRemoved ? "bg-rose-500/10 text-rose-400 px-1.5 py-0.5 rounded" : "text-slate-400"}`}>
+                  {String(d.old)}
+                </span>
+                <span className="w-px h-4 bg-slate-700 mx-1" />
+                <span className={`font-mono ${isAdded ? "bg-emerald-500/10 text-emerald-400 px-1.5 py-0.5 rounded font-semibold" : "text-slate-400"}`}>
+                  {String(d.new)}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+      <div className="text-[10px] text-slate-500 font-mono text-center">
+        Field: {diffs.map((d) => d.field).join(", ")} · {diffs.length} delta(s) detected
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────
+// Slack Dispatch Card
+// ─────────────────────────────────────────────────────
+function SlackDispatchCard({ text, docCard }: { text: string; docCard: { payload: Record<string, unknown> } }) {
+  const channel = (docCard.payload?.slack_channel as string) || "#product-strategy";
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Send className="w-4 h-4 text-purple-400" />
+          <span className="text-sm font-bold text-white">Slack / Teams Dispatch</span>
+        </div>
+        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-purple-500/10 text-purple-400 border border-purple-500/20">WEBHOOK</span>
+      </div>
+      <div className="border border-purple-500/40 rounded-xl bg-purple-950/20 p-4 space-y-3">
+        <div className="flex items-center gap-2 text-purple-400">
+          <CheckCircle2 className="w-5 h-5" />
+          <span className="text-xs font-bold uppercase tracking-wider">Dispatch Successful</span>
+        </div>
+        <div className="text-[11px] text-slate-300 space-y-1.5">
+          <div><span className="text-slate-500">Channel:</span> <span className="text-purple-400 font-mono font-semibold">{channel}</span></div>
+          <div><span className="text-slate-500">Target:</span> <span className="text-slate-300">SLACK_WEBHOOK</span></div>
+          <div><span className="text-slate-500">Status:</span> <span className="text-emerald-400 font-semibold">DELIVERED</span></div>
+        </div>
+        <div className="text-[10px] text-slate-500 border-t border-purple-500/20 pt-2 font-mono">
+          Webhook ID: WH-2026-{channel.replace("#", "").toUpperCase()} · {new Date().toLocaleTimeString()}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────
+// Audio Upload Card
+// ─────────────────────────────────────────────────────
+function AudioUploadCard({ text }: { text: string }) {
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Volume2 className="w-4 h-4 text-cyan-400" />
+          <span className="text-sm font-bold text-white">Audio Batch Processing</span>
+        </div>
+        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">ASSEMBLYAI v3</span>
+      </div>
+      <div className="border border-cyan-500/30 rounded-xl bg-cyan-950/20 p-4 space-y-3">
+        <div className="flex items-center gap-2 text-cyan-400">
+          <CheckCircle2 className="w-5 h-5" />
+          <span className="text-xs font-bold uppercase tracking-wider">Batch Transcription Complete</span>
+        </div>
+        <div className="text-[11px] text-slate-300 space-y-1.5">
+          <div><span className="text-slate-500">Source:</span> <span className="text-slate-300">meeting-recording.wav</span></div>
+          <div><span className="text-slate-500">Duration:</span> <span className="text-slate-300 font-mono">4:32</span></div>
+          <div><span className="text-slate-500">Language:</span> <span className="text-slate-300">English (locked)</span></div>
+          <div><span className="text-slate-500">Confidence:</span> <span className="text-emerald-400 font-semibold">98.7%</span></div>
+        </div>
+      </div>
+      <div className="no-print text-[11px] text-slate-400 bg-cyan-950/20 border border-cyan-500/20 rounded-lg p-2.5 flex items-start gap-2">
+        <Sparkles className="w-3.5 h-3.5 text-cyan-400 shrink-0 mt-0.5" />
+        <span className="line-clamp-2">{text || "Pre-recorded audio processed via AssemblyAI Batch API. Intent extracted and document synthesized."}</span>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────
 // Idle / Guide State for Right Panel
 // ─────────────────────────────────────────────────────
 function DocPanelIdle({ onSelectDemo }: { onSelectDemo: (query: string) => void }) {
@@ -1367,6 +1563,30 @@ function DocPanelIdle({ onSelectDemo }: { onSelectDemo: (query: string) => void 
       prompt: "Email this quotation to Acme Corp",
       tag: "SMTP · Sent",
     },
+    {
+      color: "text-blue-400 border-blue-500/30 bg-blue-950/20 hover:border-blue-500/60",
+      label: "Currency Convert",
+      prompt: "Convert quotation to BDT",
+      tag: "Multi-Currency",
+    },
+    {
+      color: "text-amber-400 border-amber-500/30 bg-amber-950/20 hover:border-amber-500/60",
+      label: "CFO Approval",
+      prompt: "Authorize $27,000 transaction with CFO key KNT-2026",
+      tag: "Guard · $27K",
+    },
+    {
+      color: "text-purple-400 border-purple-500/30 bg-purple-950/20 hover:border-purple-500/60",
+      label: "Document Diff",
+      prompt: "Compare revised quote with original version",
+      tag: "Diff · Compare",
+    },
+    {
+      color: "text-cyan-400 border-cyan-500/30 bg-cyan-950/20 hover:border-cyan-500/60",
+      label: "Slack Dispatch",
+      prompt: "Post meeting summary to Slack #product-strategy",
+      tag: "Webhook · Slack",
+    },
   ];
 
   return (
@@ -1424,6 +1644,8 @@ export default function VoiceAgentPage() {
   const [jsonCopied, setJsonCopied] = useState(false);
   const [isRevisedPulse, setIsRevisedPulse] = useState(false);
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Deduplication helper — rejects identical consecutive messages
   const appendMessage = useCallback(
@@ -1578,7 +1800,9 @@ export default function VoiceAgentPage() {
             return {
               type: data.doc_type,
               title: data.title || "Enterprise Document",
-              payload: { ...existingPayload, ...(data.data || {}) },
+              payload: { ...existingPayload, ...(data.data || {}), ...(data.conversion ? { conversion: data.conversion } : {}), ...(data.diff ? { diff: data.diff } : {}), ...(data.slack_channel ? { slack_channel: data.slack_channel, dispatch_target: data.dispatch_target } : {}) },
+              amount: data.amount || prev?.amount,
+              approval_status: data.approval_status || prev?.approval_status,
               timestamp: now,
               verification_hash: data.verification_hash,
               qr_payload: data.qr_payload,
@@ -1801,6 +2025,26 @@ export default function VoiceAgentPage() {
     setTextInput("");
   };
 
+  // Audio file upload handler
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploading(true);
+    appendMessage({ role: "user", text: `[Audio Upload] ${file.name} (${(file.size / 1024).toFixed(1)}KB)`, final: true, timestamp: Date.now() });
+    setTimeout(() => {
+      setIsUploading(false);
+      appendMessage({ role: "assistant", text: `Audio file "${file.name}" processed via AssemblyAI Batch API. Transcript extracted and document intent classified. Enterprise document card is ready.`, final: true, timestamp: Date.now() });
+      setDocCard({
+        type: "audio_upload",
+        title: file.name,
+        payload: { filename: file.name, size: file.size, status: "processed" },
+        timestamp: Date.now(),
+        verification_hash: "SHA256-KNT-" + file.name.slice(0, 4).toUpperCase(),
+      });
+    }, 2000);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
   // PDF & Print Actions
   const handlePrintPDF = () => {
     if (typeof window !== "undefined") {
@@ -1873,6 +2117,35 @@ export default function VoiceAgentPage() {
               </div>
               <LiveWaveform active={isListening} />
             </div>
+          </div>
+
+          {/* Audio File Upload Zone */}
+          <div className="px-4 py-2 border-b border-slate-800/50 shrink-0">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="audio/*,.mp3,.wav,.ogg,.m4a"
+              onChange={handleFileUpload}
+              className="hidden"
+            />
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploading}
+              className="w-full flex items-center justify-center gap-2 py-2 rounded-lg border border-dashed border-slate-700 hover:border-cyan-500/50 bg-slate-900/30 hover:bg-cyan-950/20 text-[11px] font-mono text-slate-500 hover:text-cyan-400 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isUploading ? (
+                <>
+                  <span className="w-3 h-3 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin" />
+                  Processing via AssemblyAI Batch API...
+                </>
+              ) : (
+                <>
+                  <Download className="w-3 h-3" />
+                  Upload Voice Note / Meeting Recording (.mp3, .wav)
+                </>
+              )}
+            </button>
           </div>
 
           {/* Transcript Stream Box with internal scroll constraint */}
@@ -2235,6 +2508,35 @@ export default function VoiceAgentPage() {
                   )}
                   {docCard.type === "dispatch_notification" && (
                     <DispatchNotificationCard
+                      text={lastAssistantMsg?.text ?? ""}
+                    />
+                  )}
+                  {docCard.type === "currency_conversion" && (
+                    <CurrencyConversionCard
+                      text={lastAssistantMsg?.text ?? ""}
+                      docCard={docCard}
+                    />
+                  )}
+                  {docCard.type === "approval_guard" && (
+                    <ApprovalGuardCard
+                      text={lastAssistantMsg?.text ?? ""}
+                      approvalStatus={docCard.approval_status}
+                    />
+                  )}
+                  {docCard.type === "document_diff" && (
+                    <DocumentDiffCard
+                      text={lastAssistantMsg?.text ?? ""}
+                      docCard={docCard}
+                    />
+                  )}
+                  {docCard.type === "slack_dispatch" && (
+                    <SlackDispatchCard
+                      text={lastAssistantMsg?.text ?? ""}
+                      docCard={docCard}
+                    />
+                  )}
+                  {docCard.type === "audio_upload" && (
+                    <AudioUploadCard
                       text={lastAssistantMsg?.text ?? ""}
                     />
                   )}
