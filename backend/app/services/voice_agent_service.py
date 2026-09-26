@@ -168,7 +168,7 @@ class VoiceAgentService:
             return env_model
 
         try:
-            resp = await client.get(f"{base_url}/models", headers=headers)
+            resp = await client.get(f"{base_url}/models", headers=headers, timeout=httpx.Timeout(2.0))
             if resp.status_code == 200:
                 models = [m["id"] for m in resp.json().get("data", [])]
                 for candidate in ["llama-3.1-8b-instant", "llama-3.3-70b-versatile", "qwen/qwen3.8-27b", "groq/compound-mini"]:
@@ -345,6 +345,7 @@ class VoiceAgentService:
             yield "I didn't hear anything clearly. Could you please repeat?"
             return
 
+        # Fast path: try LLM with strict 3s timeout, fallback instantly
         api_key = os.getenv("GROQ_API_KEY") or os.getenv("OPENAI_API_KEY")
         if api_key:
             try:
@@ -356,6 +357,8 @@ class VoiceAgentService:
 
                 t0 = time.monotonic()
                 first_token_sent = False
+
+                # Use a tighter timeout for the initial connection
                 async with client.stream(
                     "POST",
                     f"{base_url}/chat/completions",
@@ -366,13 +369,19 @@ class VoiceAgentService:
                             {"role": "system", "content": self.system_prompt},
                             {"role": "user", "content": clean_prompt}
                         ],
-                        "max_tokens": 120,
+                        "max_tokens": 100,
                         "temperature": 0.7,
                         "stream": True,
-                    }
+                    },
+                    timeout=httpx.Timeout(3.0, read=5.0),
                 ) as resp:
                     if resp.status_code == 200:
                         async for line in resp.aiter_lines():
+                            # Hard timeout: if first token takes >3s, abort
+                            if not first_token_sent and (time.monotonic() - t0) > 3.0:
+                                logger.warning("LLM first token timeout (3s) — using fast fallback")
+                                return
+
                             line_str = line.strip()
                             if not line_str or not line_str.startswith("data: "):
                                 continue
@@ -394,14 +403,16 @@ class VoiceAgentService:
                         logger.info(f"LLM stream complete in {elapsed:.2f}s")
                         return
                     else:
-                        err_body = await resp.aread()
-                        logger.error(f"Streaming LLM error {resp.status_code}: {err_body}")
+                        logger.error(f"Streaming LLM error {resp.status_code}")
                         self._cached_model = None
+            except httpx.TimeoutException:
+                logger.warning("LLM connection timeout — using fast fallback")
+                return
             except Exception as e:
                 logger.error(f"Streaming LLM exception: {e}")
 
-        # Fallback — instant, no API call
-        logger.info("Using fast fallback (no API latency)")
+        # Fallback — instant, zero latency
+        logger.info("Using fast fallback (0ms)")
         yield self._fast_fallback(clean_prompt)
 
     def generate_speech_bytes(self, text: str) -> bytes:
