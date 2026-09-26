@@ -2074,6 +2074,9 @@ export default function VoiceAgentPage() {
             case "reply.done":
               if (m.status === "interrupted") {
                 flushPlayback();
+              } else {
+                isSpeakingRef.current = false;
+                setIsPlayingAudio(false);
               }
               // Mark assistant message as final
               setMessages((prev) => {
