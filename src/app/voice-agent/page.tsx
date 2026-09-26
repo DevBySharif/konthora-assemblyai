@@ -262,12 +262,12 @@ function buildDocumentPayload(type: DocumentCard["type"], text: string, ts: numb
         valid_until: "2026-12-31",
         line_items: [
           { description: "Konthora Real-Time Multilingual Voice Gateway", qty: 1, unit_price: 18500, total: 18500 },
-          { description: "Kokoro-82M High-Density Edge TTS Cluster", qty: 2, unit_price: 5000, total: 10000 },
+          { description: "AssemblyAI Voice Agent Integration", qty: 2, unit_price: 5000, total: 10000 },
         ],
         subtotal: 28500,
         discount_pct: 5,
         grand_total: 27075,
-        sla: "Sub-850ms latency guarantee on AssemblyAI Streaming v3",
+        sla: "Sub-850ms latency guarantee via AssemblyAI Voice Agent",
         transcript_context: text,
       };
     case "purchase_order":
@@ -503,7 +503,7 @@ function QuotationCard({
         <div>
           <span className="text-[10px] font-mono text-neutral-500 uppercase tracking-wider">Project Specification:</span>
           <div className="font-bold text-neutral-300 mt-0.5">Real-Time Voice-to-Document Pipeline</div>
-          <div className="text-[11px] text-neutral-400">Sub-850ms SLA · Kokoro-82M High-Density Nodes</div>
+          <div className="text-[11px] text-neutral-400">Sub-850ms SLA · AssemblyAI Voice Agent</div>
         </div>
       </div>
 
@@ -523,7 +523,7 @@ function QuotationCard({
               <td className="py-2.5 pr-2 font-mono text-neutral-500">01</td>
               <td className="py-2.5 pr-4 text-white font-medium">
                 Konthora Real-Time Multilingual Voice Gateway
-                <div className="text-[11px] text-neutral-400 font-normal">AssemblyAI Streaming v3 16kHz PCM streaming pipeline</div>
+                <div className="text-[11px] text-neutral-400 font-normal">AssemblyAI Voice Agent 24kHz PCM streaming pipeline</div>
               </td>
               <td className="py-2.5 px-2 text-center font-mono text-neutral-300">1</td>
               <td className="py-2.5 px-2 text-right font-mono text-neutral-300">$18,500.00</td>
@@ -532,8 +532,8 @@ function QuotationCard({
             <tr>
               <td className="py-2.5 pr-2 font-mono text-neutral-500">02</td>
               <td className="py-2.5 pr-4 text-white font-medium">
-                Kokoro-82M High-Density Edge TTS Cluster
-                <div className="text-[11px] text-neutral-400 font-normal">Dual-node on-prem high-throughput audio synthesis cluster</div>
+                AssemblyAI Voice Agent Integration
+                <div className="text-[11px] text-neutral-400 font-normal">Managed STT + LLM + TTS in single WebSocket</div>
               </td>
               <td className="py-2.5 px-2 text-center font-mono text-neutral-300">2</td>
               <td className="py-2.5 px-2 text-right font-mono text-neutral-300">$5,000.00</td>
@@ -810,7 +810,7 @@ function InvoiceCard({
               <td className="py-2.5 pr-2 font-mono text-neutral-500">02</td>
               <td className="py-2.5 pr-4 text-white font-medium">
                 Dedicated Inference Cluster (Monthly Allocation)
-                <div className="text-[11px] text-neutral-400 font-normal">Isolated Groq LPU + Kokoro-82M processing unit</div>
+                <div className="text-[11px] text-neutral-400 font-normal">Isolated Voice Agent processing unit</div>
               </td>
               <td className="py-2.5 px-2 text-center font-mono text-neutral-300">30 Days</td>
               <td className="py-2.5 pl-2 text-right font-mono text-white font-semibold">$850.00</td>
@@ -1092,7 +1092,7 @@ function MeetingMinutesCard({ text, verificationHash }: { text: string; verifica
       <div className="space-y-1.5">
         <div className="text-[10px] font-mono text-neutral-500 uppercase tracking-wider">Decisions</div>
         <ul className="space-y-1">
-          <li className="text-xs text-neutral-300 flex items-start gap-1.5"><CheckCircle2 className="w-3 h-3 text-neutral-300 shrink-0 mt-0.5" />Migrate Kokoro to Edge Cluster</li>
+          <li className="text-xs text-neutral-300 flex items-start gap-1.5"><CheckCircle2 className="w-3 h-3 text-neutral-300 shrink-0 mt-0.5" />Migrate to Voice Agent API</li>
           <li className="text-xs text-neutral-300 flex items-start gap-1.5"><CheckCircle2 className="w-3 h-3 text-neutral-300 shrink-0 mt-0.5" />Approve FY26 Q4 Budget</li>
         </ul>
       </div>
@@ -2587,11 +2587,11 @@ export default function VoiceAgentPage() {
       {/* Fixed Global Status Bar */}
       <div className="no-print fixed bottom-0 left-0 right-0 z-50 bg-neutral-950/90 backdrop-blur-2xl border-t border-white/10 px-4 py-2 text-[10px] flex items-center justify-between text-neutral-400">
         <div className="flex items-center gap-3">
-          <span className="font-mono tracking-wider uppercase text-neutral-400">AssemblyAI v3</span>
+          <span className="font-mono tracking-wider uppercase text-neutral-400">Voice Agent</span>
           <span className="text-neutral-700">·</span>
-          <span className="font-mono tracking-wider uppercase text-cyan-400">Groq 70B</span>
+          <span className="font-mono tracking-wider uppercase text-cyan-400">24kHz PCM</span>
           <span className="text-neutral-700">·</span>
-          <span className="font-mono tracking-wider uppercase text-purple-400">Kokoro-82M</span>
+          <span className="font-mono tracking-wider uppercase text-purple-400">Tool Calling</span>
         </div>
         <div className="text-neutral-400 font-mono">
           <span className="text-neutral-400">SHA-256</span> + <span className="text-cyan-400">QR Audit</span>

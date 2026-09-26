@@ -16,7 +16,7 @@ export default function LandingPage() {
         <div>
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-neutral-900 border border-white/20 text-[11px] text-neutral-300 mb-6 appear appear--pop" style={{ "--d": "0.22s" } as React.CSSProperties}>
             <span className="w-2 h-2 rounded-full bg-white/10 animate-pulse" />
-            <span>AssemblyAI Voice Agent Hackathon 2026 | AssemblyAI v3 + Groq + Kokoro</span>
+            <span>AssemblyAI Voice Agent Hackathon 2026 | Powered by AssemblyAI</span>
           </div>
 
           <h1 className="hero-headline text-4xl md:text-5xl lg:text-6xl font-semibold tracking-tight leading-[1.1] mb-6">
@@ -32,7 +32,7 @@ export default function LandingPage() {
           </h1>
 
           <p className="text-sm md:text-base text-neutral-400 leading-relaxed mb-8 appear appear--soft" style={{ "--d": "0.82s" } as React.CSSProperties}>
-            Speak in English, Bangla, or Banglish. Konthora&apos;s autonomous voice operations engine listens via AssemblyAI v3, reasons via Groq, executes structured workflows, and generates verified enterprise documents with cryptographic SHA-256 seals and instant Kokoro voice feedback.
+            Speak in English, Bangla, or Banglish. Konthora&apos;s autonomous voice operations engine uses AssemblyAI&apos;s managed Voice Agent API for real-time STT, LLM reasoning, and natural voice synthesis — all in a single WebSocket connection with sub-second response times.
           </p>
 
           <div className="flex flex-wrap items-center gap-4 mb-10">
@@ -51,12 +51,12 @@ export default function LandingPage() {
               <div>Total Loop Latency</div>
             </div>
             <div>
-              <div className="text-neutral-300 font-mono font-bold text-sm mb-1">16kHz PCM</div>
+              <div className="text-neutral-300 font-mono font-bold text-sm mb-1">24kHz PCM</div>
               <div>Full-Duplex Stream</div>
             </div>
             <div>
               <div className="text-neutral-300 font-mono font-bold text-sm mb-1">0 Egress</div>
-              <div>Local Kokoro Synthesis</div>
+              <div>Managed Voice Agent</div>
             </div>
           </div>
         </div>
@@ -65,7 +65,7 @@ export default function LandingPage() {
         <div className="vesper-glass-card animate-vesper-in rounded-2xl p-6 shadow-[0_0_50px_rgba(0,0,0,0.8)]" style={{ "--d": "0.3s" } as React.CSSProperties}>
           <div className="flex items-center justify-between border-b border-white/10 pb-3 mb-4 text-xs font-mono text-neutral-400">
             <span className="text-neutral-300">konthora-voice-engine://live</span>
-            <span className="px-2 py-0.5 rounded bg-white/10 text-neutral-300 text-[10px]">● WebSocket v3 Active</span>
+            <span className="px-2 py-0.5 rounded bg-white/10 text-neutral-300 text-[10px]">● Voice Agent Active</span>
           </div>
 
           <div className="space-y-4 text-xs font-mono">
@@ -122,14 +122,14 @@ export default function LandingPage() {
         <div className="text-center max-w-2xl mx-auto mb-16">
           <span className="px-3 py-1 rounded-full bg-white/10 border border-white/20 text-neutral-300 text-xs font-mono">Sub-Second Pipeline Architecture</span>
           <h2 className="text-3xl md:text-5xl font-semibold mt-4 mb-4">How Konthora Turns Soundwaves into Signed Documents</h2>
-          <p className="text-neutral-400 text-sm">Engineered with a full-duplex conversational loop connecting AssemblyAI v3, Groq LPU inference, and local Kokoro-82M neural audio synthesis.</p>
+          <p className="text-neutral-400 text-sm">Engineered with AssemblyAI&apos;s managed Voice Agent API — a single WebSocket handling STT, LLM reasoning, and natural voice synthesis with built-in turn detection and tool calling.</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
           {[
-            { stage: "STAGE 01", time: "~150 ms", title: "AssemblyAI Streaming v3", desc: "16kHz PCM WebSocket Stream" },
-            { stage: "STAGE 02", time: "~180 ms", title: "Groq LLM Decision Engine", desc: "Llama-3.3-70B Structured JSON" },
-            { stage: "STAGE 03", time: "~120 ms", title: "Local Kokoro-82M Neural TTS", desc: "Zero-Egress On-Device Synthesis" },
+            { stage: "STAGE 01", time: "~150 ms", title: "AssemblyAI Speech Capture", desc: "24kHz PCM AudioWorklet Stream" },
+            { stage: "STAGE 02", time: "~180 ms", title: "Voice Agent LLM", desc: "Managed Inference & Tool Calling" },
+            { stage: "STAGE 03", time: "~120 ms", title: "Anna Neural Voice", desc: "Managed TTS Synthesis" },
             { stage: "STAGE 04", time: "Instant (<50ms)", title: "Dynamic Document Card", desc: "Reactive DOM & Print/PDF Engine" },
           ].map((st, i) => (
             <div key={i} className="vesper-glass-card animate-vesper-in p-6 rounded-2xl hover:border-white/30 transition-all">
@@ -148,7 +148,7 @@ export default function LandingPage() {
           <div>
             <h3 className="text-lg font-semibold text-white mb-2">Hardware &amp; Algorithmic Acoustic Echo Cancellation (AEC)</h3>
             <p className="text-xs text-neutral-400 max-w-2xl leading-relaxed">
-              When Kokoro speaks the confirmation through laptop or desktop speakers, Konthora&apos;s audio gate dampens playback frequency bleeding, preventing AssemblyAI from re-transcribing the assistant&apos;s own voice.
+              When the agent speaks through your speakers, browser-native echo cancellation (AEC) and the mic mute gate prevent the voice agent from re-transcribing its own output — ensuring clean, uninterrupted conversations.
             </p>
           </div>
           <Link className="vesper-nav-pill px-6 py-3 rounded-xl text-white font-semibold text-xs hover:bg-neutral-200 transition-all whitespace-nowrap shadow-[0_0_20px_rgba(255,255,255,0.1)]" href="/voice-agent">
@@ -188,7 +188,7 @@ export default function LandingPage() {
         <div className="vesper-glass-card p-8 rounded-2xl grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
           <div className="space-y-4 font-mono text-xs">
             <div className="p-4 rounded-xl bg-neutral-900 border border-neutral-800">
-              <span className="text-neutral-300 text-[10px] block mb-1">Spoken Audio Prompt (AssemblyAI v3 16kHz)</span>
+              <span className="text-neutral-300 text-[10px] block mb-1">Spoken Audio Prompt (24kHz Voice Agent)</span>
               {activeTab === "invoice" && (
                 <p className="text-neutral-200 italic">&quot;Generate an invoice for CloudScale Technologies: 3 AI Integration Sprints at $4,500 each, Net 15 days payment terms.&quot;</p>
               )}
@@ -200,7 +200,7 @@ export default function LandingPage() {
               )}
             </div>
             <div className="p-4 rounded-xl bg-neutral-900 border border-neutral-800">
-              <span className="text-amber-400 text-[10px] block mb-1">Groq Decision Engine (180ms)</span>
+              <span className="text-amber-400 text-[10px] block mb-1">Voice Agent Tool Call</span>
               {activeTab === "invoice" && (
                 <p className="text-neutral-300">Tool Dispatched: <span className="text-neutral-300">generate_invoice({'{ client: "CloudScale Technologies", amount: 13500 }'})</span></p>
               )}
@@ -329,12 +329,12 @@ export default function LandingPage() {
 
         <div className="space-y-4">
           {[
-            { q: "What makes Konthora different from generic transcription or TTS tools?", a: "Konthora is a full-duplex enterprise voice production engine that reasons in real-time via Groq, executes structured schemas, and generates downloadable documents with local Kokoro confirmation." },
-            { q: "How is sub-second latency achieved?", a: "By pairing AssemblyAI v3 streaming WebSocket transcription (~150ms) with Groq LPU inference (~180ms) and on-device Kokoro-82M neural TTS (~120ms)." },
+            { q: "What makes Konthora different from generic transcription or TTS tools?", a: "Konthora is a full-duplex enterprise voice production engine powered by AssemblyAI's managed Voice Agent API — handling STT, LLM reasoning, and natural voice synthesis in a single connection with built-in tool calling." },
+            { q: "How is sub-second latency achieved?", a: "AssemblyAI's Voice Agent API manages the entire pipeline in one WebSocket: real-time speech capture, LLM inference, and neural voice synthesis — eliminating network hops between separate services." },
             { q: "Does Konthora support Bangla and Banglish code-switching?", a: "Yes. The system parses mixed-mode English, Banglish, and native Bangla queries, extracting parameters and converting currencies seamlessly." },
             { q: "What enterprise documents can Konthora generate?", a: "Commercial invoices, quotations, financial summaries, EBITDA reports, HR offer letters, employment contracts, and salary revision memos — all with SHA-256 cryptographic seals." },
-            { q: "Is my voice data sent to external servers?", a: "Audio streams are processed by AssemblyAI v3 for transcription only. Document generation and TTS synthesis happen entirely on-device via Kokoro-82M — zero egress for voice output." },
-            { q: "How does the AEC Echo Guard prevent feedback loops?", a: "Konthora&apos;s client-side RMS noise gate detects loudspeaker playback and dampens the microphone input during Kokoro TTS output, preventing AssemblyAI from re-transcribing its own voice." },
+            { q: "Is my voice data secure?", a: "Audio is processed by AssemblyAI's Voice Agent API with enterprise-grade security. Document generation happens on our backend. Voice data is never stored beyond the active session." },
+            { q: "How does echo cancellation work?", a: "Browser-native AEC (echo cancellation) handles speaker-to-mic feedback automatically. Additionally, the mic worklet mutes audio during agent speech to prevent any residual echo." },
           ].map((faq, index) => (
             <div key={index} className="vesper-glass-card rounded-xl overflow-hidden">
               <button onClick={() => setOpenFaq(openFaq === index ? null : index)} className="w-full p-5 text-left flex justify-between items-center text-sm font-semibold hover:text-neutral-300 transition-colors">

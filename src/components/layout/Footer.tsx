@@ -23,9 +23,8 @@ const footerColumns = [
     title: 'Voice Engine',
     links: [
       { label: 'Launch Voice Engine', href: '/voice-agent', isExternal: false },
-      { label: 'AssemblyAI v3 WebSocket Docs', href: 'https://www.assemblyai.com/docs/api-reference/streaming', isExternal: true },
-      { label: 'Groq Speed Benchmarks', href: 'https://groq.com/', isExternal: true },
-      { label: 'Kokoro-82M Neural Synthesis', href: 'https://huggingface.co/hexgrad/Kokoro-82M', isExternal: true },
+      { label: 'AssemblyAI Voice Agent Docs', href: 'https://www.assemblyai.com/docs/agents/voice-agent', isExternal: true },
+      { label: 'AssemblyAI Dashboard', href: 'https://www.assemblyai.com/dashboard', isExternal: true },
     ],
   },
   {
@@ -40,9 +39,9 @@ const footerColumns = [
   {
     title: 'Architecture',
     links: [
-      { label: '16kHz PCM Speech Capture', href: '/#architecture', isExternal: false },
-      { label: 'Groq Structured Tool Dispatch', href: '/#architecture', isExternal: false },
-      { label: 'Local Voice Confirmation', href: '/#architecture', isExternal: false },
+      { label: '24kHz PCM AudioWorklet', href: '/#architecture', isExternal: false },
+      { label: 'Managed Voice Agent API', href: '/#architecture', isExternal: false },
+      { label: 'Tool Calling Integration', href: '/#architecture', isExternal: false },
       { label: 'Dynamic Document Render', href: '/#architecture', isExternal: false },
     ],
   },
@@ -81,13 +80,13 @@ export function Footer() {
 
             <div className="mt-4 flex flex-wrap gap-2 text-xs">
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-white/10 text-neutral-300 border border-white/15 font-mono">
-                <Mic className="w-3 h-3" /> AssemblyAI v3
+                <Mic className="w-3 h-3" /> Voice Agent
               </span>
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-500/10 text-amber-400 border border-amber-500/20 font-mono">
-                <Zap className="w-3 h-3" /> Groq 70B
+                <Zap className="w-3 h-3" /> Sub-Second
               </span>
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 font-mono">
-                <Cpu className="w-3 h-3" /> Kokoro-82M
+                <Cpu className="w-3 h-3" /> Tool Calling
               </span>
             </div>
 
