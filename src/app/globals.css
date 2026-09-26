@@ -485,3 +485,60 @@ body {
   100% { opacity: 1; transform: scale(1); }
 }
 
+/* ================================================================
+   VESPER.AI — Tailwind @layer Utilities
+   ================================================================ */
+
+@layer utilities {
+  /* Vesper Background & Fonts */
+  .bg-vesper-obsidian {
+    background-color: #000000 !important;
+  }
+
+  .font-vesper-serif {
+    font-family: 'Instrument Serif', Georgia, serif !important;
+    font-style: italic !important;
+  }
+
+  /* Liquid Glass Metallic Pill Navigation */
+  .vesper-nav-pill {
+    background: linear-gradient(105deg, #050505 0%, #1a1a1a 48%, #333333 100%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5) !important;
+    transition: all 0.35s ease !important;
+  }
+
+  .vesper-nav-pill:hover {
+    border-color: rgba(16, 185, 129, 0.6) !important;
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.25) !important;
+  }
+
+  /* Glassmorphism Containers */
+  .vesper-glass-card {
+    background: rgba(10, 10, 10, 0.85) !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  }
+
+  .vesper-glass-card:hover {
+    border-color: rgba(16, 185, 129, 0.35) !important;
+  }
+
+  /* Entrance Animations */
+  .animate-vesper-in {
+    animation: vesperIn 0.85s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+  }
+}
+
+@keyframes vesperIn {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+

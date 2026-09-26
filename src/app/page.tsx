@@ -16,7 +16,6 @@ export default function LandingPage() {
 
   return (
     <div className="bg-black text-white min-h-screen overflow-y-auto relative font-sans selection:bg-emerald-500 selection:text-black scroll-smooth">
-      <div className="vesper-sync-banner">VESPER STYLES ACTIVE - SYNC OK</div>
       <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-neutral-900/60 via-black to-black pointer-events-none z-0" />
 
       {/* HEADER */}
