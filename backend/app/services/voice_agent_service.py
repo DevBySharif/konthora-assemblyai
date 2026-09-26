@@ -68,9 +68,9 @@ class VoiceAgentService:
         # Condensed system prompt — enterprise data moved to intent-specific handlers
         self.system_prompt = (
             "You are Konthora, an autonomous voice-driven enterprise operations engine.\n"
-            "Process voice commands to create: invoices, quotations, purchase orders, HR letters, "
+            "Process voice commands to create: invoices, proforma invoices, quotations, purchase orders, HR letters, "
             "meeting minutes, legal NDAs, expense claims, analytics charts, currency conversions, "
-            "approval guards, document diffs, Slack dispatches.\n"
+            "approval guards, document diffs, Slack dispatches, delivery challans, work orders, credit notes, debit notes.\n"
             "RULES:\n"
             "- Keep responses to 1-2 short sentences max for fast audio synthesis.\n"
             "- Always respond in English regardless of input language.\n"
@@ -87,6 +87,11 @@ class VoiceAgentService:
             "- Tax: \$11,400 due, BD VAT BIN-003928172-0102, EU VAT DE-319208194\n"
             "- NDA-2026-88: Konthora & InnoTech, 2yr, strict IP\n"
             "- EXP-9902: Sarah Jenkins \$450 hardware claim, CFO approved\n"
+            "- DC-2026-301: Delivery Challan for SoftTech BD, 42 M3 Pro Chips, \$18,900\n"
+            "- WO-2026-77: Work Order for InnoTech, Fiber 100G deployment, \$32,000\n"
+            "- CN-2026-102: Credit Note for Acme Corp, product return, \$3,500\n"
+            "- DN-2026-055: Debit Note for SoftTech BD, additional charge, \$2,100\n"
+            "- PI-2026-441: Proforma Invoice for InnoTech, Fiber modules, \$8,200\n"
             "- Finance: Q1 \$142K vs Q2 \$185K, EBITDA 28.5%→31%\n"
         )
 
@@ -263,6 +268,16 @@ class VoiceAgentService:
             return "Inventory: 42 Apple M3 Pro chips and 8 server racks available in warehouses."
         if any(w in lowered for w in ["upload", "audio"]):
             return "Audio upload ready. Drop an MP3 or WAV file to process via AssemblyAI Batch API."
+        if any(w in lowered for w in ["delivery", "challan", "challan"]):
+            return "Delivery Challan DC-2026-301 generated for SoftTech BD: 42 M3 Pro Chips worth $18,900."
+        if any(w in lowered for w in ["work order", "workorder"]):
+            return "Work Order WO-2026-77 created for InnoTech GmbH: Fiber 100G deployment worth $32,000."
+        if any(w in lowered for w in ["credit note", "creditnote"]):
+            return "Credit Note CN-2026-102 issued to Acme Corp for $3,500.00 product return adjustment."
+        if any(w in lowered for w in ["debit note", "debitnote"]):
+            return "Debit Note DN-2026-055 issued for SoftTech BD: $2,100.00 additional charge applied."
+        if any(w in lowered for w in ["proforma", "proforma invoice"]):
+            return "Proforma Invoice PI-2026-441 generated for InnoTech GmbH totaling $8,200.00, NET-60 terms."
         if any(w in lowered for w in ["bangla", "bengali"]):
             return "I understand Bangla! What enterprise document would you like to create?"
         return f"Voice-to-document engine processed: '{prompt}'. Document card is ready."
@@ -290,6 +305,11 @@ class VoiceAgentService:
                 (["expense", "claim"], "expense_voucher", "EXP-9902", 450),
                 (["chart", "graph"], "analytics_chart", "CHART-2026-Q1Q2", 0),
                 (["email", "dispatch"], "dispatch_notification", "DISP-2026", 0),
+                (["delivery", "challan"], "delivery_challan", "DC-2026-301", 15050),
+                (["work order", "workorder"], "work_order", "WO-2026-77", 32000),
+                (["credit note", "creditnote"], "credit_note", "CN-2026-102", 3500),
+                (["debit note", "debitnote"], "debit_note", "DN-2026-055", 2100),
+                (["proforma", "proforma invoice"], "proforma_invoice", "PI-2026-441", 8200),
                 (["convert", "currency"], "currency_conversion", "CC-2026", self.active_doc_state.get("amount", 27075) if self.active_doc_state else 27075),
                 (["approve", "authorize"], "approval_guard", "APPROVAL-2026", 0),
                 (["compare", "diff"], "document_diff", "DIFF-2026", 0),

@@ -26,6 +26,8 @@ import {
   Send,
   ArrowLeftRight,
   GitCompare,
+  Truck,
+  Wrench,
 } from "lucide-react";
 
 // ─────────────────────────────────────────────────────
@@ -39,7 +41,7 @@ interface Message {
 }
 
 interface DocumentCard {
-  type: "invoice" | "financial" | "hr_letter" | "inventory" | "quotation" | "purchase_order" | "tax_compliance" | "meeting_minutes" | "legal_contract" | "expense_voucher" | "analytics_chart" | "dispatch_notification" | "currency_conversion" | "approval_guard" | "document_diff" | "slack_dispatch" | "audio_upload" | "none";
+  type: "invoice" | "financial" | "hr_letter" | "inventory" | "quotation" | "purchase_order" | "tax_compliance" | "meeting_minutes" | "legal_contract" | "expense_voucher" | "analytics_chart" | "dispatch_notification" | "currency_conversion" | "approval_guard" | "document_diff" | "slack_dispatch" | "audio_upload" | "delivery_challan" | "work_order" | "credit_note" | "debit_note" | "proforma_invoice" | "none";
   title: string;
   payload: Record<string, unknown>;
   amount?: number;
@@ -1309,6 +1311,194 @@ function DispatchNotificationCard({ text }: { text: string }) {
 }
 
 // ─────────────────────────────────────────────────────
+// Delivery Challan Card
+// ─────────────────────────────────────────────────────
+function DeliveryChallanCard({ text }: { text: string }) {
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Truck className="w-4 h-4 text-neutral-300" />
+          <span className="text-sm font-bold text-white">Delivery Challan</span>
+        </div>
+        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">DC-2026-301</span>
+      </div>
+      <div className="border border-white/30 rounded-xl bg-neutral-900/20 p-4 space-y-3">
+        <div className="grid grid-cols-2 gap-3 text-[11px]">
+          <div><span className="text-neutral-500">Supplier:</span> <span className="text-white font-semibold">Konthora Ltd.</span></div>
+          <div><span className="text-neutral-500">Buyer:</span> <span className="text-white font-semibold">SoftTech BD</span></div>
+          <div><span className="text-neutral-500">Challan No:</span> <span className="text-neutral-300 font-mono">DC-2026-301</span></div>
+          <div><span className="text-neutral-500">Date:</span> <span className="text-neutral-300">{new Date().toLocaleDateString()}</span></div>
+        </div>
+        <div className="border-t border-white/15 pt-3">
+          <table className="w-full text-[11px]">
+            <thead><tr className="text-neutral-500 border-b border-white/10"><th className="text-left pb-1">Item</th><th className="text-right pb-1">Qty</th><th className="text-right pb-1">Rate</th><th className="text-right pb-1">Amount</th></tr></thead>
+            <tbody><tr className="text-neutral-300"><td>M3 Pro Chip</td><td className="text-right">42</td><td className="text-right">$450</td><td className="text-right font-mono font-bold text-white">$18,900</td></tr></tbody>
+          </table>
+        </div>
+        <div className="text-[10px] text-neutral-500 font-mono flex justify-between border-t border-white/15 pt-2">
+          <span>Transport: Road Freight</span>
+          <span className="text-white font-bold">Total: $18,900.00</span>
+        </div>
+      </div>
+      <div className="no-print text-[11px] text-neutral-400 bg-neutral-900/20 border border-white/15 rounded-lg p-2.5 flex items-start gap-2">
+        <Sparkles className="w-3.5 h-3.5 text-neutral-300 shrink-0 mt-0.5" />
+        <span className="line-clamp-2">{text || "Delivery Challan generated for goods shipment with transport details."}</span>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────
+// Work Order Card
+// ─────────────────────────────────────────────────────
+function WorkOrderCard({ text }: { text: string }) {
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Wrench className="w-4 h-4 text-neutral-300" />
+          <span className="text-sm font-bold text-white">Work Order</span>
+        </div>
+        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-purple-500/10 text-purple-400 border border-purple-500/20">WO-2026-77</span>
+      </div>
+      <div className="border border-white/30 rounded-xl bg-neutral-900/20 p-4 space-y-3">
+        <div className="grid grid-cols-2 gap-3 text-[11px]">
+          <div><span className="text-neutral-500">Client:</span> <span className="text-white font-semibold">InnoTech GmbH</span></div>
+          <div><span className="text-neutral-500">Order No:</span> <span className="text-neutral-300 font-mono">WO-2026-77</span></div>
+          <div><span className="text-neutral-500">Scope:</span> <span className="text-neutral-300">Fiber 100G Deployment</span></div>
+          <div><span className="text-neutral-500">Timeline:</span> <span className="text-neutral-300">Q1-Q2 2026</span></div>
+        </div>
+        <div className="border-t border-white/15 pt-3 space-y-2">
+          <div className="flex justify-between text-[11px]"><span className="text-neutral-500">Infrastructure Setup</span><span className="text-neutral-300 font-mono">$12,000</span></div>
+          <div className="flex justify-between text-[11px]"><span className="text-neutral-500">Fiber Installation (120 units)</span><span className="text-neutral-300 font-mono">$18,000</span></div>
+          <div className="flex justify-between text-[11px]"><span className="text-neutral-500">Testing & Commissioning</span><span className="text-neutral-300 font-mono">$2,000</span></div>
+        </div>
+        <div className="text-[10px] text-neutral-500 font-mono flex justify-between border-t border-white/15 pt-2">
+          <span>Payment: NET-60</span>
+          <span className="text-white font-bold">Total: $32,000.00</span>
+        </div>
+      </div>
+      <div className="no-print text-[11px] text-neutral-400 bg-neutral-900/20 border border-white/15 rounded-lg p-2.5 flex items-start gap-2">
+        <Sparkles className="w-3.5 h-3.5 text-neutral-300 shrink-0 mt-0.5" />
+        <span className="line-clamp-2">{text || "Work Order created for fiber deployment project with itemized cost breakdown."}</span>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────
+// Credit Note Card
+// ─────────────────────────────────────────────────────
+function CreditNoteCard({ text }: { text: string }) {
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Receipt className="w-4 h-4 text-emerald-400" />
+          <span className="text-sm font-bold text-white">Credit Note</span>
+        </div>
+        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">CN-2026-102</span>
+      </div>
+      <div className="border border-emerald-500/30 rounded-xl bg-emerald-950/20 p-4 space-y-3">
+        <div className="grid grid-cols-2 gap-3 text-[11px]">
+          <div><span className="text-neutral-500">Issued To:</span> <span className="text-white font-semibold">Acme Corp</span></div>
+          <div><span className="text-neutral-500">CN No:</span> <span className="text-neutral-300 font-mono">CN-2026-102</span></div>
+          <div><span className="text-neutral-500">Reason:</span> <span className="text-neutral-300">Product Return — Defective Units</span></div>
+          <div><span className="text-neutral-500">Date:</span> <span className="text-neutral-300">{new Date().toLocaleDateString()}</span></div>
+        </div>
+        <div className="border-t border-emerald-500/20 pt-3 space-y-2">
+          <div className="flex justify-between text-[11px]"><span className="text-neutral-500">Original Invoice</span><span className="text-neutral-300 font-mono">INV-8821</span></div>
+          <div className="flex justify-between text-[11px]"><span className="text-neutral-500">Credit Amount</span><span className="text-emerald-400 font-mono font-bold text-lg">-$3,500.00</span></div>
+        </div>
+        <div className="text-[10px] text-emerald-500/70 font-mono border-t border-emerald-500/20 pt-2">
+          Balance Adjustment: Acme Corp account credited $3,500.00
+        </div>
+      </div>
+      <div className="no-print text-[11px] text-neutral-400 bg-neutral-900/20 border border-white/15 rounded-lg p-2.5 flex items-start gap-2">
+        <Sparkles className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
+        <span className="line-clamp-2">{text || "Credit Note issued for product return adjustment against Acme Corp."}</span>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────
+// Debit Note Card
+// ─────────────────────────────────────────────────────
+function DebitNoteCard({ text }: { text: string }) {
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Receipt className="w-4 h-4 text-red-400" />
+          <span className="text-sm font-bold text-white">Debit Note</span>
+        </div>
+        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20">DN-2026-055</span>
+      </div>
+      <div className="border border-red-500/30 rounded-xl bg-red-950/20 p-4 space-y-3">
+        <div className="grid grid-cols-2 gap-3 text-[11px]">
+          <div><span className="text-neutral-500">Issued To:</span> <span className="text-white font-semibold">SoftTech BD</span></div>
+          <div><span className="text-neutral-500">DN No:</span> <span className="text-neutral-300 font-mono">DN-2026-055</span></div>
+          <div><span className="text-neutral-500">Reason:</span> <span className="text-neutral-300">Additional Service Charge</span></div>
+          <div><span className="text-neutral-500">Date:</span> <span className="text-neutral-300">{new Date().toLocaleDateString()}</span></div>
+        </div>
+        <div className="border-t border-red-500/20 pt-3 space-y-2">
+          <div className="flex justify-between text-[11px]"><span className="text-neutral-500">Reference PO</span><span className="text-neutral-300 font-mono">PO-88301</span></div>
+          <div className="flex justify-between text-[11px]"><span className="text-neutral-500">Debit Amount</span><span className="text-red-400 font-mono font-bold text-lg">+$2,100.00</span></div>
+        </div>
+        <div className="text-[10px] text-red-500/70 font-mono border-t border-red-500/20 pt-2">
+          Balance Adjustment: SoftTech BD account debited $2,100.00
+        </div>
+      </div>
+      <div className="no-print text-[11px] text-neutral-400 bg-neutral-900/20 border border-white/15 rounded-lg p-2.5 flex items-start gap-2">
+        <Sparkles className="w-3.5 h-3.5 text-red-400 shrink-0 mt-0.5" />
+        <span className="line-clamp-2">{text || "Debit Note issued for additional service charge against SoftTech BD."}</span>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────
+// Proforma Invoice Card
+// ─────────────────────────────────────────────────────
+function ProformaInvoiceCard({ text }: { text: string }) {
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <FileText className="w-4 h-4 text-amber-400" />
+          <span className="text-sm font-bold text-white">Proforma Invoice</span>
+        </div>
+        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">PI-2026-441</span>
+      </div>
+      <div className="border border-amber-500/30 rounded-xl bg-amber-950/20 p-4 space-y-3">
+        <div className="grid grid-cols-2 gap-3 text-[11px]">
+          <div><span className="text-neutral-500">Client:</span> <span className="text-white font-semibold">InnoTech GmbH</span></div>
+          <div><span className="text-neutral-500">PI No:</span> <span className="text-neutral-300 font-mono">PI-2026-441</span></div>
+          <div><span className="text-neutral-500">Valid Until:</span> <span className="text-neutral-300">30 days from issue</span></div>
+          <div><span className="text-neutral-500">Payment:</span> <span className="text-neutral-300">NET-60</span></div>
+        </div>
+        <div className="border-t border-amber-500/20 pt-3">
+          <table className="w-full text-[11px]">
+            <thead><tr className="text-neutral-500 border-b border-white/10"><th className="text-left pb-1">Item</th><th className="text-right pb-1">Qty</th><th className="text-right pb-1">Rate</th><th className="text-right pb-1">Amount</th></tr></thead>
+            <tbody><tr className="text-neutral-300"><td>Fiber 100G Module</td><td className="text-right">40</td><td className="text-right">$180</td><td className="text-right font-mono font-bold text-white">$7,200</td></tr><tr className="text-neutral-300"><td>Installation Service</td><td className="text-right">1</td><td className="text-right">$1,000</td><td className="text-right font-mono font-bold text-white">$1,000</td></tr></tbody>
+          </table>
+        </div>
+        <div className="text-[10px] text-amber-500/70 font-mono flex justify-between border-t border-amber-500/20 pt-2">
+          <span>This is a proforma — not a tax invoice</span>
+          <span className="text-white font-bold">Total: $8,200.00</span>
+        </div>
+      </div>
+      <div className="no-print text-[11px] text-neutral-400 bg-neutral-900/20 border border-white/15 rounded-lg p-2.5 flex items-start gap-2">
+        <Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
+        <span className="line-clamp-2">{text || "Proforma Invoice generated for pre-shipment billing approval."}</span>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────
 // Currency Conversion Card
 // ─────────────────────────────────────────────────────
 function CurrencyConversionCard({ text, docCard }: { text: string; docCard: { payload: Record<string, unknown>; amount?: number } }) {
@@ -1615,6 +1805,7 @@ export default function VoiceAgentPage() {
   const [isRevisedPulse, setIsRevisedPulse] = useState(false);
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [isAgentThinking, setIsAgentThinking] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: "error" | "success" | "info" } | null>(null);
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -1797,6 +1988,7 @@ export default function VoiceAgentPage() {
           if (isMounted) {
             setIsConnected(false);
             setAiStatus("idle");
+            setIsAgentThinking(false);
             // Auto-reconnect with exponential backoff
             if (reconnectAttempts.current < MAX_RECONNECT_ATTEMPTS) {
               const delay = Math.min(1000 * Math.pow(2, reconnectAttempts.current), 10000);
@@ -1851,7 +2043,10 @@ export default function VoiceAgentPage() {
                   }
                   return [...filtered, { role: "user", text: m.text, final: m.type === "transcript.user", timestamp: Date.now() }];
                 });
-                if (m.type === "transcript.user") setAiStatus("processing");
+                if (m.type === "transcript.user") {
+                  setAiStatus("processing");
+                  setIsAgentThinking(true);
+                }
               }
               break;
 
@@ -1889,6 +2084,7 @@ export default function VoiceAgentPage() {
                 return prev;
               });
               setAiStatus("done");
+              setIsAgentThinking(false);
               setTimeout(() => setAiStatus("idle"), 2000);
               break;
 
@@ -2264,6 +2460,23 @@ export default function VoiceAgentPage() {
                 </div>
               ))
             )}
+
+            {/* Agent Typing Indicator */}
+            {isAgentThinking && (
+              <div className="flex gap-2.5 justify-start">
+                <div className="w-7 h-7 rounded-lg bg-neutral-900/80 border border-white/20 flex items-center justify-center shrink-0 mt-0.5 shadow-sm">
+                  <Volume2 className="w-3.5 h-3.5 text-neutral-300" />
+                </div>
+                <div className="px-3.5 py-2.5 rounded-2xl rounded-tl-none bg-neutral-900/90 border border-white/10 text-neutral-200">
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-white/60 animate-bounce [animation-delay:0ms]" />
+                    <span className="w-2 h-2 rounded-full bg-white/60 animate-bounce [animation-delay:150ms]" />
+                    <span className="w-2 h-2 rounded-full bg-white/60 animate-bounce [animation-delay:300ms]" />
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div ref={messagesEndRef} />
           </div>
 
@@ -2588,6 +2801,31 @@ export default function VoiceAgentPage() {
                   )}
                   {docCard.type === "audio_upload" && (
                     <AudioUploadCard
+                      text={lastAssistantMsg?.text ?? ""}
+                    />
+                  )}
+                  {docCard.type === "delivery_challan" && (
+                    <DeliveryChallanCard
+                      text={lastAssistantMsg?.text ?? ""}
+                    />
+                  )}
+                  {docCard.type === "work_order" && (
+                    <WorkOrderCard
+                      text={lastAssistantMsg?.text ?? ""}
+                    />
+                  )}
+                  {docCard.type === "credit_note" && (
+                    <CreditNoteCard
+                      text={lastAssistantMsg?.text ?? ""}
+                    />
+                  )}
+                  {docCard.type === "debit_note" && (
+                    <DebitNoteCard
+                      text={lastAssistantMsg?.text ?? ""}
+                    />
+                  )}
+                  {docCard.type === "proforma_invoice" && (
+                    <ProformaInvoiceCard
                       text={lastAssistantMsg?.text ?? ""}
                     />
                   )}

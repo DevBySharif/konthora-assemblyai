@@ -29,22 +29,32 @@ router = APIRouter()
 
 # ── Token endpoint: mint temporary AssemblyAI session token ──
 
+_token_cache = {"token": None, "expires_at": 0}
+
 @router.get("/voice-agent/token")
 async def get_voice_agent_token():
     """Mint a single-use token for browser → AssemblyAI Voice Agent WebSocket."""
+    import time
+    now = time.time()
+    if _token_cache["token"] and now < _token_cache["expires_at"]:
+        return {"token": _token_cache["token"]}
+
     api_key = os.getenv("ASSEMBLYAI_API_KEY", "").strip()
     if not api_key:
         raise HTTPException(status_code=500, detail="ASSEMBLYAI_API_KEY not configured")
 
     try:
-        async with httpx.AsyncClient(timeout=10.0) as client:
+        async with httpx.AsyncClient(timeout=8.0) as client:
             resp = await client.get(
                 "https://agents.assemblyai.com/v1/token",
                 params={"expires_in_seconds": 300, "max_session_duration_seconds": 8640},
                 headers={"Authorization": f"Bearer {api_key}"},
             )
             if resp.status_code == 200:
-                return resp.json()
+                data = resp.json()
+                _token_cache["token"] = data.get("token")
+                _token_cache["expires_at"] = now + 240
+                return data
             else:
                 logger.error(f"AssemblyAI token error {resp.status_code}: {resp.text}")
                 raise HTTPException(status_code=502, detail="Failed to mint AssemblyAI token")
@@ -64,13 +74,13 @@ VOICE_AGENT_TOOLS = [
     {
         "type": "function",
         "name": "create_document",
-        "description": "Create an enterprise document: quotation, purchase order, invoice, tax report, financial report, HR offer letter, meeting minutes, NDA, expense voucher, analytics chart, or dispatch notification.",
+        "description": "Create an enterprise document: quotation, purchase order, invoice, proforma invoice, tax report, financial report, HR offer letter, meeting minutes, NDA, expense voucher, analytics chart, dispatch notification, delivery challan, work order, credit note, or debit note.",
         "parameters": {
             "type": "object",
             "properties": {
                 "doc_type": {
                     "type": "string",
-                    "enum": ["quotation", "purchase_order", "invoice", "tax_compliance", "financial", "hr_letter", "meeting_minutes", "legal_contract", "expense_voucher", "analytics_chart", "dispatch_notification"],
+                    "enum": ["quotation", "purchase_order", "invoice", "proforma_invoice", "tax_compliance", "financial", "hr_letter", "meeting_minutes", "legal_contract", "expense_voucher", "analytics_chart", "dispatch_notification", "delivery_challan", "work_order", "credit_note", "debit_note"],
                     "description": "Type of document to create"
                 },
                 "client_name": {"type": "string", "description": "Client or company name"},
@@ -198,14 +208,17 @@ def _handle_create_document(args: dict) -> dict:
 
     doc_refs = {
         "quotation": "PHOENIX-2026", "purchase_order": "PO-88301", "invoice": "INV-8821",
-        "tax_compliance": "FY2026-TAX-01", "financial": "FY2026-Q1-REP",
+        "proforma_invoice": "PI-2026-441", "tax_compliance": "FY2026-TAX-01", "financial": "FY2026-Q1-REP",
         "hr_letter": "EMP-1041-OFFER", "meeting_minutes": "MIN-2026-09",
         "legal_contract": "NDA-2026-88", "expense_voucher": "EXP-9902",
         "analytics_chart": "CHART-2026-Q1Q2", "dispatch_notification": "DISP-2026",
+        "delivery_challan": "DC-2026-301", "work_order": "WO-2026-77",
+        "credit_note": "CN-2026-102", "debit_note": "DN-2026-055",
     }
     default_amounts = {
         "quotation": 27075, "purchase_order": 15050, "invoice": 5050,
-        "tax_compliance": 11400, "financial": 142000, "expense_voucher": 450,
+        "proforma_invoice": 8200, "tax_compliance": 11400, "financial": 142000, "expense_voucher": 450,
+        "delivery_challan": 15050, "work_order": 32000, "credit_note": 3500, "debit_note": 2100,
     }
 
     doc_ref = doc_refs.get(doc_type, "DOC-2026")
@@ -323,7 +336,7 @@ async def get_voice_agent_config():
             "You are Konthora, an autonomous voice-driven enterprise operations engine. "
             "You help users create, revise, approve, and manage enterprise documents using voice commands.\n\n"
             "CAPABILITIES:\n"
-            "- Create documents: quotations, purchase orders, invoices, tax reports, financial reports, HR letters, meeting minutes, NDAs, expense vouchers, analytics charts, dispatch notifications.\n"
+            "- Create documents: quotations, purchase orders, invoices, proforma invoices, tax reports, financial reports, HR letters, meeting minutes, NDAs, expense vouchers, analytics charts, dispatch notifications, delivery challans, work orders, credit notes, debit notes.\n"
             "- Revise documents: change discount, fee, salary, payment terms, or any field.\n"
             "- Approve documents: authorize with CFO passkey for high-value items.\n"
             "- Currency conversion: USD to BDT (rate 120) or EUR (rate 0.92).\n"
