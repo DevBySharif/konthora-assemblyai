@@ -50,6 +50,20 @@ interface DocumentCard {
 }
 
 // ─────────────────────────────────────────────────────
+// RMS Noise Gate — prevent ghost transcripts from silence
+// ─────────────────────────────────────────────────────
+const SILENCE_THRESHOLD = 0.015;   // Below this RMS, drop the PCM chunk (silent room noise)
+const BARGEIN_THRESHOLD = 0.04;    // Above this RMS during TTS playback, forward as interrupt
+
+function calculateRMS(samples: Float32Array): number {
+  let sum = 0;
+  for (let i = 0; i < samples.length; i++) {
+    sum += samples[i] * samples[i];
+  }
+  return Math.sqrt(sum / samples.length);
+}
+
+// ─────────────────────────────────────────────────────
 // Cryptographic Hash & Verification Helpers
 // ─────────────────────────────────────────────────────
 function generateClientHash(ref: string, amount: string | number = 0): { hash: string; qr: string } {
@@ -1853,19 +1867,21 @@ export default function VoiceAgentPage() {
         if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) return;
         const inputData = e.inputBuffer.getChannelData(0);
 
-        // Barge-in: detect voice activity while assistant audio is playing
+        // Calculate RMS energy of this audio chunk
+        const rms = calculateRMS(inputData);
+
+        // During TTS playback: mute normal transmission, only allow loud barge-in
         if (isSpeakingRef.current) {
-          let sumSquares = 0;
-          for (let i = 0; i < inputData.length; i++) {
-            sumSquares += inputData[i] * inputData[i];
-          }
-          const rms = Math.sqrt(sumSquares / inputData.length);
-          if (rms > 0.02) {
+          if (rms > BARGEIN_THRESHOLD) {
             interruptPlayback();
           }
-          return;
+          return; // Mute all PCM during agent speech to prevent echo loop
         }
 
+        // Noise gate: drop silent chunks to keep AssemblyAI buffer clean
+        if (rms < SILENCE_THRESHOLD) return;
+
+        // Forward valid speech PCM to AssemblyAI
         const pcm16 = new Int16Array(inputData.length);
         for (let i = 0; i < inputData.length; i++) {
           const s = Math.max(-1, Math.min(1, inputData[i]));
