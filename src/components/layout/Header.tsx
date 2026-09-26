@@ -87,7 +87,7 @@ export function Header() {
           {/* CTA Button (desktop) */}
           <Link
             href="/voice-agent"
-            className="group hidden lg:inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-400 px-4 py-2.5 text-sm font-bold text-slate-950 shadow-[0_0_20px_rgba(16,185,129,0.35)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_0_30px_rgba(16,185,129,0.6)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
+            className="group hidden lg:inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-black shadow-[0_0_20px_rgba(255,255,255,0.15)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_0_30px_rgba(255,255,255,0.25)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
           >
             <span className="relative flex h-2 w-2">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-slate-950 opacity-60" />
@@ -180,7 +180,7 @@ export function Header() {
                   <Link
                     href="/voice-agent"
                     onClick={handleLinkClick}
-                    className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-400 px-4 py-3 text-base font-bold text-slate-950 shadow-[0_0_20px_rgba(16,185,129,0.35)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-white px-4 py-3 text-base font-bold text-black shadow-[0_0_20px_rgba(255,255,255,0.15)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
                   >
                     <span>Live Demo</span>
                     <ArrowRight className="h-4 w-4 text-slate-950" aria-hidden="true" />

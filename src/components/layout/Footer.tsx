@@ -73,7 +73,7 @@ export function Footer() {
           {/* Brand section */}
           <div className="flex flex-col items-start lg:col-span-4">
             <KonthoraBrand variant="footer" />
-            <h3 className="mt-4 text-sm font-semibold text-emerald-400 font-mono tracking-tight">
+            <h3 className="mt-4 text-sm font-semibold text-neutral-300 font-mono tracking-tight">
               Konthora — Autonomous Voice-Driven Enterprise Operations Engine
             </h3>
             <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
@@ -81,7 +81,7 @@ export function Footer() {
             </p>
 
             <div className="mt-4 flex flex-wrap gap-2 text-xs">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-white/10 text-neutral-300 border border-white/15 font-mono">
                 <Mic className="w-3 h-3" /> AssemblyAI v3
               </span>
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-500/10 text-amber-400 border border-amber-500/20 font-mono">
@@ -98,14 +98,14 @@ export function Footer() {
                 href="https://github.com/DevBySharif/konthora-assemblyai"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 rounded-xl border border-border/70 bg-background/60 px-3.5 py-2 text-xs font-medium text-foreground hover:border-emerald-500/50 hover:bg-card transition-all"
+                className="inline-flex items-center gap-2 rounded-xl border border-border/70 bg-background/60 px-3.5 py-2 text-xs font-medium text-foreground hover:border-white/30 hover:bg-card transition-all"
               >
                 <GithubIcon className="h-4 w-4" />
                 GitHub Repo
               </a>
               <a
                 href="mailto:support@konthora.dev.bd"
-                className="inline-flex items-center gap-2 rounded-xl border border-border/70 bg-background/60 px-3.5 py-2 text-xs font-medium text-muted-foreground hover:border-emerald-500/50 hover:text-foreground hover:bg-card transition-all"
+                className="inline-flex items-center gap-2 rounded-xl border border-border/70 bg-background/60 px-3.5 py-2 text-xs font-medium text-muted-foreground hover:border-white/30 hover:text-foreground hover:bg-card transition-all"
               >
                 <Mail className="h-4 w-4" />
                 support@konthora.dev.bd
@@ -128,7 +128,7 @@ export function Footer() {
                           href={link.href}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-emerald-400 transition-colors"
+                          className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-white transition-colors"
                         >
                           {link.label}
                           <ExternalLink className="h-3 w-3 opacity-60" />
@@ -136,7 +136,7 @@ export function Footer() {
                       ) : (
                         <Link
                           href={link.href}
-                          className="inline-block text-xs font-medium text-muted-foreground hover:text-emerald-400 transition-colors"
+                          className="inline-block text-xs font-medium text-muted-foreground hover:text-white transition-colors"
                         >
                           {link.label}
                         </Link>
@@ -154,8 +154,8 @@ export function Footer() {
           <p className="text-xs text-muted-foreground">
             &copy; {currentYear} Konthora AI. Developed for AssemblyAI Voice Agent Hackathon 2026.
           </p>
-          <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3.5 py-1 text-xs font-medium text-emerald-300">
-            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+          <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3.5 py-1 text-xs font-medium text-neutral-300">
+            <span className="h-2 w-2 rounded-full bg-white animate-pulse" />
             AssemblyAI Voice Agent Hackathon 2026 🎙️⚡
           </div>
         </div>

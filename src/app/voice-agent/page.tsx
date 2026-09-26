@@ -209,7 +209,7 @@ function LiveWaveform({ active }: { active: boolean }) {
       ref={canvasRef}
       width={400}
       height={56}
-      className="w-full h-14 rounded-xl bg-neutral-950/80 border border-emerald-500/20 shadow-inner"
+      className="w-full h-14 rounded-xl bg-neutral-950/80 border-white/15 shadow-inner"
     />
   );
 }
@@ -387,7 +387,7 @@ function FormalDocHeader({
     <div className="border-b border-slate-700/80 pb-4 mb-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <div className="text-[11px] font-mono tracking-widest text-emerald-400 font-bold uppercase">
+          <div className="text-[11px] font-mono tracking-widest text-neutral-300 font-bold uppercase">
             Konthora Enterprise AI Global Ltd.
           </div>
           <h2 className="text-lg sm:text-xl font-bold tracking-tight text-white mt-0.5">
@@ -407,7 +407,7 @@ function FormalDocHeader({
           </div>
           {badgeText && (
             <div className="mt-1">
-              <span className="text-[9px] font-mono uppercase px-2 py-0.5 rounded bg-emerald-950/80 text-emerald-300 border border-emerald-500/40">
+              <span className="text-[9px] font-mono uppercase px-2 py-0.5 rounded bg-neutral-900/80 text-neutral-200 border border-white/30">
                 {badgeText}
               </span>
             </div>
@@ -447,8 +447,8 @@ function FormalDocFooter({
           </div>
           <div className="text-xs font-bold text-white font-mono mt-0.5">{signatory}</div>
           <div className="text-[10px] text-neutral-400">{department}</div>
-          <div className="text-[9px] font-mono text-emerald-400 font-bold uppercase tracking-wider flex items-center gap-1 mt-1">
-            <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+          <div className="text-[9px] font-mono text-neutral-300 font-bold uppercase tracking-wider flex items-center gap-1 mt-1">
+            <CheckCircle2 className="w-3 h-3 text-neutral-300" />
             Officially Verified Record
           </div>
         </div>
@@ -457,7 +457,7 @@ function FormalDocFooter({
         <div className="flex items-center gap-3 bg-neutral-950/70 p-2.5 rounded-xl border border-white/10">
           <QRCodeSVG value={qrPayload} size={54} />
           <div className="space-y-0.5 text-left">
-            <div className="text-[9px] font-mono font-bold text-emerald-400 uppercase tracking-wider">
+            <div className="text-[9px] font-mono font-bold text-neutral-300 uppercase tracking-wider">
               OFFICIAL DIGITAL VERIFICATION HASH
             </div>
             <div className="text-[10.5px] font-mono font-bold text-neutral-200">
@@ -506,7 +506,7 @@ function QuotationCard({
         </div>
         <div>
           <span className="text-[10px] font-mono text-neutral-500 uppercase tracking-wider">Project Specification:</span>
-          <div className="font-bold text-emerald-400 mt-0.5">Real-Time Voice-to-Document Pipeline</div>
+          <div className="font-bold text-neutral-300 mt-0.5">Real-Time Voice-to-Document Pipeline</div>
           <div className="text-[11px] text-neutral-400">Sub-850ms SLA · Kokoro-82M High-Density Nodes</div>
         </div>
       </div>
@@ -552,13 +552,13 @@ function QuotationCard({
           <span>Gross Subtotal</span>
           <span className="font-mono text-white">${subtotal.toLocaleString()}.00</span>
         </div>
-        <div className="flex justify-between text-emerald-400 text-[11.5px]">
+        <div className="flex justify-between text-neutral-300 text-[11.5px]">
           <span>Enterprise Volume Discount ({discountPct}.0%)</span>
           <span className="font-mono font-semibold">-${discountAmt.toLocaleString()}.00</span>
         </div>
         <div className="border-t border-white/10 pt-2 flex justify-between font-bold text-white text-sm">
           <span>Net Commercial Quotation (USD)</span>
-          <span className="font-mono text-emerald-400 text-base">${grandTotal.toLocaleString()}.00</span>
+          <span className="font-mono text-neutral-300 text-base">${grandTotal.toLocaleString()}.00</span>
         </div>
       </div>
 
@@ -570,8 +570,8 @@ function QuotationCard({
         qrPayload={qrPayload}
       />
 
-      <div className="no-print text-[11px] text-neutral-400 bg-emerald-950/20 border border-emerald-500/20 rounded-lg p-2.5 flex items-start gap-2">
-        <Sparkles className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
+      <div className="no-print text-[11px] text-neutral-400 bg-neutral-900/20 border border-white/15 rounded-lg p-2.5 flex items-start gap-2">
+        <Sparkles className="w-3.5 h-3.5 text-neutral-300 shrink-0 mt-0.5" />
         <span className="line-clamp-2">{text || "Verified commercial quotation generated from enterprise rate-card."}</span>
       </div>
     </div>
@@ -701,7 +701,7 @@ function TaxComplianceCard({
         </div>
         <div className="bg-neutral-950/70 p-3 rounded-xl border border-white/10">
           <div className="text-[10px] font-mono text-neutral-500 uppercase">Net Payable</div>
-          <div className="text-base font-bold text-emerald-400 font-mono mt-0.5">$8,200.00</div>
+          <div className="text-base font-bold text-neutral-300 font-mono mt-0.5">$8,200.00</div>
           <div className="text-[9.5px] text-neutral-400">Post-Withholding</div>
         </div>
       </div>
@@ -784,7 +784,7 @@ function InvoiceCard({
         </div>
         <div>
           <span className="text-[10px] font-mono text-neutral-500 uppercase tracking-wider">Payment Details:</span>
-          <div className="font-bold text-emerald-400 mt-0.5">Direct Wire / ACH Transfer</div>
+          <div className="font-bold text-neutral-300 mt-0.5">Direct Wire / ACH Transfer</div>
           <div className="text-[11px] text-neutral-400 font-mono">Routing: 121000358 · Acct: 8829-4401</div>
           <div className="text-[10.5px] text-neutral-500">Currency: United States Dollars (USD)</div>
         </div>
@@ -824,10 +824,10 @@ function InvoiceCard({
                 <td className="py-2.5 pr-2 font-mono text-neutral-500">03</td>
                 <td className="py-2.5 pr-4 text-white font-medium">
                   24/7 SLA Priority Maintenance &amp; High-Availability Monitoring
-                  <div className="text-[10.5px] text-emerald-400 font-normal">Added via Voice Revision Directive</div>
+                  <div className="text-[10.5px] text-neutral-300 font-normal">Added via Voice Revision Directive</div>
                 </td>
                 <td className="py-2.5 px-2 text-center font-mono text-neutral-300">Monthly</td>
-                <td className="py-2.5 pl-2 text-right font-mono text-emerald-400 font-semibold">${maintenanceFee.toFixed(2)}</td>
+                <td className="py-2.5 pl-2 text-right font-mono text-neutral-300 font-semibold">${maintenanceFee.toFixed(2)}</td>
               </tr>
             )}
           </tbody>
@@ -845,7 +845,7 @@ function InvoiceCard({
         </div>
         <div className="border-t border-white/10 pt-2 flex justify-between font-bold text-white text-sm">
           <span>Total Balance Due (USD)</span>
-          <span className="font-mono text-emerald-400 text-base">${totalDue.toFixed(2)}</span>
+          <span className="font-mono text-neutral-300 text-base">${totalDue.toFixed(2)}</span>
         </div>
       </div>
 
@@ -857,8 +857,8 @@ function InvoiceCard({
         qrPayload={qrPayload}
       />
 
-      <div className="no-print text-[11px] text-neutral-400 bg-emerald-950/20 border border-emerald-500/20 rounded-lg p-2.5 flex items-start gap-2">
-        <Sparkles className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
+      <div className="no-print text-[11px] text-neutral-400 bg-neutral-900/20 border border-white/15 rounded-lg p-2.5 flex items-start gap-2">
+        <Sparkles className="w-3.5 h-3.5 text-neutral-300 shrink-0 mt-0.5" />
         <span className="line-clamp-2">{text || "Verified matching record from Enterprise DB: Acme Corp."}</span>
       </div>
     </div>
@@ -885,7 +885,7 @@ function FinancialCard({
 
       <div className="grid grid-cols-3 gap-2.5">
         {[
-          { label: "Q1 Gross Revenue", val: "$142,000", delta: "+18.2% YoY", color: "text-emerald-400" },
+          { label: "Q1 Gross Revenue", val: "$142,000", delta: "+18.2% YoY", color: "text-neutral-300" },
           { label: "Q1 Expenses", val: "$85,000", delta: "On Budget", color: "text-neutral-400" },
           { label: "Net Operating Profit", val: "$57,000", delta: "40.1% Net Margin", color: "text-cyan-400" },
         ].map((m) => (
@@ -907,7 +907,7 @@ function FinancialCard({
         </div>
         <div className="flex justify-between items-center text-neutral-300">
           <span>Q2 Projected Growth Revenue</span>
-          <span className="text-emerald-400 font-bold font-mono">$185,000.00 USD</span>
+          <span className="text-neutral-300 font-bold font-mono">$185,000.00 USD</span>
         </div>
         <div className="flex justify-between items-center text-neutral-300">
           <span>Estimated Corporate Income Tax Provision</span>
@@ -977,7 +977,7 @@ function HRLetterCard({
           </div>
           <div>
             <span className="text-neutral-500">Employment Status:</span>
-            <div className="text-emerald-400 font-semibold mt-0.5 flex items-center gap-1">
+            <div className="text-neutral-300 font-semibold mt-0.5 flex items-center gap-1">
               <CheckCircle2 className="w-3.5 h-3.5" /> Full-Time Permanent
             </div>
           </div>
@@ -1089,15 +1089,15 @@ function MeetingMinutesCard({ text, verificationHash }: { text: string; verifica
       <div className="space-y-2">
         <div className="text-[10px] font-mono text-neutral-500 uppercase tracking-wider">Attendees</div>
         <div className="flex gap-1.5">
-          <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Rafiqul Islam</span>
+          <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-neutral-300 border border-white/15">Rafiqul Islam</span>
           <span className="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">Sarah Jenkins</span>
         </div>
       </div>
       <div className="space-y-1.5">
         <div className="text-[10px] font-mono text-neutral-500 uppercase tracking-wider">Decisions</div>
         <ul className="space-y-1">
-          <li className="text-xs text-neutral-300 flex items-start gap-1.5"><CheckCircle2 className="w-3 h-3 text-emerald-400 shrink-0 mt-0.5" />Migrate Kokoro to Edge Cluster</li>
-          <li className="text-xs text-neutral-300 flex items-start gap-1.5"><CheckCircle2 className="w-3 h-3 text-emerald-400 shrink-0 mt-0.5" />Approve FY26 Q4 Budget</li>
+          <li className="text-xs text-neutral-300 flex items-start gap-1.5"><CheckCircle2 className="w-3 h-3 text-neutral-300 shrink-0 mt-0.5" />Migrate Kokoro to Edge Cluster</li>
+          <li className="text-xs text-neutral-300 flex items-start gap-1.5"><CheckCircle2 className="w-3 h-3 text-neutral-300 shrink-0 mt-0.5" />Approve FY26 Q4 Budget</li>
         </ul>
       </div>
       <div className="space-y-1.5">
@@ -1106,7 +1106,7 @@ function MeetingMinutesCard({ text, verificationHash }: { text: string; verifica
           <div className="px-3 py-2 flex items-center justify-between text-[11px]">
             <span className="text-neutral-300">Deploy PII Redaction</span>
             <div className="flex items-center gap-2">
-              <span className="text-emerald-400 font-mono">Rafiqul</span>
+              <span className="text-neutral-300 font-mono">Rafiqul</span>
               <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">2026-10-05</span>
             </div>
           </div>
@@ -1199,14 +1199,14 @@ function ExpenseVoucherCard({ text, verificationHash }: { text: string; verifica
         </div>
         <div className="px-3 py-2 bg-neutral-900/60 flex items-center justify-between text-[11px] font-bold">
           <span className="text-neutral-300">Total Reimbursement</span>
-          <span className="text-emerald-400 font-mono">$450.00 USD</span>
+          <span className="text-neutral-300 font-mono">$450.00 USD</span>
         </div>
       </div>
-      <div className="relative overflow-hidden rounded-lg border border-emerald-500/30 bg-emerald-950/20 p-3 text-center">
+      <div className="relative overflow-hidden rounded-lg border border-white/20 bg-neutral-900/20 p-3 text-center">
         <div className="absolute inset-0 flex items-center justify-center opacity-10 pointer-events-none">
-          <span className="text-4xl font-black text-emerald-400 -rotate-12 select-none">APPROVED</span>
+          <span className="text-4xl font-black text-neutral-300 -rotate-12 select-none">APPROVED</span>
         </div>
-        <div className="relative text-xs text-emerald-400 font-semibold">APPROVED by CFO</div>
+        <div className="relative text-xs text-neutral-300 font-semibold">APPROVED by CFO</div>
         <div className="relative text-[10px] text-neutral-500 mt-0.5">Submitted 2026-09-18 · Processed</div>
       </div>
     </div>
@@ -1261,7 +1261,7 @@ function AnalyticsChartCard({ text }: { text: string }) {
       <div className="grid grid-cols-2 gap-2 text-[10px]">
         <div className="bg-neutral-900/60 rounded-lg p-2 border border-white/10">
           <span className="text-neutral-500">Q1→Q2 Growth</span>
-          <div className="text-emerald-400 font-bold font-mono">+30.3%</div>
+          <div className="text-neutral-300 font-bold font-mono">+30.3%</div>
         </div>
         <div className="bg-neutral-900/60 rounded-lg p-2 border border-white/10">
           <span className="text-neutral-500">EBITDA Margin</span>
@@ -1284,28 +1284,28 @@ function DispatchNotificationCard({ text }: { text: string }) {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Send className="w-4 h-4 text-emerald-400" />
+          <Send className="w-4 h-4 text-neutral-300" />
           <span className="text-sm font-bold text-white">Email Dispatch</span>
         </div>
-        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">SENT</span>
+        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-white/10 text-neutral-300 border border-white/15">SENT</span>
       </div>
-      <div className="border border-emerald-500/40 rounded-xl bg-emerald-950/20 p-4 space-y-3">
-        <div className="flex items-center gap-2 text-emerald-400">
+      <div className="border border-white/30 rounded-xl bg-neutral-900/20 p-4 space-y-3">
+        <div className="flex items-center gap-2 text-neutral-300">
           <CheckCircle2 className="w-5 h-5" />
           <span className="text-xs font-bold uppercase tracking-wider">Official Dispatch Confirmed</span>
         </div>
         <div className="text-[11px] text-neutral-300 space-y-1.5">
           <div><span className="text-neutral-500">Document:</span> <span className="text-white font-semibold">PHOENIX-2026 Quotation</span></div>
-          <div><span className="text-neutral-500">Recipient:</span> <span className="text-emerald-400 font-mono">billing@acme.com</span></div>
+          <div><span className="text-neutral-500">Recipient:</span> <span className="text-neutral-300 font-mono">billing@acme.com</span></div>
           <div><span className="text-neutral-500">Method:</span> <span className="text-neutral-300">Enterprise SMTP Relay</span></div>
-          <div><span className="text-neutral-500">Status:</span> <span className="text-emerald-400 font-semibold">DELIVERED</span></div>
+          <div><span className="text-neutral-500">Status:</span> <span className="text-neutral-300 font-semibold">DELIVERED</span></div>
         </div>
-        <div className="text-[10px] text-neutral-500 border-t border-emerald-500/20 pt-2 font-mono">
+        <div className="text-[10px] text-neutral-500 border-t border-white/15 pt-2 font-mono">
           Delivery Receipt: DR-2026-09-001 · Timestamp: {new Date().toLocaleTimeString()}
         </div>
       </div>
-      <div className="no-print text-[11px] text-neutral-400 bg-emerald-950/20 border border-emerald-500/20 rounded-lg p-2.5 flex items-start gap-2">
-        <Sparkles className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
+      <div className="no-print text-[11px] text-neutral-400 bg-neutral-900/20 border border-white/15 rounded-lg p-2.5 flex items-start gap-2">
+        <Sparkles className="w-3.5 h-3.5 text-neutral-300 shrink-0 mt-0.5" />
         <span className="line-clamp-2">{text || "Enterprise document dispatched via secure SMTP with delivery receipt logged."}</span>
       </div>
     </div>
@@ -1366,17 +1366,17 @@ function ApprovalGuardCard({ text, approvalStatus }: { text: string; approvalSta
           <ShieldAlert className="w-4 h-4 text-amber-400" />
           <span className="text-sm font-bold text-white">Voice Approval Guard</span>
         </div>
-        <span className={`text-[10px] font-mono px-2 py-0.5 rounded border ${isApproved ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-amber-500/10 text-amber-400 border-amber-500/20"}`}>
+        <span className={`text-[10px] font-mono px-2 py-0.5 rounded border ${isApproved ? "bg-white/10 text-neutral-300 border-white/15" : "bg-amber-500/10 text-amber-400 border-amber-500/20"}`}>
           {isApproved ? "APPROVED" : "PENDING"}
         </span>
       </div>
-      <div className={`relative overflow-hidden rounded-xl border p-5 text-center space-y-3 ${isApproved ? "border-emerald-500/40 bg-emerald-950/20" : "border-amber-500/40 bg-amber-950/20"}`}>
+      <div className={`relative overflow-hidden rounded-xl border p-5 text-center space-y-3 ${isApproved ? "border-white/30 bg-neutral-900/20" : "border-amber-500/40 bg-amber-950/20"}`}>
         <div className="absolute inset-0 flex items-center justify-center opacity-[0.07] pointer-events-none">
-          <span className={`text-5xl font-black -rotate-12 select-none ${isApproved ? "text-emerald-400" : "text-amber-400"}`}>
+          <span className={`text-5xl font-black -rotate-12 select-none ${isApproved ? "text-neutral-300" : "text-amber-400"}`}>
             {isApproved ? "APPROVED" : "PENDING"}
           </span>
         </div>
-        <div className={`relative text-xs font-bold uppercase tracking-widest ${isApproved ? "text-emerald-400" : "text-amber-400"}`}>
+        <div className={`relative text-xs font-bold uppercase tracking-widest ${isApproved ? "text-neutral-300" : "text-amber-400"}`}>
           {isApproved ? "OFFICIAL CFO APPROVED" : "PENDING CFO APPROVAL"}
         </div>
         <div className="relative text-[11px] text-neutral-400">
@@ -1426,7 +1426,7 @@ function DocumentDiffCard({ text, docCard }: { text: string; docCard: { payload:
                   {String(d.old)}
                 </span>
                 <span className="w-px h-4 bg-slate-700 mx-1" />
-                <span className={`font-mono ${isAdded ? "bg-emerald-500/10 text-emerald-400 px-1.5 py-0.5 rounded font-semibold" : "text-neutral-400"}`}>
+                <span className={`font-mono ${isAdded ? "bg-white/10 text-neutral-300 px-1.5 py-0.5 rounded font-semibold" : "text-neutral-400"}`}>
                   {String(d.new)}
                 </span>
               </div>
@@ -1463,7 +1463,7 @@ function SlackDispatchCard({ text, docCard }: { text: string; docCard: { payload
         <div className="text-[11px] text-neutral-300 space-y-1.5">
           <div><span className="text-neutral-500">Channel:</span> <span className="text-purple-400 font-mono font-semibold">{channel}</span></div>
           <div><span className="text-neutral-500">Target:</span> <span className="text-neutral-300">SLACK_WEBHOOK</span></div>
-          <div><span className="text-neutral-500">Status:</span> <span className="text-emerald-400 font-semibold">DELIVERED</span></div>
+          <div><span className="text-neutral-500">Status:</span> <span className="text-neutral-300 font-semibold">DELIVERED</span></div>
         </div>
         <div className="text-[10px] text-neutral-500 border-t border-purple-500/20 pt-2 font-mono">
           Webhook ID: WH-2026-{channel.replace("#", "").toUpperCase()} · {new Date().toLocaleTimeString()}
@@ -1495,7 +1495,7 @@ function AudioUploadCard({ text }: { text: string }) {
           <div><span className="text-neutral-500">Source:</span> <span className="text-neutral-300">meeting-recording.wav</span></div>
           <div><span className="text-neutral-500">Duration:</span> <span className="text-neutral-300 font-mono">4:32</span></div>
           <div><span className="text-neutral-500">Language:</span> <span className="text-neutral-300">English (locked)</span></div>
-          <div><span className="text-neutral-500">Confidence:</span> <span className="text-emerald-400 font-semibold">98.7%</span></div>
+          <div><span className="text-neutral-500">Confidence:</span> <span className="text-neutral-300 font-semibold">98.7%</span></div>
         </div>
       </div>
       <div className="no-print text-[11px] text-neutral-400 bg-cyan-950/20 border border-cyan-500/20 rounded-lg p-2.5 flex items-start gap-2">
@@ -1581,12 +1581,12 @@ function DocPanelIdle({ onSelectDemo }: { onSelectDemo: (query: string) => void 
             <button
               key={item.label}
               onClick={() => onSelectDemo(item.prompt)}
-              className="btn-vesper bg-neutral-900/60 backdrop-blur-md border border-white/10 hover:border-emerald-500/40 hover:bg-neutral-900 rounded-xl p-3.5 transition-all duration-200 cursor-pointer group shadow-lg shadow-black/40 text-left"
+              className="btn-vesper bg-neutral-900/60 backdrop-blur-md border border-white/10 hover:border-white/30 hover:bg-neutral-900 rounded-xl p-3.5 transition-all duration-200 cursor-pointer group shadow-lg shadow-black/40 text-left"
             >
               <div className="flex items-center justify-between mb-1.5">
                 <div className="flex items-center gap-2">
                   <span className="text-sm">{item.icon}</span>
-                  <span className="text-xs font-semibold text-neutral-200 group-hover:text-emerald-400 transition-colors">
+                  <span className="text-xs font-semibold text-neutral-200 group-hover:text-neutral-300 transition-colors">
                     {item.label}
                   </span>
                 </div>
@@ -2051,7 +2051,7 @@ export default function VoiceAgentPage() {
   const lastAssistantMsg = [...messages].reverse().find((m) => m.role === "assistant" && m.final);
 
   return (
-    <div className="h-auto xl:h-[calc(100vh-90px)] overflow-y-auto xl:overflow-hidden bg-black text-white min-h-screen overflow-x-hidden relative font-sans selection:bg-emerald-500 selection:text-black flex flex-col xl:grid xl:grid-cols-2 gap-4 p-4 pb-32 select-none">
+    <div className="h-auto xl:h-[calc(100vh-90px)] overflow-y-auto xl:overflow-hidden bg-black text-white min-h-screen overflow-x-hidden relative font-sans selection:bg-white/20 selection:text-white flex flex-col xl:grid xl:grid-cols-2 gap-4 p-4 pb-32 select-none">
       <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-neutral-900/50 via-black to-black pointer-events-none z-0" />
       {/* ── 2-Panel Split-Screen Command Dashboard ── */}
 
@@ -2062,13 +2062,13 @@ export default function VoiceAgentPage() {
           {/* Deck Header */}
           <div className="px-5 py-2.5 border-b border-white/10 flex items-center justify-between shrink-0 bg-neutral-950/50 backdrop-blur-sm">
             <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.9)]" />
-              <span className="text-[11px] font-mono font-bold text-emerald-400 uppercase tracking-widest">Audio Agent Deck</span>
+              <span className="w-2 h-2 rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.6)]" />
+              <span className="text-[11px] font-mono font-bold text-neutral-300 uppercase tracking-widest">Audio Agent Deck</span>
             </div>
             <div className="flex items-center gap-2.5">
               <div className="flex items-center gap-1.5 text-[10px] font-mono">
                 {isConnected ? (
-                  <span className="flex items-center gap-1 text-emerald-400">
+                  <span className="flex items-center gap-1 text-neutral-300">
                     <Wifi className="w-3 h-3" /> Live
                   </span>
                 ) : (
@@ -2086,7 +2086,7 @@ export default function VoiceAgentPage() {
               </div>
               <span className="w-px h-3 bg-neutral-800" />
               <span className="hidden sm:flex items-center gap-1 text-[10px] font-mono text-neutral-500">
-                <Zap className="w-3 h-3 text-emerald-500" /> v3
+                <Zap className="w-3 h-3 text-neutral-500" /> v3
               </span>
             </div>
           </div>
@@ -2096,10 +2096,10 @@ export default function VoiceAgentPage() {
             <div className="space-y-1">
               <div className="flex items-center justify-between text-[10px] font-mono text-neutral-500">
                 <span className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                  <span className="w-2 h-2 rounded-full bg-neutral-900" />
                   PCM SPECTRAL FEED (16kHz / 16-BIT)
                 </span>
-                <span className={isListening ? "text-emerald-400 font-bold" : "text-slate-600"}>
+                <span className={isListening ? "text-neutral-300 font-bold" : "text-slate-600"}>
                   {isListening ? "● STREAMING" : "○ STANDBY"}
                 </span>
               </div>
@@ -2146,13 +2146,13 @@ export default function VoiceAgentPage() {
               <div className="flex flex-col items-center justify-center h-48 text-center space-y-4">
                 {/* Ambient Glowing Mic Halo */}
                 <div className="relative flex items-center justify-center my-4">
-                  <div className="absolute w-36 h-36 rounded-full bg-emerald-500/10 animate-ping opacity-20 pointer-events-none" />
-                  <div className="absolute w-28 h-28 rounded-full bg-emerald-500/15 border border-emerald-500/30 blur-sm pointer-events-none" />
-                  <div className="absolute w-20 h-20 rounded-full bg-emerald-500/5 border border-emerald-500/20 animate-ping [animation-duration:4s] opacity-30 pointer-events-none" />
+                  <div className="absolute w-36 h-36 rounded-full bg-white/10 animate-ping opacity-20 pointer-events-none" />
+                  <div className="absolute w-28 h-28 rounded-full bg-neutral-900/15 border border-white/20 blur-sm pointer-events-none" />
+                  <div className="absolute w-20 h-20 rounded-full bg-neutral-900/5 border border-white/15 animate-ping [animation-duration:4s] opacity-30 pointer-events-none" />
                   <button
                     type="button"
                     onClick={isListening ? stopMicrophone : startMicrophone}
-                    className="relative z-10 h-20 w-20 rounded-full bg-neutral-900/90 border border-emerald-500/40 flex items-center justify-center text-emerald-400 hover:scale-105 hover:border-emerald-400 transition-all shadow-[0_0_40px_rgba(16,185,129,0.25)] cursor-pointer"
+                    className="relative z-10 h-20 w-20 rounded-full bg-neutral-900/90 border border-white/30 flex items-center justify-center text-neutral-300 hover:scale-105 hover:border-white/50 transition-all shadow-[0_0_40px_rgba(255,255,255,0.1)] cursor-pointer"
                   >
                     {isListening ? <Square className="w-8 h-8" /> : <Mic className="w-8 h-8" />}
                   </button>
@@ -2185,15 +2185,15 @@ export default function VoiceAgentPage() {
                   className={`flex gap-2.5 ${m.role === "user" ? "justify-end" : "justify-start"}`}
                 >
                   {m.role === "assistant" && (
-                    <div className="w-7 h-7 rounded-lg bg-emerald-950/80 border border-emerald-500/30 flex items-center justify-center shrink-0 mt-0.5 shadow-sm">
-                      <Volume2 className="w-3.5 h-3.5 text-emerald-400" />
+                    <div className="w-7 h-7 rounded-lg bg-neutral-900/80 border border-white/20 flex items-center justify-center shrink-0 mt-0.5 shadow-sm">
+                      <Volume2 className="w-3.5 h-3.5 text-neutral-300" />
                     </div>
                   )}
 
                   <div
                     className={`max-w-[82%] px-3.5 py-2.5 rounded-2xl text-xs leading-relaxed ${
                       m.role === "user"
-                        ? "bg-emerald-600/20 border border-emerald-500/30 text-emerald-100 rounded-tr-none shadow-[0_0_15px_rgba(16,185,129,0.1)]"
+                        ? "bg-neutral-800/20 border border-white/20 text-neutral-200 rounded-tr-none shadow-[0_0_15px_rgba(255,255,255,0.05)]"
                         : "bg-neutral-900/90 border border-white/10 text-neutral-200 rounded-tl-none"
                     } ${!m.final ? "opacity-75 italic animate-pulse border-dashed" : ""}`}
                   >
@@ -2207,7 +2207,7 @@ export default function VoiceAgentPage() {
                     </div>
                     {m.text}
                     {!m.final && (
-                      <span className="ml-1 inline-block w-1.5 h-3 bg-emerald-400 animate-pulse rounded-sm align-middle" />
+                      <span className="ml-1 inline-block w-1.5 h-3 bg-white animate-pulse rounded-sm align-middle" />
                     )}
                   </div>
 
@@ -2237,7 +2237,7 @@ export default function VoiceAgentPage() {
                 className={`btn-vesper shrink-0 h-10 w-10 rounded-xl flex items-center justify-center transition-all cursor-pointer border ${
                   isListening
                     ? "bg-red-500/10 border-red-500/40 text-red-400 hover:bg-red-500/20 shadow-[0_0_20px_rgba(239,68,68,0.2)]"
-                    : "bg-emerald-500/10 border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/20 shadow-[0_0_20px_rgba(16,185,129,0.2)]"
+                    : "bg-white/10 border-white/30 text-neutral-300 hover:bg-neutral-900/20 shadow-[0_0_20px_rgba(255,255,255,0.08)]"
                 }`}
               >
                 {isListening ? <Square className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
@@ -2247,11 +2247,11 @@ export default function VoiceAgentPage() {
                 value={textInput}
                 onChange={(e) => setTextInput(e.target.value)}
                 placeholder="Issue operational voice command or revision (e.g. 'Generate quotation for Acme', 'Authorize transaction')..."
-                className="flex-1 bg-black/80 border border-neutral-800 rounded-xl px-4 py-2.5 text-xs text-neutral-200 placeholder:text-neutral-500 focus:outline-none focus:border-emerald-500/50 font-mono transition-colors"
+                className="flex-1 bg-black/80 border border-neutral-800 rounded-xl px-4 py-2.5 text-xs text-neutral-200 placeholder:text-neutral-500 focus:outline-none focus:border-white/50 font-mono transition-colors"
               />
               <button
                 type="submit"
-                className="btn-vesper shrink-0 px-5 py-2.5 bg-emerald-400 hover:bg-emerald-300 text-black font-semibold text-xs rounded-xl transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] cursor-pointer"
+                className="btn-vesper shrink-0 px-5 py-2.5 bg-white hover:bg-neutral-200 text-black font-semibold text-xs rounded-xl transition-all shadow-[0_0_20px_rgba(255,255,255,0.15)] cursor-pointer"
               >
                 Send
               </button>
@@ -2282,8 +2282,8 @@ export default function VoiceAgentPage() {
                 >
                   {jsonCopied ? (
                     <>
-                      <Check className="w-3 h-3 text-emerald-400" />
-                      <span className="text-emerald-400">Copied!</span>
+                      <Check className="w-3 h-3 text-neutral-300" />
+                      <span className="text-neutral-300">Copied!</span>
                     </>
                   ) : (
                     <>
@@ -2295,7 +2295,7 @@ export default function VoiceAgentPage() {
 
                 <button
                   onClick={handlePrintPDF}
-                  className="btn-vesper flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-[11px] font-mono shadow-[0_0_12px_rgba(16,185,129,0.35)] transition-all cursor-pointer"
+                  className="btn-vesper flex items-center gap-1.5 px-3 py-1 rounded-lg bg-neutral-900 hover:bg-white text-slate-950 font-bold text-[11px] font-mono shadow-[0_0_12px_rgba(255,255,255,0.1)] transition-all cursor-pointer"
                   title="Print or Save as PDF"
                 >
                   <Printer className="w-3 h-3" />
@@ -2313,7 +2313,7 @@ export default function VoiceAgentPage() {
             ) : (
               <div className="flex items-center gap-1.5">
                 <span className="text-[10px] font-mono text-neutral-500">Live Mock Enterprise DB</span>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-neutral-900 border border-white/10 text-emerald-400">
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-neutral-900 border border-white/10 text-neutral-300">
                   Ready
                 </span>
               </div>
@@ -2332,7 +2332,7 @@ export default function VoiceAgentPage() {
                   <span className="text-[10px] font-mono text-cyan-300">~220ms</span>
                 </div>
                 <div className="flex items-center gap-2 text-[10px] font-mono text-neutral-400">
-                  <span className="text-emerald-400 font-semibold">1. Audio Utterance</span>
+                  <span className="text-neutral-300 font-semibold">1. Audio Utterance</span>
                   <ChevronRight className="w-3 h-3 text-slate-600" />
                   <span className="text-cyan-400 animate-pulse font-semibold">2. Querying Mock DB</span>
                   <ChevronRight className="w-3 h-3 text-slate-600" />
@@ -2351,13 +2351,13 @@ export default function VoiceAgentPage() {
                 {/* Status Bar above document (no-print) */}
                 <div className="no-print flex items-center justify-between text-xs">
                   <div className="flex items-center gap-2">
-                    <span className="flex items-center gap-1.5 text-emerald-400 font-mono">
+                    <span className="flex items-center gap-1.5 text-neutral-300 font-mono">
                       <CheckCircle2 className="w-3.5 h-3.5" />
                       <span>Active Document ({docCard.type.toUpperCase()})</span>
                     </span>
                     {docCard.revised && (
-                      <span className="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-500/50 flex items-center gap-1">
-                        <Sparkles className="w-3 h-3 text-emerald-400" />
+                      <span className="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded bg-neutral-900 text-neutral-200 border border-white/50 flex items-center gap-1">
+                        <Sparkles className="w-3 h-3 text-neutral-300" />
                         Live Revised
                       </span>
                     )}
@@ -2370,7 +2370,7 @@ export default function VoiceAgentPage() {
                 {/* Quick Voice Revision Controls Toolbar (no-print) */}
                 <div className="no-print flex items-center gap-2 p-2 bg-neutral-900/80 rounded-xl border border-white/10 text-[11px] overflow-x-auto">
                   <span className="text-neutral-500 font-mono text-[10px] uppercase shrink-0 flex items-center gap-1">
-                    <Sliders className="w-3 h-3 text-emerald-400" />
+                    <Sliders className="w-3 h-3 text-neutral-300" />
                     Quick Voice Revisions:
                   </span>
                   {docCard.type === "quotation" && (
@@ -2419,18 +2419,18 @@ export default function VoiceAgentPage() {
                 <div
                   className={`print-card-target rounded-2xl border transition-all duration-500 bg-neutral-900/90 p-6 space-y-4 relative overflow-hidden backdrop-blur-md ${
                     isRevisedPulse
-                      ? "border-emerald-400 ring-2 ring-emerald-500/60 shadow-[0_0_35px_rgba(16,185,129,0.5)]"
-                      : "border-white/10 shadow-[0_0_30px_rgba(16,185,129,0.12)]"
+                      ? "border-white/40 ring-2 ring-white/20 shadow-[0_0_35px_rgba(255,255,255,0.1)]"
+                      : "border-white/10 shadow-[0_0_30px_rgba(255,255,255,0.05)]"
                   }`}
                 >
                   {/* Revision Notice Banner */}
                   {docCard.revised && (
-                    <div className="no-print flex items-center justify-between bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 px-3 py-1.5 rounded-lg text-xs font-mono animate-pulse">
+                    <div className="no-print flex items-center justify-between bg-neutral-800/60 border border-white/30 text-neutral-200 px-3 py-1.5 rounded-lg text-xs font-mono animate-pulse">
                       <span className="flex items-center gap-1.5 font-bold">
-                        <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+                        <Sparkles className="w-3.5 h-3.5 text-neutral-300" />
                         LIVE DOCUMENT REVISED VIA VOICE
                       </span>
-                      <span className="text-[10px] text-emerald-400 font-semibold">
+                      <span className="text-[10px] text-neutral-300 font-semibold">
                         SHA-256 Seal Regenerated
                       </span>
                     </div>
@@ -2552,7 +2552,7 @@ export default function VoiceAgentPage() {
                 <div className="no-print rounded-xl border border-white/10 bg-neutral-900/60 p-3 space-y-1.5">
                   <div className="flex items-center justify-between text-[10.5px] font-mono text-neutral-400">
                     <span className="uppercase tracking-wider">Enterprise Cryptographic Audit</span>
-                    <span className="text-emerald-400 font-semibold flex items-center gap-1">
+                    <span className="text-neutral-300 font-semibold flex items-center gap-1">
                       <CheckCircle2 className="w-3 h-3" />
                       Trust Seal Active
                     </span>
@@ -2560,7 +2560,7 @@ export default function VoiceAgentPage() {
                   <div className="text-[10.5px] font-mono text-neutral-300 bg-neutral-950/80 p-2 rounded border border-white/10/80 overflow-x-auto space-y-1">
                     <div>
                       <span className="text-neutral-500">Hash: </span>
-                      <span className="text-emerald-400">{docCard.verification_hash || "SHA256-KNT-2026-X98A2"}</span>
+                      <span className="text-neutral-300">{docCard.verification_hash || "SHA256-KNT-2026-X98A2"}</span>
                     </div>
                     <div>
                       <span className="text-neutral-500">Audit QR: </span>
@@ -2576,14 +2576,14 @@ export default function VoiceAgentPage() {
       {/* Fixed Global Status Bar */}
       <div className="no-print fixed bottom-0 left-0 right-0 z-50 bg-neutral-950/90 backdrop-blur-2xl border-t border-white/10 px-4 py-1.5 text-[10px] flex items-center justify-between text-neutral-400">
         <div className="flex items-center gap-3">
-          <span className="font-mono tracking-wider uppercase text-emerald-500/80">AssemblyAI v3</span>
+          <span className="font-mono tracking-wider uppercase text-neutral-500/80">AssemblyAI v3</span>
           <span className="text-slate-800">·</span>
           <span className="font-mono tracking-wider uppercase text-cyan-500/80">Groq 70B</span>
           <span className="text-slate-800">·</span>
           <span className="font-mono tracking-wider uppercase text-purple-400/80">Kokoro-82M</span>
         </div>
         <div className="text-slate-600 font-mono">
-          <span className="text-emerald-500/70">SHA-256</span> + <span className="text-cyan-500/70">QR Audit</span>
+          <span className="text-neutral-500/70">SHA-256</span> + <span className="text-cyan-500/70">QR Audit</span>
         </div>
       </div>
     </div>
