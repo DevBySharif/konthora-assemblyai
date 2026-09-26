@@ -2399,6 +2399,16 @@ export default function VoiceAgentPage() {
                     revised: false,
                   });
                 }
+                // Update card on successful revision
+                if (result.success && result.field && result.new_value !== undefined) {
+                  setDocCard((prev) => prev ? {
+                    ...prev,
+                    revised: true,
+                    verification_hash: result.verification_hash || prev.verification_hash,
+                    payload: { ...prev.payload, [result.field]: result.new_value },
+                  } : prev);
+                  triggerRevisionPulse();
+                }
               } catch (err) {
                 console.error("Tool call error:", err);
                 if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {

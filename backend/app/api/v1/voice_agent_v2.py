@@ -92,12 +92,12 @@ VOICE_AGENT_TOOLS = [
     {
         "type": "function",
         "name": "revise_document",
-        "description": "Revise an existing document: change discount, fee, salary, payment terms, or any field.",
+        "description": "Revise the active document. Use this when the user asks to change, update, modify, or adjust ANY field. Examples: 'change amount to 5000', 'update client name', 'modify payment terms', 'change discount to 10%'. The active document is the most recently created one.",
         "parameters": {
             "type": "object",
             "properties": {
-                "field": {"type": "string", "description": "Field to change (e.g. 'discount', 'fee', 'salary', 'terms')"},
-                "new_value": {"type": "string", "description": "New value for the field"},
+                "field": {"type": "string", "description": "Field name to change. Common fields: 'amount', 'client', 'client_name', 'discount', 'fee', 'salary', 'terms', 'payment_terms', 'description', 'item', 'quantity', 'tax_rate', 'notes', 'due_date'"},
+                "new_value": {"type": "string", "description": "The new value for the field (use string even for numbers, e.g. '5000' not 5000)"},
             },
             "required": ["field", "new_value"]
         }
@@ -354,20 +354,28 @@ def _handle_create_document(args: dict) -> dict:
 def _handle_revise_document(args: dict) -> dict:
     global _active_doc_state
     if not _active_doc_state:
-        return {"result": "No active document to revise. Create one first.", "success": False}
+        return {"result": "No active document to revise. Please create a document first using create_document.", "success": False}
 
     field = args.get("field", "")
     new_value = args.get("new_value", "")
+    if not field:
+        return {"result": "Please specify which field to change (e.g. 'amount', 'client', 'terms').", "success": False}
+
     _active_doc_state["revised"] = True
     _active_doc_state[field] = new_value
 
     verif = _generate_verification(_active_doc_state["doc_type"], _active_doc_state["doc_ref"], _active_doc_state.get("amount", 0))
     _active_doc_state["verification_hash"] = verif["verification_hash"]
 
+    doc_type = _active_doc_state["doc_type"]
+    doc_ref = _active_doc_state["doc_ref"]
+
     return {
-        "result": f"Document revised: {field} changed to {new_value}. New verification hash: {verif['verification_hash']}",
+        "result": f"Document {doc_ref} ({doc_type}) revised: {field} changed to {new_value}. New verification hash: {verif['verification_hash']}",
         "success": True, "field": field, "new_value": new_value,
+        "doc_type": doc_type, "doc_ref": doc_ref,
         "verification_hash": verif["verification_hash"],
+        "qr_payload": verif["qr_payload"],
     }
 
 
