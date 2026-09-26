@@ -15,7 +15,7 @@ export default function LandingPage() {
   }, []);
 
   return (
-    <div className="bg-black text-white min-h-screen overflow-y-auto relative font-sans selection:bg-emerald-500 selection:text-black scroll-smooth">
+    <div className="bg-vesper-obsidian text-white min-h-screen overflow-y-auto relative font-sans selection:bg-emerald-500 selection:text-black scroll-smooth">
       <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-neutral-900/60 via-black to-black pointer-events-none z-0" />
 
       {/* HEADER */}
@@ -36,9 +36,9 @@ export default function LandingPage() {
           </Link>
 
           <nav className="hidden md:flex items-center gap-2">
-            <a href="#voice-engine" className="nav-link appear appear--scale" style={{ "--d": "0.16s" } as React.CSSProperties}>Voice Engine</a>
-            <a href="#capabilities" className="nav-link appear appear--soft" style={{ "--d": "0.28s" } as React.CSSProperties}>Enterprise Capabilities</a>
-            <a href="#architecture" className="nav-link appear appear--scale" style={{ "--d": "0.40s" } as React.CSSProperties}>Architecture</a>
+            <a href="#voice-engine" className="vesper-nav-pill appear appear--scale px-4 py-1.5 text-xs font-medium text-neutral-300 rounded-lg" style={{ "--d": "0.16s" } as React.CSSProperties}>Voice Engine</a>
+            <a href="#capabilities" className="vesper-nav-pill appear appear--soft px-4 py-1.5 text-xs font-medium text-neutral-300 rounded-lg" style={{ "--d": "0.28s" } as React.CSSProperties}>Enterprise Capabilities</a>
+            <a href="#architecture" className="vesper-nav-pill appear appear--scale px-4 py-1.5 text-xs font-medium text-neutral-300 rounded-lg" style={{ "--d": "0.40s" } as React.CSSProperties}>Architecture</a>
           </nav>
 
           <Link className="px-5 py-2 text-xs font-semibold rounded-xl bg-emerald-400 text-black hover:bg-emerald-300 transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] appear appear--scale" href="/voice-agent" style={{ "--d": "0.34s" } as React.CSSProperties}>
@@ -60,7 +60,7 @@ export default function LandingPage() {
               Transform Speech into
             </span>
             <span className="block overflow-hidden appear appear--mask" style={{ "--d": "0.62s" } as React.CSSProperties}>
-              <em>Production-Ready</em> Enterprise
+              <em className="font-vesper-serif text-emerald-400 text-5xl md:text-7xl not-italic">Production-Ready</em> Enterprise
             </span>
             <span className="block overflow-hidden appear appear--mask" style={{ "--d": "0.72s" } as React.CSSProperties}>
               Documents in Sub-Seconds
@@ -72,11 +72,11 @@ export default function LandingPage() {
           </p>
 
           <div className="flex flex-wrap items-center gap-4 mb-10">
-            <Link className="btn-vesper px-6 py-3.5 text-xs md:text-sm font-semibold rounded-xl bg-emerald-400 text-black hover:bg-emerald-300 transition-all flex items-center gap-2 shadow-[0_0_25px_rgba(16,185,129,0.3)]" href="/voice-agent">
+            <Link className="vesper-nav-pill px-6 py-3.5 text-xs md:text-sm font-semibold rounded-xl bg-emerald-400 text-black hover:bg-emerald-300 transition-all flex items-center gap-2 shadow-[0_0_25px_rgba(16,185,129,0.3)]" href="/voice-agent">
               <span>Launch Voice Production Engine</span>
               <span>→</span>
             </Link>
-            <a href="#architecture" className="btn-vesper px-6 py-3.5 text-xs md:text-sm font-medium rounded-xl bg-neutral-900 text-neutral-300 border border-white/15 hover:border-white/30 transition-all">
+            <a href="#architecture" className="vesper-nav-pill px-6 py-3.5 text-xs md:text-sm font-medium rounded-xl bg-neutral-900 text-neutral-300 border border-white/15 hover:border-white/30 transition-all">
               View Architecture &amp; Docs
             </a>
           </div>
@@ -98,7 +98,7 @@ export default function LandingPage() {
         </div>
 
         {/* Live Engine Terminal */}
-        <div className="bg-neutral-950/80 border border-emerald-500/30 rounded-2xl p-6 shadow-[0_0_50px_rgba(0,0,0,0.8)] backdrop-blur-xl">
+        <div className="vesper-glass-card animate-vesper-in rounded-2xl p-6 shadow-[0_0_50px_rgba(0,0,0,0.8)]" style={{ "--d": "0.3s" } as React.CSSProperties}>
           <div className="flex items-center justify-between border-b border-white/10 pb-3 mb-4 text-xs font-mono text-neutral-400">
             <span className="text-emerald-400">konthora-voice-engine://live</span>
             <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 text-[10px]">● WebSocket v3 Active</span>
@@ -144,7 +144,7 @@ export default function LandingPage() {
             { num: "03", title: "HR Offer Letters & Contracts", desc: "Employment terms, vesting schedules, and non-disclosure clauses" },
             { num: "04", title: "Sub-Second Latency & Acoustic Echo Guard", desc: "Zero audio echo loop, full-duplex conversational streaming" },
           ].map((item, i) => (
-            <div key={i} className="p-6 rounded-2xl bg-neutral-900/60 border border-white/10 hover:border-emerald-500/40 transition-all group">
+            <div key={i} className="vesper-glass-card animate-vesper-in p-6 rounded-2xl hover:border-emerald-500/40 transition-all group">
               <div className="text-xs font-mono text-emerald-400 mb-4">{item.num}</div>
               <h3 className="text-base font-semibold mb-2 group-hover:text-emerald-300 transition-colors">{item.title}</h3>
               <p className="text-xs text-neutral-400 leading-relaxed mb-4">{item.desc}</p>
@@ -168,7 +168,7 @@ export default function LandingPage() {
             { stage: "STAGE 03", time: "~120 ms", title: "Local Kokoro-82M Neural TTS", desc: "Zero-Egress On-Device Synthesis" },
             { stage: "STAGE 04", time: "Instant (<50ms)", title: "Dynamic Document Card", desc: "Reactive DOM & Print/PDF Engine" },
           ].map((st, i) => (
-            <div key={i} className="p-6 rounded-2xl bg-neutral-950 border border-white/10 hover:border-emerald-500/40 transition-all">
+            <div key={i} className="vesper-glass-card animate-vesper-in p-6 rounded-2xl hover:border-emerald-500/40 transition-all">
               <div className="flex justify-between items-center text-xs font-mono mb-4">
                 <span className="text-neutral-400">{st.stage}</span>
                 <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400">{st.time}</span>
@@ -180,14 +180,14 @@ export default function LandingPage() {
         </div>
 
         {/* AEC Echo Guard Banner */}
-        <div className="p-8 rounded-2xl bg-gradient-to-r from-neutral-900 via-neutral-950 to-black border border-emerald-500/30 flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="vesper-glass-card p-8 rounded-2xl bg-gradient-to-r from-neutral-900 via-neutral-950 to-black border border-emerald-500/30 flex flex-col md:flex-row items-center justify-between gap-6">
           <div>
             <h3 className="text-lg font-semibold text-white mb-2">Hardware &amp; Algorithmic Acoustic Echo Cancellation (AEC)</h3>
             <p className="text-xs text-neutral-400 max-w-2xl leading-relaxed">
               When Kokoro speaks the confirmation through laptop or desktop speakers, Konthora&apos;s audio gate dampens playback frequency bleeding, preventing AssemblyAI from re-transcribing the assistant&apos;s own voice.
             </p>
           </div>
-          <Link className="btn-vesper px-6 py-3 rounded-xl bg-emerald-400 text-black font-semibold text-xs hover:bg-emerald-300 transition-all whitespace-nowrap shadow-[0_0_20px_rgba(16,185,129,0.3)]" href="/voice-agent">
+          <Link className="vesper-nav-pill px-6 py-3 rounded-xl bg-emerald-400 text-black font-semibold text-xs hover:bg-emerald-300 transition-all whitespace-nowrap shadow-[0_0_20px_rgba(16,185,129,0.3)]" href="/voice-agent">
             Test Voice Agent →
           </Link>
         </div>
@@ -210,7 +210,7 @@ export default function LandingPage() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as "invoice" | "financial" | "hr")}
-              className={`btn-vesper px-5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+              className={`vesper-nav-pill px-5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                 activeTab === tab.id
                   ? "bg-emerald-400 text-black shadow-[0_0_20px_rgba(16,185,129,0.3)]"
                   : "bg-neutral-900 text-neutral-400 hover:text-white border border-white/10"
@@ -221,7 +221,7 @@ export default function LandingPage() {
           ))}
         </div>
 
-        <div className="p-8 rounded-2xl bg-neutral-950 border border-white/15 grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+        <div className="vesper-glass-card p-8 rounded-2xl grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
           <div className="space-y-4 font-mono text-xs">
             <div className="p-4 rounded-xl bg-neutral-900 border border-neutral-800">
               <span className="text-emerald-400 text-[10px] block mb-1">Spoken Audio Prompt (AssemblyAI v3 16kHz)</span>
@@ -337,17 +337,17 @@ export default function LandingPage() {
             </ul>
           </div>
           <div className="space-y-4">
-            <div className="p-5 rounded-2xl bg-neutral-950 border border-white/10">
+            <div className="vesper-glass-card animate-vesper-in p-5 rounded-2xl">
               <div className="text-[10px] font-mono text-emerald-400 mb-2">ENGLISH</div>
               <p className="text-sm text-neutral-200 italic">&quot;Generate an invoice for Acme Corp for three enterprise voice licenses at twelve hundred dollars each.&quot;</p>
               <div className="mt-3 text-[10px] font-mono text-neutral-500">→ Parsed: 3 × $1,200 = $3,600.00</div>
             </div>
-            <div className="p-5 rounded-2xl bg-neutral-950 border border-white/10">
+            <div className="vesper-glass-card animate-vesper-in p-5 rounded-2xl">
               <div className="text-[10px] font-mono text-emerald-400 mb-2">BANGLISH</div>
               <p className="text-sm text-neutral-200 italic">&quot;Acme Corp er jonno invoice banao, teen ta enterprise license, each twelve hundred dollar.&quot;</p>
               <div className="mt-3 text-[10px] font-mono text-neutral-500">→ Parsed: 3 × $1,200 = $3,600.00</div>
             </div>
-            <div className="p-5 rounded-2xl bg-neutral-950 border border-white/10">
+            <div className="vesper-glass-card animate-vesper-in p-5 rounded-2xl">
               <div className="text-[10px] font-mono text-emerald-400 mb-2">BANGLA (বাংলা)</div>
               <p className="text-sm text-neutral-200 italic">&quot;Acme Corp এর জন্য একটা ইনভয়েস তৈরি করো, তিনটা এন্টারপ্রাইজ ভয়েস লাইসেন্স, প্রতিটা বারো শত ডলার।&quot;</p>
               <div className="mt-3 text-[10px] font-mono text-neutral-500">→ Parsed: 3 × $1,200 = $3,600.00</div>
@@ -372,7 +372,7 @@ export default function LandingPage() {
             { q: "Is my voice data sent to external servers?", a: "Audio streams are processed by AssemblyAI v3 for transcription only. Document generation and TTS synthesis happen entirely on-device via Kokoro-82M — zero egress for voice output." },
             { q: "How does the AEC Echo Guard prevent feedback loops?", a: "Konthora&apos;s client-side RMS noise gate detects loudspeaker playback and dampens the microphone input during Kokoro TTS output, preventing AssemblyAI from re-transcribing its own voice." },
           ].map((faq, index) => (
-            <div key={index} className="rounded-xl bg-neutral-950 border border-white/10 overflow-hidden">
+            <div key={index} className="vesper-glass-card rounded-xl overflow-hidden">
               <button onClick={() => setOpenFaq(openFaq === index ? null : index)} className="w-full p-5 text-left flex justify-between items-center text-sm font-semibold hover:text-emerald-400 transition-colors">
                 <span>{faq.q}</span>
                 <span className="text-emerald-400 text-lg">{openFaq === index ? "−" : "+"}</span>
@@ -389,7 +389,7 @@ export default function LandingPage() {
 
       {/* FINAL CTA */}
       <section className="appear appear--pop relative z-10 max-w-5xl mx-auto px-6 py-20" style={{ "--d": "0.8s" } as React.CSSProperties}>
-        <div className="p-12 rounded-3xl bg-neutral-950 border border-emerald-500/30 text-center relative overflow-hidden shadow-[0_0_60px_rgba(16,185,129,0.15)]">
+        <div className="vesper-glass-card p-12 rounded-3xl text-center relative overflow-hidden shadow-[0_0_60px_rgba(16,185,129,0.15)] border border-emerald-500/30">
           <span className="px-3.5 py-1.5 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-mono mb-6 inline-block">
             ● AssemblyAI Voice Agent Hackathon 2026
           </span>
@@ -398,10 +398,10 @@ export default function LandingPage() {
             Konthora transforms spoken word into signed, structured enterprise documents in under 850 milliseconds. No typing. No templates. Just voice.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
-            <Link className="btn-vesper px-8 py-4 rounded-xl bg-emerald-400 text-black font-semibold text-sm hover:bg-emerald-300 transition-all shadow-[0_0_30px_rgba(16,185,129,0.35)]" href="/voice-agent">
+            <Link className="vesper-nav-pill px-8 py-4 rounded-xl bg-emerald-400 text-black font-semibold text-sm hover:bg-emerald-300 transition-all shadow-[0_0_30px_rgba(16,185,129,0.35)]" href="/voice-agent">
               Launch Voice Production Engine →
             </Link>
-            <a href="https://github.com/DevBySharif/konthora-assemblyai" target="_blank" rel="noopener noreferrer" className="btn-vesper px-8 py-4 rounded-xl bg-neutral-900 text-neutral-300 font-semibold text-sm border border-white/15 hover:border-white/30 transition-all">
+            <a href="https://github.com/DevBySharif/konthora-assemblyai" target="_blank" rel="noopener noreferrer" className="vesper-nav-pill px-8 py-4 rounded-xl bg-neutral-900 text-neutral-300 font-semibold text-sm border border-white/15 hover:border-white/30 transition-all">
               View GitHub Repository
             </a>
           </div>
@@ -409,7 +409,7 @@ export default function LandingPage() {
       </section>
 
       {/* FOOTER */}
-      <footer className="relative z-10 border-t border-white/10 bg-neutral-950 py-16 px-8 text-xs text-neutral-400">
+      <footer className="vesper-glass-card relative z-10 border-t border-white/10 py-16 px-8 text-xs text-neutral-400">
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 mb-12">
           <div className="lg:col-span-1 space-y-4">
             <div className="font-semibold text-white text-base">Konthora AI</div>
