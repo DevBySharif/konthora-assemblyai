@@ -1963,13 +1963,17 @@ export default function VoiceAgentPage() {
       worklet.port.onmessage = ({ data }) => {
         if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) return;
         if (!sessionReadyRef.current) return;
+        // Mute mic when agent is speaking — prevents echo loop
+        if (isSpeakingRef.current) return;
         const buf = new Uint8Array(data);
         let s = "";
         for (let i = 0; i < buf.length; i++) s += String.fromCharCode(buf[i]);
         wsRef.current.send(JSON.stringify({ type: "input.audio", audio: btoa(s) }));
       };
 
-      source.connect(worklet).connect(audioCtx.destination);
+      source.connect(worklet);
+      // Do NOT connect worklet to destination — mic audio must not go to speakers
+      // The worklet only captures and sends PCM to AssemblyAI via WebSocket
       setIsListening(true);
     } catch (err) {
       console.error("Microphone capture error:", err);
