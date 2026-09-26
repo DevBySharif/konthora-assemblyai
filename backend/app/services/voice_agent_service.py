@@ -171,7 +171,7 @@ class VoiceAgentService:
             resp = await client.get(f"{base_url}/models", headers=headers)
             if resp.status_code == 200:
                 models = [m["id"] for m in resp.json().get("data", [])]
-                for candidate in ["qwen/qwen3.8-27b", "groq/compound-mini", "llama-3.3-70b-versatile"]:
+                for candidate in ["llama-3.1-8b-instant", "llama-3.3-70b-versatile", "qwen/qwen3.8-27b", "groq/compound-mini"]:
                     if candidate in models:
                         self._cached_model = candidate
                         logger.info(f"Selected LLM model: {candidate}")
@@ -182,7 +182,7 @@ class VoiceAgentService:
         except Exception as e:
             logger.warning(f"Model discovery failed: {e}")
 
-        return "qwen/qwen3.8-27b" if "groq" in base_url else "gpt-4o-mini"
+        return "llama-3.1-8b-instant" if "groq" in base_url else "gpt-4o-mini"
 
     async def generate_ai_response(self, prompt: str) -> str:
         clean_prompt = prompt.strip()
@@ -354,6 +354,8 @@ class VoiceAgentService:
                 client = await self._get_client()
                 model_name = await self._get_active_model(client, base_url, headers)
 
+                t0 = time.monotonic()
+                first_token_sent = False
                 async with client.stream(
                     "POST",
                     f"{base_url}/chat/completions",
@@ -382,17 +384,24 @@ class VoiceAgentService:
                                 delta = chunk.get("choices", [{}])[0].get("delta", {})
                                 content = delta.get("content", "")
                                 if content:
+                                    if not first_token_sent:
+                                        logger.info(f"LLM first token in {time.monotonic()-t0:.2f}s (model={model_name})")
+                                        first_token_sent = True
                                     yield content
                             except Exception:
                                 continue
+                        elapsed = time.monotonic() - t0
+                        logger.info(f"LLM stream complete in {elapsed:.2f}s")
                         return
                     else:
-                        logger.error(f"Streaming LLM error {resp.status_code}")
+                        err_body = await resp.aread()
+                        logger.error(f"Streaming LLM error {resp.status_code}: {err_body}")
                         self._cached_model = None
             except Exception as e:
                 logger.error(f"Streaming LLM exception: {e}")
 
         # Fallback — instant, no API call
+        logger.info("Using fast fallback (no API latency)")
         yield self._fast_fallback(clean_prompt)
 
     def generate_speech_bytes(self, text: str) -> bytes:

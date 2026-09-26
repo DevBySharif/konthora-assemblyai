@@ -36,61 +36,39 @@ CLAUSE_PATTERN = re.compile(r'([^.!?,\n;]+[.!?,\n;]+)')
 
 
 async def process_llm_and_tts_stream(websocket: WebSocket, prompt: str):
-    """Streams tokens from LLM and synthesizes audio at clause boundaries for ultra-low latency."""
-    text_buffer = ""
+    """Streams tokens from LLM, sends text immediately, synthesizes audio in background."""
     full_text = ""
     agent_service.clear_interrupt()
 
+    # ── Phase 1: Stream text tokens ASAP (no TTS blocking) ──
     async for token in agent_service.stream_ai_response(prompt):
         if websocket.client_state != WebSocketState.CONNECTED:
-            break
+            return
         if agent_service._interrupt_flag:
             break
-
-        text_buffer += token
         full_text += token
-
-        # Send text delta to frontend
         with contextlib.suppress(Exception):
             await websocket.send_json({"type": "text_delta", "content": token})
 
-        # Find complete clauses and synthesize audio in parallel
-        last_end = 0
-        tts_tasks = []
-        for match in CLAUSE_PATTERN.finditer(text_buffer):
-            clause_text = match.group(1).strip()
-            if clause_text and len(clause_text) > 1:
-                if agent_service._interrupt_flag:
-                    last_end = match.end()
-                    continue
-                # Fire TTS synthesis without blocking the LLM stream
-                tts_tasks.append((match.end(), clause_text))
-            last_end = match.end()
+    # ── Phase 2: Synthesize audio for complete response (background) ──
+    if not agent_service._interrupt_flag and full_text.strip():
+        # Split into clauses and synthesize audio
+        clauses = CLAUSE_PATTERN.findall(full_text)
+        if not clauses:
+            clauses = [full_text.strip()]
 
-        # Execute TTS tasks concurrently
-        if tts_tasks:
-            end_positions = []
-            for end_pos, clause_text in tts_tasks:
-                audio_bytes = await agent_service.generate_speech_bytes_async(clause_text)
-                if audio_bytes and websocket.client_state == WebSocketState.CONNECTED:
-                    with contextlib.suppress(Exception):
-                        await websocket.send_bytes(audio_bytes)
-                end_positions.append(end_pos)
-
-            if end_positions:
-                max_end = max(end_positions)
-                text_buffer = text_buffer[max_end:]
-
-    # Process remaining text in buffer
-    remaining_text = text_buffer.strip()
-    if remaining_text and len(remaining_text) > 1 and websocket.client_state == WebSocketState.CONNECTED:
-        if not agent_service._interrupt_flag:
-            audio_bytes = await agent_service.generate_speech_bytes_async(remaining_text)
+        for clause in clauses:
+            clause = clause.strip()
+            if not clause or len(clause) < 2:
+                continue
+            if agent_service._interrupt_flag:
+                break
+            audio_bytes = await agent_service.generate_speech_bytes_async(clause)
             if audio_bytes and websocket.client_state == WebSocketState.CONNECTED:
                 with contextlib.suppress(Exception):
                     await websocket.send_bytes(audio_bytes)
 
-    # Emit final consolidated text response
+    # ── Phase 3: Emit final text + action card ──
     if websocket.client_state == WebSocketState.CONNECTED and not agent_service._interrupt_flag:
         with contextlib.suppress(Exception):
             await websocket.send_json({"type": "text_response", "text": full_text.strip(), "role": "assistant"})
@@ -253,5 +231,4 @@ async def voice_agent_websocket(websocket: WebSocket):
         except Exception:
             pass
     finally:
-        # Clean up persistent HTTP client
         await agent_service.close()
