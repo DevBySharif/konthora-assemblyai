@@ -37,12 +37,12 @@ CLAUSE_PATTERN = re.compile(r'([^.!?,\n;]+[.!?,\n;]+)')
 
 
 async def process_llm_and_tts_stream(websocket: WebSocket, prompt: str):
-    """Streams tokens from LLM, sends text immediately, synthesizes audio after."""
+    """Streams text from LLM instantly. TTS runs in background for first clause only."""
     full_text = ""
     agent_service.clear_interrupt()
     t_start = time.monotonic()
 
-    # ── Phase 1: Stream text tokens ASAP (no TTS blocking) ──
+    # ── Phase 1: Stream text tokens IMMEDIATELY (no blocking) ──
     async for token in agent_service.stream_ai_response(prompt):
         if websocket.client_state != WebSocketState.CONNECTED:
             return
@@ -53,28 +53,29 @@ async def process_llm_and_tts_stream(websocket: WebSocket, prompt: str):
             await websocket.send_json({"type": "text_delta", "content": token})
 
     t_text_done = time.monotonic()
-    logger.info(f"Text streaming done in {t_text_done - t_start:.2f}s — '{full_text[:60]}...'")
+    logger.info(f"Text done in {t_text_done - t_start:.2f}s ({len(full_text)} chars)")
 
-    # ── Phase 2: Synthesize audio for complete response ──
+    # ── Phase 2: Quick TTS for FIRST short clause only ──
     if not agent_service._interrupt_flag and full_text.strip():
-        clauses = CLAUSE_PATTERN.findall(full_text)
-        if not clauses:
-            clauses = [full_text.strip()]
-
-        t_tts_start = time.monotonic()
-        for clause in clauses:
-            clause = clause.strip()
-            if not clause or len(clause) < 2:
-                continue
-            if agent_service._interrupt_flag:
+        # Only synthesize first sentence (max 80 chars) for fast audio
+        first_clause = full_text.strip()
+        # Cut at first sentence boundary
+        for sep in ['. ', '! ', '? ', ', ']:
+            idx = first_clause.find(sep)
+            if 10 < idx < 80:
+                first_clause = first_clause[:idx + 1]
                 break
-            audio_bytes = await agent_service.generate_speech_bytes_async(clause)
-            if audio_bytes and websocket.client_state == WebSocketState.CONNECTED:
-                with contextlib.suppress(Exception):
-                    await websocket.send_bytes(audio_bytes)
-        logger.info(f"TTS done in {time.monotonic() - t_tts_start:.2f}s for {len(clauses)} clauses")
+        if len(first_clause) > 80:
+            first_clause = first_clause[:80] + '.'
 
-    # ── Phase 3: Emit final text + action card ──
+        logger.info(f"TTS input ({len(first_clause)} chars): '{first_clause[:50]}...'")
+        audio_bytes = await agent_service.generate_speech_bytes_async(first_clause)
+        if audio_bytes and websocket.client_state == WebSocketState.CONNECTED:
+            with contextlib.suppress(Exception):
+                await websocket.send_bytes(audio_bytes)
+            logger.info(f"TTS done in {time.monotonic() - t_text_done:.2f}s ({len(audio_bytes)} bytes)")
+
+    # ── Phase 3: Final text + action card ──
     if websocket.client_state == WebSocketState.CONNECTED and not agent_service._interrupt_flag:
         with contextlib.suppress(Exception):
             await websocket.send_json({"type": "text_response", "text": full_text.strip(), "role": "assistant"})
