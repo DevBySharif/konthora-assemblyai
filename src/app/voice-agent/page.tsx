@@ -41,7 +41,7 @@ interface Message {
 }
 
 interface DocumentCard {
-  type: "invoice" | "financial" | "hr_letter" | "inventory" | "quotation" | "purchase_order" | "tax_compliance" | "meeting_minutes" | "legal_contract" | "expense_voucher" | "analytics_chart" | "dispatch_notification" | "currency_conversion" | "approval_guard" | "document_diff" | "slack_dispatch" | "audio_upload" | "delivery_challan" | "work_order" | "credit_note" | "debit_note" | "proforma_invoice" | "none";
+  type: "invoice" | "financial" | "hr_letter" | "inventory" | "quotation" | "purchase_order" | "tax_compliance" | "meeting_minutes" | "legal_contract" | "expense_voucher" | "analytics_chart" | "dispatch_notification" | "currency_conversion" | "approval_guard" | "document_diff" | "slack_dispatch" | "audio_upload" | "delivery_challan" | "work_order" | "credit_note" | "debit_note" | "proforma_invoice" | "receipt" | "bank_statement" | "memo" | "official_notice" | "agreement" | "bid" | "tender" | "insurance_claim" | "search_results" | "notification_sent" | "inventory_status" | "task_update" | "financial_query" | "calendar_event" | "none";
   title: string;
   payload: Record<string, unknown>;
   amount?: number;
@@ -1460,6 +1460,262 @@ function DebitNoteCard({ text }: { text: string }) {
 }
 
 // ─────────────────────────────────────────────────────
+// Search Results Card
+// ─────────────────────────────────────────────────────
+function SearchResultsCard({ text }: { text: string }) {
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <FileText className="w-4 h-4 text-cyan-400" />
+          <span className="text-sm font-bold text-white">Document Search</span>
+        </div>
+        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">RESULTS</span>
+      </div>
+      <div className="border border-cyan-500/30 rounded-xl bg-cyan-950/20 p-4 space-y-3">
+        <div className="text-[11px] text-neutral-300 space-y-2">
+          {["PHOENIX-2026 — Quotation, Acme Corp, $27,075",
+            "INV-8821 — Invoice, Acme Corp, $5,050",
+            "PO-88301 — Purchase Order, Apex Hardware, $15,050",
+            "DC-2026-301 — Delivery Challan, SoftTech BD, $18,900",
+            "WO-2026-77 — Work Order, InnoTech, $32,000"].map((item, i) => (
+            <div key={i} className="flex items-center gap-2 bg-neutral-950/40 rounded-lg px-3 py-1.5 border border-white/10">
+              <CheckCircle2 className="w-3 h-3 text-cyan-400 shrink-0" />
+              <span className="font-mono text-[10px]">{item}</span>
+            </div>
+          ))}
+        </div>
+        <div className="text-[10px] text-cyan-500/70 font-mono border-t border-cyan-500/20 pt-2">
+          5 documents found · Sorted by date (newest first)
+        </div>
+      </div>
+      <div className="no-print text-[11px] text-neutral-400 bg-neutral-900/20 border border-white/15 rounded-lg p-2.5 flex items-start gap-2">
+        <Sparkles className="w-3.5 h-3.5 text-cyan-400 shrink-0 mt-0.5" />
+        <span className="line-clamp-2">{text || "Documents found matching your search criteria."}</span>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────
+// Notification Sent Card
+// ─────────────────────────────────────────────────────
+function NotificationSentCard({ text }: { text: string }) {
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Send className="w-4 h-4 text-emerald-400" />
+          <span className="text-sm font-bold text-white">Notification Sent</span>
+        </div>
+        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">DELIVERED</span>
+      </div>
+      <div className="border border-emerald-500/30 rounded-xl bg-emerald-950/20 p-4 space-y-3">
+        <div className="grid grid-cols-2 gap-3 text-[11px]">
+          <div><span className="text-neutral-500">Channel:</span> <span className="text-white font-semibold">Email</span></div>
+          <div><span className="text-neutral-500">To:</span> <span className="text-neutral-300 font-mono">billing@acme.com</span></div>
+          <div><span className="text-neutral-500">Status:</span> <span className="text-emerald-400 font-semibold">DELIVERED</span></div>
+          <div><span className="text-neutral-500">Receipt:</span> <span className="text-neutral-300 font-mono">DR-2026-{Math.floor(Date.now() / 1000) % 10000}</span></div>
+        </div>
+      </div>
+      <div className="no-print text-[11px] text-neutral-400 bg-neutral-900/20 border border-white/15 rounded-lg p-2.5 flex items-start gap-2">
+        <Sparkles className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
+        <span className="line-clamp-2">{text || "Enterprise notification dispatched with delivery receipt."}</span>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────
+// Inventory Status Card
+// ─────────────────────────────────────────────────────
+function InventoryStatusCard({ text }: { text: string }) {
+  const items = [
+    { name: "M3 Pro Chip", qty: 42, price: 450, warehouse: "WH-DHAKA" },
+    { name: "Server Rack 42U", qty: 8, price: 2800, warehouse: "WH-DHAKA" },
+    { name: "Fiber 100G", qty: 120, price: 180, warehouse: "WH-CHITTAGONG" },
+    { name: "Network Switch L3", qty: 25, price: 950, warehouse: "WH-DHAKA" },
+    { name: "UPS 3KVA", qty: 15, price: 620, warehouse: "WH-DHAKA" },
+  ];
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <BarChart3 className="w-4 h-4 text-amber-400" />
+          <span className="text-sm font-bold text-white">Inventory Status</span>
+        </div>
+        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">{items.length} ITEMS</span>
+      </div>
+      <div className="border border-amber-500/30 rounded-xl bg-amber-950/20 p-4">
+        <table className="w-full text-[11px]">
+          <thead><tr className="text-neutral-500 border-b border-white/10"><th className="text-left pb-1">Item</th><th className="text-right pb-1">Qty</th><th className="text-right pb-1">$/Unit</th><th className="text-right pb-1">Value</th></tr></thead>
+          <tbody>{items.map((item, i) => (
+            <tr key={i} className="text-neutral-300 border-b border-white/5">
+              <td className="py-1">{item.name}</td>
+              <td className="text-right font-mono">{item.qty}</td>
+              <td className="text-right font-mono">${item.price.toLocaleString()}</td>
+              <td className="text-right font-mono font-bold text-white">${(item.qty * item.price).toLocaleString()}</td>
+            </tr>
+          ))}</tbody>
+        </table>
+        <div className="text-[10px] text-amber-500/70 font-mono border-t border-amber-500/20 pt-2 mt-2 flex justify-between">
+          <span>Total Value</span>
+          <span className="text-white font-bold">${items.reduce((s, i) => s + i.qty * i.price, 0).toLocaleString()}</span>
+        </div>
+      </div>
+      <div className="no-print text-[11px] text-neutral-400 bg-neutral-900/20 border border-white/15 rounded-lg p-2.5 flex items-start gap-2">
+        <Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
+        <span className="line-clamp-2">{text || "Inventory snapshot across all warehouses."}</span>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────
+// Task Update Card
+// ─────────────────────────────────────────────────────
+function TaskUpdateCard({ text }: { text: string }) {
+  const tasks = [
+    { id: "TASK-001", title: "Finalize Q2 financial projections", assignee: "Sarah Jenkins", deadline: "Apr 20", priority: "high", status: "pending" },
+    { id: "TASK-002", title: "Review NDA terms with InnoTech", assignee: "Legal Team", deadline: "Apr 18", priority: "medium", status: "pending" },
+    { id: "TASK-003", title: "Deploy Fiber 100G at Site-B", assignee: "Rafiqul Islam", deadline: "May 1", priority: "high", status: "in_progress" },
+    { id: "TASK-005", title: "Prepare board meeting agenda", assignee: "CEO Office", deadline: "Apr 25", priority: "medium", status: "pending" },
+  ];
+  const priorityColors = { urgent: "text-red-400 bg-red-500/10 border-red-500/20", high: "text-orange-400 bg-orange-500/10 border-orange-500/20", medium: "text-blue-400 bg-blue-500/10 border-blue-500/20", low: "text-neutral-400 bg-neutral-500/10 border-neutral-500/20" };
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Zap className="w-4 h-4 text-purple-400" />
+          <span className="text-sm font-bold text-white">Task Board</span>
+        </div>
+        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-purple-500/10 text-purple-400 border border-purple-500/20">{tasks.length} PENDING</span>
+      </div>
+      <div className="space-y-2">
+        {tasks.map((task, i) => (
+          <div key={i} className="border border-white/15 rounded-xl bg-neutral-900/40 p-3 flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <div className="text-[11px] font-semibold text-white truncate">{task.title}</div>
+              <div className="text-[10px] text-neutral-500 font-mono">{task.id} · {task.assignee} · Due {task.deadline}</div>
+            </div>
+            <span className={`text-[9px] font-mono px-2 py-0.5 rounded border shrink-0 ${priorityColors[task.priority as keyof typeof priorityColors]}`}>{task.priority.toUpperCase()}</span>
+          </div>
+        ))}
+      </div>
+      <div className="no-print text-[11px] text-neutral-400 bg-neutral-900/20 border border-white/15 rounded-lg p-2.5 flex items-start gap-2">
+        <Sparkles className="w-3.5 h-3.5 text-purple-400 shrink-0 mt-0.5" />
+        <span className="line-clamp-2">{text || "Task board showing pending and in-progress items."}</span>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────
+// Financial Query Card
+// ─────────────────────────────────────────────────────
+function FinancialQueryCard({ text }: { text: string }) {
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <BarChart3 className="w-4 h-4 text-emerald-400" />
+          <span className="text-sm font-bold text-white">Financial Summary</span>
+        </div>
+        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Q1 2026</span>
+      </div>
+      <div className="border border-emerald-500/30 rounded-xl bg-emerald-950/20 p-4 space-y-3">
+        <div className="grid grid-cols-2 gap-3">
+          {[["Revenue", "$142,000", "text-emerald-400"], ["Expenses", "$85,000", "text-red-400"], ["Net Profit", "$57,000", "text-emerald-400"], ["EBITDA", "28.5%", "text-blue-400"], ["Tax", "$11,400", "text-amber-400"], ["Cash Flow", "$52,000", "text-emerald-400"]].map(([label, value, color], i) => (
+            <div key={i} className="bg-neutral-950/40 rounded-lg p-2.5 border border-white/10">
+              <div className="text-[10px] text-neutral-500 mb-1">{label}</div>
+              <div className={`text-sm font-mono font-bold ${color}`}>{value}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="no-print text-[11px] text-neutral-400 bg-neutral-900/20 border border-white/15 rounded-lg p-2.5 flex items-start gap-2">
+        <Sparkles className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
+        <span className="line-clamp-2">{text || "Q1 2026 financial summary with key metrics."}</span>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────
+// Calendar Event Card
+// ─────────────────────────────────────────────────────
+function CalendarEventCard({ text }: { text: string }) {
+  const events = [
+    { title: "Q2 Strategy Review", date: "Apr 15", time: "10:00 AM", attendees: "CEO, CFO, CTO", status: "scheduled" },
+    { title: "InnoTech Contract Signing", date: "Apr 18", time: "2:00 PM", attendees: "Legal, InnoTech", status: "scheduled" },
+    { title: "Fiber Deployment Kickoff", date: "Apr 20", time: "11:00 AM", attendees: "Rafiqul, Infra Team", status: "scheduled" },
+    { title: "Board Meeting", date: "Apr 25", time: "9:00 AM", attendees: "Board Members", status: "scheduled" },
+  ];
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="text-lg">📅</span>
+          <span className="text-sm font-bold text-white">Calendar</span>
+        </div>
+        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">UPCOMING</span>
+      </div>
+      <div className="space-y-2">
+        {events.map((evt, i) => (
+          <div key={i} className="border border-white/15 rounded-xl bg-neutral-900/40 p-3 flex items-center gap-3">
+            <div className="w-12 h-12 rounded-lg bg-blue-500/10 border border-blue-500/20 flex flex-col items-center justify-center shrink-0">
+              <span className="text-[10px] text-blue-400 font-bold">{evt.date.split(" ")[0]}</span>
+              <span className="text-sm text-white font-bold">{evt.date.split(" ")[1]}</span>
+            </div>
+            <div className="min-w-0">
+              <div className="text-[11px] font-semibold text-white truncate">{evt.title}</div>
+              <div className="text-[10px] text-neutral-500 font-mono">{evt.time} · {evt.attendees}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="no-print text-[11px] text-neutral-400 bg-neutral-900/20 border border-white/15 rounded-lg p-2.5 flex items-start gap-2">
+        <Sparkles className="w-3.5 h-3.5 text-blue-400 shrink-0 mt-0.5" />
+        <span className="line-clamp-2">{text || "Upcoming calendar events and meetings."}</span>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────
+// Receipt Card
+// ─────────────────────────────────────────────────────
+function ReceiptCard({ text }: { text: string }) {
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Receipt className="w-4 h-4 text-neutral-300" />
+          <span className="text-sm font-bold text-white">Receipt</span>
+        </div>
+        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-white/10 text-neutral-300 border border-white/15">RCT-2026-205</span>
+      </div>
+      <div className="border border-white/30 rounded-xl bg-neutral-900/20 p-4 space-y-3">
+        <div className="grid grid-cols-2 gap-3 text-[11px]">
+          <div><span className="text-neutral-500">Received From:</span> <span className="text-white font-semibold">Acme Corp</span></div>
+          <div><span className="text-neutral-500">Receipt No:</span> <span className="text-neutral-300 font-mono">RCT-2026-205</span></div>
+          <div><span className="text-neutral-500">For:</span> <span className="text-neutral-300">Invoice INV-8821 Payment</span></div>
+          <div><span className="text-neutral-500">Date:</span> <span className="text-neutral-300">{new Date().toLocaleDateString()}</span></div>
+        </div>
+        <div className="border-t border-white/15 pt-3 flex justify-between text-[12px]">
+          <span className="text-neutral-500 font-semibold">Amount Received</span>
+          <span className="text-emerald-400 font-mono font-bold text-lg">$5,050.00</span>
+        </div>
+      </div>
+      <div className="no-print text-[11px] text-neutral-400 bg-neutral-900/20 border border-white/15 rounded-lg p-2.5 flex items-start gap-2">
+        <Sparkles className="w-3.5 h-3.5 text-neutral-300 shrink-0 mt-0.5" />
+        <span className="line-clamp-2">{text || "Payment receipt generated for invoice settlement."}</span>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────
 // Proforma Invoice Card
 // ─────────────────────────────────────────────────────
 function ProformaInvoiceCard({ text }: { text: string }) {
@@ -2847,6 +3103,41 @@ export default function VoiceAgentPage() {
                   )}
                   {docCard.type === "proforma_invoice" && (
                     <ProformaInvoiceCard
+                      text={lastAssistantMsg?.text ?? ""}
+                    />
+                  )}
+                  {docCard.type === "receipt" && (
+                    <ReceiptCard
+                      text={lastAssistantMsg?.text ?? ""}
+                    />
+                  )}
+                  {docCard.type === "search_results" && (
+                    <SearchResultsCard
+                      text={lastAssistantMsg?.text ?? ""}
+                    />
+                  )}
+                  {docCard.type === "notification_sent" && (
+                    <NotificationSentCard
+                      text={lastAssistantMsg?.text ?? ""}
+                    />
+                  )}
+                  {docCard.type === "inventory_status" && (
+                    <InventoryStatusCard
+                      text={lastAssistantMsg?.text ?? ""}
+                    />
+                  )}
+                  {docCard.type === "task_update" && (
+                    <TaskUpdateCard
+                      text={lastAssistantMsg?.text ?? ""}
+                    />
+                  )}
+                  {docCard.type === "financial_query" && (
+                    <FinancialQueryCard
+                      text={lastAssistantMsg?.text ?? ""}
+                    />
+                  )}
+                  {docCard.type === "calendar_event" && (
+                    <CalendarEventCard
                       text={lastAssistantMsg?.text ?? ""}
                     />
                   )}

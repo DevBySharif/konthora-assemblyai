@@ -70,7 +70,9 @@ class VoiceAgentService:
             "You are Konthora, an autonomous voice-driven enterprise operations engine.\n"
             "Process voice commands to create: invoices, proforma invoices, quotations, purchase orders, HR letters, "
             "meeting minutes, legal NDAs, expense claims, analytics charts, currency conversions, "
-            "approval guards, document diffs, Slack dispatches, delivery challans, work orders, credit notes, debit notes.\n"
+            "approval guards, document diffs, Slack dispatches, delivery challans, work orders, credit notes, debit notes, "
+            "receipts, bank statements, memos, official notices, agreements, bids, tenders, insurance claims.\n"
+            "Also: search documents, send notifications, manage inventory, manage tasks, query financials, manage calendar.\n"
             "RULES:\n"
             "- Keep responses to 1-2 short sentences max for fast audio synthesis.\n"
             "- Always respond in English regardless of input language.\n"
@@ -82,16 +84,8 @@ class VoiceAgentService:
             "- Q1 2026: Revenue $142K, Profit $57K, EBITDA 28.5%, Tax $11.4K; Q2 projected $185K\n"
             "- Inventory: M3 Pro Chip (42@\$450), Server Rack 42U (8@\$2800), Fiber 100G (120@\$180)\n"
             "- Staff: Rafiqul Islam (EMP-1041, 120K BDT), Sarah Jenkins (EMP-0021, \$95K)\n"
-            "- Quotation PHOENIX-2026: \$27,075 for Acme Corp voice gateway\n"
-            "- PO-88301: \$15,050 to Apex Hardware, approved by Sarah\n"
-            "- Tax: \$11,400 due, BD VAT BIN-003928172-0102, EU VAT DE-319208194\n"
-            "- NDA-2026-88: Konthora & InnoTech, 2yr, strict IP\n"
-            "- EXP-9902: Sarah Jenkins \$450 hardware claim, CFO approved\n"
-            "- DC-2026-301: Delivery Challan for SoftTech BD, 42 M3 Pro Chips, \$18,900\n"
-            "- WO-2026-77: Work Order for InnoTech, Fiber 100G deployment, \$32,000\n"
-            "- CN-2026-102: Credit Note for Acme Corp, product return, \$3,500\n"
-            "- DN-2026-055: Debit Note for SoftTech BD, additional charge, \$2,100\n"
-            "- PI-2026-441: Proforma Invoice for InnoTech, Fiber modules, \$8,200\n"
+            "- Tasks: TASK-001 Q2 projections (Sarah, high), TASK-002 NDA review (Legal, medium), TASK-003 Fiber deploy (Rafiqul, high)\n"
+            "- Calendar: Q2 Strategy Apr 15, InnoTech Signing Apr 18, Board Meeting Apr 25\n"
             "- Finance: Q1 \$142K vs Q2 \$185K, EBITDA 28.5%→31%\n"
         )
 
@@ -280,6 +274,24 @@ class VoiceAgentService:
             return "Proforma Invoice PI-2026-441 generated for InnoTech GmbH totaling $8,200.00, NET-60 terms."
         if any(w in lowered for w in ["bangla", "bengali"]):
             return "I understand Bangla! What enterprise document would you like to create?"
+        if any(w in lowered for w in ["search", "find", "lookup", "past document"]):
+            return "I found 5 matching documents. The most recent is INV-8822 for SoftTech BD totaling $12,300, paid on April 10th."
+        if any(w in lowered for w in ["email", "notify", "notification", "send"]):
+            return "Notification sent. Enterprise dispatch confirmed with delivery receipt logged."
+        if any(w in lowered for w in ["inventory", "stock", "warehouse"]):
+            return "Inventory snapshot: 42 M3 Pro Chips, 8 Server Racks, 120 Fiber 100G Modules, 25 Network Switches across warehouses."
+        if any(w in lowered for w in ["task", "todo", "to-do"]):
+            return "You have 4 pending tasks. TASK-003 Fiber deployment is in progress, deadline May 1st."
+        if any(w in lowered for w in ["revenue", "profit", "financial", "ebitda", "expense", "cash flow"]):
+            return "Q1 2026: Revenue $142K, Net Profit $57K, EBITDA 28.5%. Q2 projected at $185K revenue."
+        if any(w in lowered for w in ["calendar", "meeting", "schedule", "reminder"]):
+            return "Next meeting: Q2 Strategy Review on April 15th at 10 AM. Board Meeting on April 25th."
+        if any(w in lowered for w in ["receipt", "bank statement"]):
+            return "Receipt RCT-2026-205 generated for Acme Corp invoice payment of $5,050."
+        if any(w in lowered for w in ["memo", "notice", "official"]):
+            return "Official Memo MEMO-2026-15 distributed to all departments regarding Q2 planning."
+        if any(w in lowered for w in ["agreement", "bid", "tender", "insurance"]):
+            return "Agreement AGR-2026-33 with InnoTech has been signed. Bid BID-2026-12 submitted for $45,000."
         return f"Voice-to-document engine processed: '{prompt}'. Document card is ready."
 
     def resolve_document_action(self, response_text: str, user_prompt: str) -> dict | None:
