@@ -2051,14 +2051,13 @@ export default function VoiceAgentPage() {
   const lastAssistantMsg = [...messages].reverse().find((m) => m.role === "assistant" && m.final);
 
   return (
-    <div className="h-[calc(100vh-5rem)] overflow-hidden bg-[#080b10] flex flex-col font-sans select-none">
+    <div className="h-auto xl:h-[calc(100vh-90px)] overflow-y-auto xl:overflow-hidden bg-[#080b10] flex flex-col xl:grid xl:grid-cols-2 gap-4 p-4 pb-32 font-sans select-none">
       {/* ── 2-Panel Split-Screen Command Dashboard ── */}
-      <div className="flex-1 flex flex-col lg:flex-row h-full overflow-hidden">
 
         {/* ════════════════════════════════════════
             LEFT PANEL: Cyberpunk Glow Audio Agent Deck
         ════════════════════════════════════════ */}
-        <div className="no-print w-full lg:w-1/2 border-b lg:border-b-0 lg:border-r border-slate-800/60 flex flex-col h-full overflow-hidden bg-[#080b10]">
+        <div className="no-print w-full h-full min-h-[420px] bg-[#0c1017]/90 border border-slate-800/80 rounded-2xl flex flex-col overflow-hidden shadow-xl">
           {/* Deck Header */}
           <div className="px-5 py-2.5 border-b border-slate-800/60 flex items-center justify-between shrink-0 bg-slate-950/50 backdrop-blur-sm">
             <div className="flex items-center gap-2">
@@ -2137,7 +2136,7 @@ export default function VoiceAgentPage() {
           </div>
 
           {/* Transcript Stream Box with internal scroll constraint */}
-          <div className="flex-1 overflow-y-auto max-h-[50vh] lg:max-h-[calc(100vh-280px)] p-4 space-y-3 custom-scrollbar">
+          <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
             <div className="text-[10px] font-mono text-slate-500 uppercase tracking-wider sticky top-0 bg-slate-950/90 py-0.5 backdrop-blur-sm z-10">
               Real-Time Acoustic &amp; Intent Stream
             </div>
@@ -2262,7 +2261,7 @@ export default function VoiceAgentPage() {
         {/* ════════════════════════════════════════
             RIGHT PANEL: Dynamic Enterprise Document Deck & Actions
         ════════════════════════════════════════ */}
-        <div className="w-full lg:w-1/2 flex flex-col h-full overflow-hidden bg-[#0a0d12] backdrop-blur-sm">
+        <div className="w-full h-full min-h-[500px] bg-[#0c1017]/90 border border-slate-800/80 rounded-2xl flex flex-col overflow-hidden shadow-xl">
           {/* Deck Header & Action Bar */}
           <div className="no-print px-5 py-2.5 border-b border-slate-800/60 flex items-center justify-between shrink-0 bg-slate-950/50 backdrop-blur-sm">
             <div className="flex items-center gap-2">
@@ -2343,7 +2342,7 @@ export default function VoiceAgentPage() {
           )}
 
           {/* Document Render Area with internal scroll constraint */}
-          <div className="flex-1 overflow-y-auto max-h-[50vh] lg:max-h-[calc(100vh-240px)] p-4 custom-scrollbar">
+          <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
             {!docCard ? (
               <DocPanelIdle onSelectDemo={(prompt) => sendTextCommand(prompt)} />
             ) : (
@@ -2572,7 +2571,6 @@ export default function VoiceAgentPage() {
             )}
           </div>
         </div>
-      </div>
 
       {/* Fixed Global Status Bar */}
       <div className="no-print fixed bottom-0 left-0 right-0 z-50 bg-[#0a0d14]/90 backdrop-blur-xl border-t border-slate-800/60 px-4 py-1.5 text-[10px] flex items-center justify-between text-slate-400">
