@@ -55,8 +55,8 @@ export default function LandingPage() {
               <div>Full-Duplex Stream</div>
             </div>
             <div>
-              <div className="text-neutral-300 font-mono font-bold text-sm mb-1">0 Egress</div>
-              <div>Managed Voice Agent</div>
+              <div className="text-neutral-300 font-mono font-bold text-sm mb-1">Secure</div>
+              <div>Enterprise-Grade Audio</div>
             </div>
           </div>
         </div>

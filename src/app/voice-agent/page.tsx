@@ -1609,13 +1609,22 @@ export default function VoiceAgentPage() {
   const [isConnected, setIsConnected] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [docCard, setDocCard] = useState<DocumentCard | null>(null);
-  const [groqStatus, setGroqStatus] = useState<"idle" | "processing" | "done">("idle");
+  const [aiStatus, setAiStatus] = useState<"idle" | "processing" | "done">("idle");
   const [textInput, setTextInput] = useState("");
   const [jsonCopied, setJsonCopied] = useState(false);
   const [isRevisedPulse, setIsRevisedPulse] = useState(false);
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type: "error" | "success" | "info" } | null>(null);
+  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Auto-dismiss toast
+  const showToast = useCallback((message: string, type: "error" | "success" | "info" = "error") => {
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    setToast({ message, type });
+    toastTimerRef.current = setTimeout(() => setToast(null), 4000);
+  }, []);
 
   // Deduplication helper — rejects identical consecutive messages
   const appendMessage = useCallback(
@@ -1728,7 +1737,11 @@ export default function VoiceAgentPage() {
     }
   }, [messages]);
 
-  // AssemblyAI Voice Agent WebSocket lifecycle
+  // AssemblyAI Voice Agent WebSocket lifecycle with auto-reconnect
+  const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const reconnectAttempts = useRef(0);
+  const MAX_RECONNECT_ATTEMPTS = 5;
+
   useEffect(() => {
     if (wsConnectingOrConnected.current) return;
     if (wsRef.current && (wsRef.current.readyState === WebSocket.OPEN || wsRef.current.readyState === WebSocket.CONNECTING)) {
@@ -1757,6 +1770,7 @@ export default function VoiceAgentPage() {
         wsRef.current = ws;
 
         ws.onopen = () => {
+          reconnectAttempts.current = 0; // Reset on successful connection
           // 4) Send session.update immediately (do NOT wait for session.ready)
           ws!.send(JSON.stringify({
             type: "session.update",
@@ -1782,12 +1796,29 @@ export default function VoiceAgentPage() {
           sessionReadyRef.current = false;
           if (isMounted) {
             setIsConnected(false);
-            setGroqStatus("idle");
+            setAiStatus("idle");
+            // Auto-reconnect with exponential backoff
+            if (reconnectAttempts.current < MAX_RECONNECT_ATTEMPTS) {
+              const delay = Math.min(1000 * Math.pow(2, reconnectAttempts.current), 10000);
+              reconnectAttempts.current++;
+              showToast(`Connection lost. Reconnecting in ${Math.round(delay / 1000)}s...`, "info");
+              reconnectTimerRef.current = setTimeout(() => {
+                if (isMounted) {
+                  wsConnectingOrConnected.current = false;
+                  wsRef.current = null;
+                }
+              }, delay);
+            } else {
+              showToast("Connection failed. Please reload the page.", "error");
+            }
           }
         };
         ws.onerror = () => {
           wsConnectingOrConnected.current = false;
-          if (isMounted) setIsConnected(false);
+          if (isMounted) {
+            setIsConnected(false);
+            showToast("WebSocket connection error", "error");
+          }
         };
 
         ws.onmessage = async (event) => {
@@ -1803,6 +1834,7 @@ export default function VoiceAgentPage() {
 
             case "session.error":
               console.error("AssemblyAI session error:", m.message);
+              showToast(`Session error: ${m.message}`, "error");
               break;
 
             // ── User speech transcripts ──
@@ -1819,7 +1851,7 @@ export default function VoiceAgentPage() {
                   }
                   return [...filtered, { role: "user", text: m.text, final: m.type === "transcript.user", timestamp: Date.now() }];
                 });
-                if (m.type === "transcript.user") setGroqStatus("processing");
+                if (m.type === "transcript.user") setAiStatus("processing");
               }
               break;
 
@@ -1856,8 +1888,8 @@ export default function VoiceAgentPage() {
                 }
                 return prev;
               });
-              setGroqStatus("done");
-              setTimeout(() => setGroqStatus("idle"), 2000);
+              setAiStatus("done");
+              setTimeout(() => setAiStatus("idle"), 2000);
               break;
 
             // ── Tool calling from AssemblyAI LLM ──
@@ -1925,6 +1957,7 @@ export default function VoiceAgentPage() {
     return () => {
       isMounted = false;
       wsConnectingOrConnected.current = false;
+      if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current);
       stopMicrophone();
       flushPlayback();
       if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) {
@@ -1932,13 +1965,13 @@ export default function VoiceAgentPage() {
       }
       wsRef.current = null;
     };
-  }, [stopMicrophone, flushPlayback, playPCM16Base64]);
+  }, [stopMicrophone, flushPlayback, playPCM16Base64, showToast]);
 
   // Audio capture — 24kHz AudioWorklet, sends base64 PCM16 JSON to AssemblyAI
   const startMicrophone = async () => {
     try {
       if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
-        console.error("WebSocket not connected");
+        showToast("WebSocket not connected. Please wait for connection.", "error");
         return;
       }
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -1977,6 +2010,7 @@ export default function VoiceAgentPage() {
       setIsListening(true);
     } catch (err) {
       console.error("Microphone capture error:", err);
+      showToast("Microphone access denied. Please allow mic permission.", "error");
     }
   };
 
@@ -1986,7 +2020,7 @@ export default function VoiceAgentPage() {
     if (!text) return;
 
     appendMessage({ role: "user", text, final: true, timestamp: Date.now() });
-    setGroqStatus("processing");
+    setAiStatus("processing");
     setTextInput("");
 
     try {
@@ -2015,12 +2049,12 @@ export default function VoiceAgentPage() {
         if (data.action_card.revised) triggerRevisionPulse();
       }
 
-      setGroqStatus("done");
-      setTimeout(() => setGroqStatus("idle"), 2000);
+      setAiStatus("done");
+      setTimeout(() => setAiStatus("idle"), 2000);
     } catch (err) {
       console.error("Text command error:", err);
       appendMessage({ role: "assistant", text: "Text command failed. Please try again.", final: true, timestamp: Date.now() });
-      setGroqStatus("idle");
+      setAiStatus("idle");
     }
   };
 
@@ -2090,9 +2124,9 @@ export default function VoiceAgentPage() {
               </div>
               <span className="w-px h-3 bg-white/10" />
               <div className="flex items-center gap-1.5 text-[10px] font-mono">
-                <Cpu className={`w-3 h-3 ${groqStatus === "processing" ? "text-cyan-400 animate-spin" : "text-neutral-400"}`} />
-                <span className={groqStatus === "processing" ? "text-cyan-400" : "text-neutral-400"}>
-                  {groqStatus === "processing" ? "Inferencing..." : "Voice Agent"}
+                <Cpu className={`w-3 h-3 ${aiStatus === "processing" ? "text-cyan-400 animate-spin" : "text-neutral-400"}`} />
+                <span className={aiStatus === "processing" ? "text-cyan-400" : "text-neutral-400"}>
+                  {aiStatus === "processing" ? "Inferencing..." : "Voice Agent"}
                 </span>
               </div>
               <span className="w-px h-3 bg-white/10" />
@@ -2310,7 +2344,7 @@ export default function VoiceAgentPage() {
                   title="Print or Save as PDF"
                 >
                   <Printer className="w-3 h-3" />
-                  <span>Download PDF</span>
+                  <span>Print / Save PDF</span>
                 </button>
 
                 <button
@@ -2332,7 +2366,7 @@ export default function VoiceAgentPage() {
           </div>
 
           {/* Groq Tool Execution Visualizer */}
-          {groqStatus === "processing" && (
+          {aiStatus === "processing" && (
             <div className="no-print px-5 py-2.5 border-b border-white/10 bg-cyan-950/20 shrink-0">
               <div className="rounded-xl border border-cyan-500/30 bg-neutral-900/80 p-2.5 space-y-1.5">
                 <div className="flex items-center justify-between">
@@ -2583,6 +2617,17 @@ export default function VoiceAgentPage() {
             )}
           </div>
         </div>
+
+      {/* Toast Notifications */}
+      {toast && (
+        <div className={`no-print fixed top-4 right-4 z-[100] px-4 py-3 rounded-xl text-xs font-mono shadow-2xl backdrop-blur-xl border transition-all animate-in slide-in-from-top-4 ${
+          toast.type === "error" ? "bg-red-950/90 border-red-500/30 text-red-300" :
+          toast.type === "success" ? "bg-emerald-950/90 border-emerald-500/30 text-emerald-300" :
+          "bg-neutral-900/90 border-white/20 text-neutral-300"
+        }`}>
+          {toast.message}
+        </div>
+      )}
 
       {/* Fixed Global Status Bar */}
       <div className="no-print fixed bottom-0 left-0 right-0 z-50 bg-neutral-950/90 backdrop-blur-2xl border-t border-white/10 px-4 py-2 text-[10px] flex items-center justify-between text-neutral-400">

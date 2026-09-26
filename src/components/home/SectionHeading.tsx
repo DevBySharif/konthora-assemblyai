@@ -1,28 +1,20 @@
 import React from 'react';
-import { Reveal } from '@/components/ui/motion';
 
 interface SectionHeadingProps {
-  eyebrow?: string;
-  title: React.ReactNode;
+  align?: 'left' | 'center';
+  eyebrow: string;
+  title: string;
   description?: string;
-  align?: 'center' | 'left';
 }
 
-export function SectionHeading({ eyebrow, title, description, align = 'center' }: SectionHeadingProps) {
-  const centered = align === 'center';
+export function SectionHeading({ align = 'center', eyebrow, title, description }: SectionHeadingProps) {
   return (
-    <Reveal className={centered ? 'mx-auto max-w-2xl text-center' : 'max-w-2xl'}>
-      {eyebrow && (
-        <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-primary dark:border-primary/30 dark:bg-primary/10 dark:text-primary-soft">
-          {eyebrow}
-        </span>
-      )}
-      <h2 className="mt-5 text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl md:text-[2.6rem] md:leading-[1.15]">
-        {title}
-      </h2>
-      {description && (
-        <p className="mt-4 text-lg leading-relaxed text-muted-foreground">{description}</p>
-      )}
-    </Reveal>
+    <div className={align === 'center' ? 'text-center' : ''}>
+      <span className="px-3 py-1 rounded-full bg-white/10 border border-white/20 text-neutral-300 text-xs font-mono">
+        {eyebrow}
+      </span>
+      <h2 className="text-3xl md:text-4xl font-semibold mt-4 mb-4">{title}</h2>
+      {description && <p className="text-neutral-400 text-sm">{description}</p>}
+    </div>
   );
 }
