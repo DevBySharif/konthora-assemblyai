@@ -41,8 +41,8 @@ html, body {
 }
 
 .nav-link:hover {
-  border-color: rgba(16, 185, 129, 0.6);
-  box-shadow: 0 0 18px rgba(16, 185, 129, 0.2);
+  border-color: rgba(255, 255, 255, 0.6);
+  box-shadow: 0 0 18px rgba(255, 255, 255, 0.15);
 }
 
 /* ── Liquid Metal Buttons ── */
@@ -66,7 +66,7 @@ html, body {
 }
 
 .btn-vesper:hover {
-  box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
 }
 
 /* ── Headline Font Styling ── */

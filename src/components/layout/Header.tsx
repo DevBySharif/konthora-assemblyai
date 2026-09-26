@@ -50,14 +50,13 @@ export function Header() {
         <KonthoraBrand variant="header" />
 
         {/* Desktop Navigation Links */}
-        <nav className="hidden lg:flex items-center gap-1" aria-label="Main Navigation" role="list">
+        <nav className="hidden lg:flex items-center gap-1" aria-label="Main Navigation">
           {headerNavLinks.map((link) => {
             const isActive = pathname === link.href;
             return (
               <Link
                 key={link.href}
                 href={link.href}
-                role="listitem"
                 aria-current={isActive ? 'page' : undefined}
                 className={`relative rounded-lg px-3.5 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 ${
                   isActive ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'

@@ -24,6 +24,8 @@ import {
   Receipt,
   BarChart3,
   Send,
+  ArrowLeftRight,
+  GitCompare,
 } from "lucide-react";
 
 // ─────────────────────────────────────────────────────
@@ -407,7 +409,7 @@ function FormalDocHeader({
           </div>
           {badgeText && (
             <div className="mt-1">
-              <span className="text-[9px] font-mono uppercase px-2 py-0.5 rounded bg-neutral-900/80 text-neutral-200 border border-white/30">
+              <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-neutral-900/80 text-neutral-200 border border-white/30">
                 {badgeText}
               </span>
             </div>
@@ -434,7 +436,7 @@ function FormalDocFooter({
   return (
     <div className="border-t border-slate-700/80 pt-3 mt-4 space-y-3">
       {notes && (
-        <div className="text-[10.5px] text-neutral-400 leading-relaxed bg-neutral-950/50 p-2.5 rounded-lg border border-white/10/80">
+        <div className="text-[11px] text-neutral-400 leading-relaxed bg-neutral-950/50 p-2.5 rounded-lg border border-white/10">
           <span className="font-semibold text-neutral-300">Terms &amp; Notes: </span>
           {notes}
         </div>
@@ -442,12 +444,12 @@ function FormalDocFooter({
 
       <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
         <div>
-          <div className="text-[9.5px] font-mono text-neutral-500 uppercase tracking-widest">
+          <div className="text-[10px] font-mono text-neutral-500 uppercase tracking-widest">
             Authorized Digital Signatory
           </div>
           <div className="text-xs font-bold text-white font-mono mt-0.5">{signatory}</div>
           <div className="text-[10px] text-neutral-400">{department}</div>
-          <div className="text-[9px] font-mono text-neutral-300 font-bold uppercase tracking-wider flex items-center gap-1 mt-1">
+          <div className="text-[10px] font-mono text-neutral-300 font-bold uppercase tracking-wider flex items-center gap-1 mt-1">
             <CheckCircle2 className="w-3 h-3 text-neutral-300" />
             Officially Verified Record
           </div>
@@ -457,13 +459,13 @@ function FormalDocFooter({
         <div className="flex items-center gap-3 bg-neutral-950/70 p-2.5 rounded-xl border border-white/10">
           <QRCodeSVG value={qrPayload} size={54} />
           <div className="space-y-0.5 text-left">
-            <div className="text-[9px] font-mono font-bold text-neutral-300 uppercase tracking-wider">
+            <div className="text-[10px] font-mono font-bold text-neutral-300 uppercase tracking-wider">
               OFFICIAL DIGITAL VERIFICATION HASH
             </div>
-            <div className="text-[10.5px] font-mono font-bold text-neutral-200">
+            <div className="text-[11px] font-mono font-bold text-neutral-200">
               {verificationHash}
             </div>
-            <div className="text-[9px] text-neutral-400">
+            <div className="text-[10px] text-neutral-400">
               Scannable for real-time B2B audit authentication.
             </div>
           </div>
@@ -527,7 +529,7 @@ function QuotationCard({
               <td className="py-2.5 pr-2 font-mono text-neutral-500">01</td>
               <td className="py-2.5 pr-4 text-white font-medium">
                 Konthora Real-Time Multilingual Voice Gateway
-                <div className="text-[10.5px] text-neutral-400 font-normal">AssemblyAI Streaming v3 16kHz PCM streaming pipeline</div>
+                <div className="text-[11px] text-neutral-400 font-normal">AssemblyAI Streaming v3 16kHz PCM streaming pipeline</div>
               </td>
               <td className="py-2.5 px-2 text-center font-mono text-neutral-300">1</td>
               <td className="py-2.5 px-2 text-right font-mono text-neutral-300">$18,500.00</td>
@@ -537,7 +539,7 @@ function QuotationCard({
               <td className="py-2.5 pr-2 font-mono text-neutral-500">02</td>
               <td className="py-2.5 pr-4 text-white font-medium">
                 Kokoro-82M High-Density Edge TTS Cluster
-                <div className="text-[10.5px] text-neutral-400 font-normal">Dual-node on-prem high-throughput audio synthesis cluster</div>
+                <div className="text-[11px] text-neutral-400 font-normal">Dual-node on-prem high-throughput audio synthesis cluster</div>
               </td>
               <td className="py-2.5 px-2 text-center font-mono text-neutral-300">2</td>
               <td className="py-2.5 px-2 text-right font-mono text-neutral-300">$5,000.00</td>
@@ -552,7 +554,7 @@ function QuotationCard({
           <span>Gross Subtotal</span>
           <span className="font-mono text-white">${subtotal.toLocaleString()}.00</span>
         </div>
-        <div className="flex justify-between text-neutral-300 text-[11.5px]">
+        <div className="flex justify-between text-neutral-300 text-[11px]">
           <span>Enterprise Volume Discount ({discountPct}.0%)</span>
           <span className="font-mono font-semibold">-${discountAmt.toLocaleString()}.00</span>
         </div>
@@ -692,17 +694,17 @@ function TaxComplianceCard({
         <div className="bg-neutral-950/70 p-3 rounded-xl border border-white/10">
           <div className="text-[10px] font-mono text-neutral-500 uppercase">Gross Operating Income</div>
           <div className="text-base font-bold text-white font-mono mt-0.5">$57,000.00</div>
-          <div className="text-[9.5px] text-neutral-400">Q1 Taxable Base</div>
+          <div className="text-[10px] text-neutral-400">Q1 Taxable Base</div>
         </div>
         <div className="bg-neutral-950/70 p-3 rounded-xl border border-white/10">
           <div className="text-[10px] font-mono text-neutral-500 uppercase">Effective Tax Rate</div>
           <div className="text-base font-bold text-amber-400 font-mono mt-0.5">20.0%</div>
-          <div className="text-[9.5px] text-neutral-400">Statutory Bracket</div>
+          <div className="text-[10px] text-neutral-400">Statutory Bracket</div>
         </div>
         <div className="bg-neutral-950/70 p-3 rounded-xl border border-white/10">
           <div className="text-[10px] font-mono text-neutral-500 uppercase">Net Payable</div>
           <div className="text-base font-bold text-neutral-300 font-mono mt-0.5">$8,200.00</div>
-          <div className="text-[9.5px] text-neutral-400">Post-Withholding</div>
+          <div className="text-[10px] text-neutral-400">Post-Withholding</div>
         </div>
       </div>
 
@@ -780,13 +782,13 @@ function InvoiceCard({
           <span className="text-[10px] font-mono text-neutral-500 uppercase tracking-wider">Billed To (Client):</span>
           <div className="font-bold text-white mt-0.5">Acme Corp</div>
           <div className="text-[11px] text-neutral-400">Tax ID: US-99201 · Client ID: CLI-8821</div>
-          <div className="text-[10.5px] text-neutral-500">500 Market St, San Francisco, CA 94103</div>
+          <div className="text-[11px] text-neutral-500">500 Market St, San Francisco, CA 94103</div>
         </div>
         <div>
           <span className="text-[10px] font-mono text-neutral-500 uppercase tracking-wider">Payment Details:</span>
           <div className="font-bold text-neutral-300 mt-0.5">Direct Wire / ACH Transfer</div>
           <div className="text-[11px] text-neutral-400 font-mono">Routing: 121000358 · Acct: 8829-4401</div>
-          <div className="text-[10.5px] text-neutral-500">Currency: United States Dollars (USD)</div>
+          <div className="text-[11px] text-neutral-500">Currency: United States Dollars (USD)</div>
         </div>
       </div>
 
@@ -805,7 +807,7 @@ function InvoiceCard({
               <td className="py-2.5 pr-2 font-mono text-neutral-500">01</td>
               <td className="py-2.5 pr-4 text-white font-medium">
                 Professional Voice AI Integration &amp; Calibration
-                <div className="text-[10.5px] text-neutral-400 font-normal">Custom acoustic lexicon tuning and sub-850ms streaming bridge</div>
+                <div className="text-[11px] text-neutral-400 font-normal">Custom acoustic lexicon tuning and sub-850ms streaming bridge</div>
               </td>
               <td className="py-2.5 px-2 text-center font-mono text-neutral-300">Phase 1</td>
               <td className="py-2.5 pl-2 text-right font-mono text-white font-semibold">$4,200.00</td>
@@ -814,7 +816,7 @@ function InvoiceCard({
               <td className="py-2.5 pr-2 font-mono text-neutral-500">02</td>
               <td className="py-2.5 pr-4 text-white font-medium">
                 Dedicated Inference Cluster (Monthly Allocation)
-                <div className="text-[10.5px] text-neutral-400 font-normal">Isolated Groq LPU + Kokoro-82M processing unit</div>
+                <div className="text-[11px] text-neutral-400 font-normal">Isolated Groq LPU + Kokoro-82M processing unit</div>
               </td>
               <td className="py-2.5 px-2 text-center font-mono text-neutral-300">30 Days</td>
               <td className="py-2.5 pl-2 text-right font-mono text-white font-semibold">$850.00</td>
@@ -824,7 +826,7 @@ function InvoiceCard({
                 <td className="py-2.5 pr-2 font-mono text-neutral-500">03</td>
                 <td className="py-2.5 pr-4 text-white font-medium">
                   24/7 SLA Priority Maintenance &amp; High-Availability Monitoring
-                  <div className="text-[10.5px] text-neutral-300 font-normal">Added via Voice Revision Directive</div>
+                  <div className="text-[11px] text-neutral-300 font-normal">Added via Voice Revision Directive</div>
                 </td>
                 <td className="py-2.5 px-2 text-center font-mono text-neutral-300">Monthly</td>
                 <td className="py-2.5 pl-2 text-right font-mono text-neutral-300 font-semibold">${maintenanceFee.toFixed(2)}</td>
@@ -955,7 +957,7 @@ function HRLetterCard({
 
       <div className="bg-neutral-950/70 rounded-xl p-4 border border-white/10 space-y-3 text-xs">
         <div className="font-semibold text-white text-sm">Dear Rafiqul Islam,</div>
-        <div className="text-neutral-300 leading-relaxed text-[11.5px]">
+        <div className="text-neutral-300 leading-relaxed text-[11px]">
           On behalf of <strong className="text-white">Konthora Enterprise AI Global Ltd.</strong>, we are pleased to confirm your appointment for the position of{" "}
           <span className="text-purple-300 font-semibold">Senior Full-Stack Engineer</span> within the
           Engineering &amp; Systems Architecture division, effective{" "}
@@ -1107,14 +1109,14 @@ function MeetingMinutesCard({ text, verificationHash }: { text: string; verifica
             <span className="text-neutral-300">Deploy PII Redaction</span>
             <div className="flex items-center gap-2">
               <span className="text-neutral-300 font-mono">Rafiqul</span>
-              <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">2026-10-05</span>
+              <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">2026-10-05</span>
             </div>
           </div>
           <div className="px-3 py-2 flex items-center justify-between text-[11px]">
             <span className="text-neutral-300">Prepare Q4 Budget Report</span>
             <div className="flex items-center gap-2">
               <span className="text-cyan-400 font-mono">Sarah</span>
-              <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">2026-10-10</span>
+              <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">2026-10-10</span>
             </div>
           </div>
         </div>
@@ -1327,7 +1329,7 @@ function CurrencyConversionCard({ text, docCard }: { text: string; docCard: { pa
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="text-lg">💱</span>
+          <span className="text-lg"><ArrowLeftRight className="w-5 h-5" /></span>
           <span className="text-sm font-bold text-white">Multi-Currency Conversion</span>
         </div>
         <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">LIVE RATE</span>
@@ -1405,7 +1407,7 @@ function DocumentDiffCard({ text, docCard }: { text: string; docCard: { payload:
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="text-lg">🔀</span>
+          <span className="text-lg"><GitCompare className="w-5 h-5" /></span>
           <span className="text-sm font-bold text-white">Document Diff</span>
         </div>
         <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-purple-500/10 text-purple-400 border border-purple-500/20">VERSION COMPARE</span>
@@ -1548,7 +1550,7 @@ function DocPanelIdle({ onSelectDemo }: { onSelectDemo: (query: string) => void 
       <div className="px-5 pt-5 pb-3 shrink-0">
         <div className="flex items-center gap-2 mb-4">
           <div className="inline-flex p-2 rounded-xl bg-neutral-900 border border-white/10 text-lg shadow-lg">
-            📄⚡
+            <FileText className="w-5 h-5 text-neutral-300" />
           </div>
           <div>
             <h3 className="text-sm font-bold text-white tracking-tight">Enterprise Operations Deck</h3>
@@ -2079,7 +2081,7 @@ export default function VoiceAgentPage() {
               </div>
               <span className="w-px h-3 bg-neutral-800" />
               <div className="flex items-center gap-1.5 text-[10px] font-mono text-neutral-500">
-                <Cpu className={`w-3 h-3 ${groqStatus === "processing" ? "text-cyan-400 animate-spin" : "text-slate-600"}`} />
+                <Cpu className={`w-3 h-3 ${groqStatus === "processing" ? "text-cyan-400 animate-spin" : "text-neutral-500"}`} />
                 <span className={groqStatus === "processing" ? "text-cyan-400" : ""}>
                   {groqStatus === "processing" ? "Inferencing..." : "Groq 70B"}
                 </span>
@@ -2099,7 +2101,7 @@ export default function VoiceAgentPage() {
                   <span className="w-2 h-2 rounded-full bg-neutral-900" />
                   PCM SPECTRAL FEED (16kHz / 16-BIT)
                 </span>
-                <span className={isListening ? "text-neutral-300 font-bold" : "text-slate-600"}>
+                <span className={isListening ? "text-neutral-300 font-bold" : "text-neutral-500"}>
                   {isListening ? "● STREAMING" : "○ STANDBY"}
                 </span>
               </div>
@@ -2165,7 +2167,7 @@ export default function VoiceAgentPage() {
                 {/* Hardware Status Chips */}
                 <div className="flex items-center gap-2 flex-wrap justify-center">
                   <span className="text-[10px] font-mono tracking-wider uppercase px-2.5 py-1 rounded-md bg-neutral-900 border border-white/10 text-neutral-400">
-                    {isConnected ? "🟢 Connected" : "🔴 Offline"}
+                    {isConnected ? <><span className="inline-block w-2 h-2 rounded-full bg-white animate-pulse" /> Connected</> : <><span className="inline-block w-2 h-2 rounded-full bg-red-500" /> Offline</>}
                   </span>
                   <span className="text-[10px] font-mono tracking-wider uppercase px-2.5 py-1 rounded-md bg-neutral-900 border border-white/10 text-neutral-400">
                     AssemblyAI v3
@@ -2198,10 +2200,10 @@ export default function VoiceAgentPage() {
                     } ${!m.final ? "opacity-75 italic animate-pulse border-dashed" : ""}`}
                   >
                     <div className="flex items-center justify-between gap-2 mb-1">
-                      <span className="text-[9.5px] font-mono text-neutral-500 uppercase tracking-wider">
+                      <span className="text-[10px] font-mono text-neutral-500 uppercase tracking-wider">
                         {m.role === "user" ? "Spoken Input" : "Konthora Voice"}
                       </span>
-                      <span className="text-[9.5px] font-mono text-slate-600">
+                      <span className="text-[10px] font-mono text-neutral-400">
                         {new Date(m.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
                       </span>
                     </div>
@@ -2333,9 +2335,9 @@ export default function VoiceAgentPage() {
                 </div>
                 <div className="flex items-center gap-2 text-[10px] font-mono text-neutral-400">
                   <span className="text-neutral-300 font-semibold">1. Audio Utterance</span>
-                  <ChevronRight className="w-3 h-3 text-slate-600" />
+                  <ChevronRight className="w-3 h-3 text-neutral-500" />
                   <span className="text-cyan-400 animate-pulse font-semibold">2. Querying Mock DB</span>
-                  <ChevronRight className="w-3 h-3 text-slate-600" />
+                  <ChevronRight className="w-3 h-3 text-neutral-500" />
                   <span className="text-neutral-500">3. Synthesizing Document</span>
                 </div>
               </div>
@@ -2550,14 +2552,14 @@ export default function VoiceAgentPage() {
 
                 {/* Database Trace Verification Box (no-print) */}
                 <div className="no-print rounded-xl border border-white/10 bg-neutral-900/60 p-3 space-y-1.5">
-                  <div className="flex items-center justify-between text-[10.5px] font-mono text-neutral-400">
+                  <div className="flex items-center justify-between text-[11px] font-mono text-neutral-400">
                     <span className="uppercase tracking-wider">Enterprise Cryptographic Audit</span>
                     <span className="text-neutral-300 font-semibold flex items-center gap-1">
                       <CheckCircle2 className="w-3 h-3" />
                       Trust Seal Active
                     </span>
                   </div>
-                  <div className="text-[10.5px] font-mono text-neutral-300 bg-neutral-950/80 p-2 rounded border border-white/10/80 overflow-x-auto space-y-1">
+                  <div className="text-[11px] font-mono text-neutral-300 bg-neutral-950/80 p-2 rounded border border-white/10 overflow-x-auto space-y-1">
                     <div>
                       <span className="text-neutral-500">Hash: </span>
                       <span className="text-neutral-300">{docCard.verification_hash || "SHA256-KNT-2026-X98A2"}</span>
@@ -2574,16 +2576,16 @@ export default function VoiceAgentPage() {
         </div>
 
       {/* Fixed Global Status Bar */}
-      <div className="no-print fixed bottom-0 left-0 right-0 z-50 bg-neutral-950/90 backdrop-blur-2xl border-t border-white/10 px-4 py-1.5 text-[10px] flex items-center justify-between text-neutral-400">
+      <div className="no-print fixed bottom-0 left-0 right-0 z-50 bg-neutral-950/90 backdrop-blur-2xl border-t border-white/10 px-4 py-2 text-[10px] flex items-center justify-between text-neutral-400">
         <div className="flex items-center gap-3">
-          <span className="font-mono tracking-wider uppercase text-neutral-500/80">AssemblyAI v3</span>
-          <span className="text-slate-800">·</span>
-          <span className="font-mono tracking-wider uppercase text-cyan-500/80">Groq 70B</span>
-          <span className="text-slate-800">·</span>
-          <span className="font-mono tracking-wider uppercase text-purple-400/80">Kokoro-82M</span>
+          <span className="font-mono tracking-wider uppercase text-neutral-400">AssemblyAI v3</span>
+          <span className="text-neutral-700">·</span>
+          <span className="font-mono tracking-wider uppercase text-cyan-400">Groq 70B</span>
+          <span className="text-neutral-700">·</span>
+          <span className="font-mono tracking-wider uppercase text-purple-400">Kokoro-82M</span>
         </div>
-        <div className="text-slate-600 font-mono">
-          <span className="text-neutral-500/70">SHA-256</span> + <span className="text-cyan-500/70">QR Audit</span>
+        <div className="text-neutral-400 font-mono">
+          <span className="text-neutral-400">SHA-256</span> + <span className="text-cyan-400">QR Audit</span>
         </div>
       </div>
     </div>

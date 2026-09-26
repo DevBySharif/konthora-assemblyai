@@ -1,18 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 
 export default function LandingPage() {
   const [activeTab, setActiveTab] = useState<"invoice" | "financial" | "hr">("invoice");
   const [openFaq, setOpenFaq] = useState<number | null>(0);
-
-  useEffect(() => {
-    const link = document.createElement("link");
-    link.href = "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@1&display=swap";
-    link.rel = "stylesheet";
-    document.head.appendChild(link);
-  }, []);
 
   return (
     <div className="bg-vesper-obsidian text-white min-h-screen overflow-y-auto relative font-sans selection:bg-white/20 selection:text-white scroll-smooth">
@@ -41,7 +34,7 @@ export default function LandingPage() {
             <a href="#architecture" className="vesper-nav-pill appear appear--scale px-4 py-1.5 text-xs font-medium text-neutral-300 rounded-lg" style={{ "--d": "0.40s" } as React.CSSProperties}>Architecture</a>
           </nav>
 
-          <Link className="px-5 py-2 text-xs font-semibold rounded-xl bg-white text-black hover:bg-neutral-200 transition-all shadow-[0_0_20px_rgba(255,255,255,0.15)] appear appear--scale font-[family-name:var(--font-geist-sans)]" href="/voice-agent" style={{ "--d": "0.34s" } as React.CSSProperties}>
+          <Link className="px-5 py-2 text-xs font-semibold rounded-xl bg-white text-black hover:bg-neutral-200 transition-all shadow-[0_0_20px_rgba(255,255,255,0.1)] appear appear--scale font-[family-name:var(--font-geist-sans)]" href="/voice-agent" style={{ "--d": "0.34s" } as React.CSSProperties}>
             Live Demo →
           </Link>
         </div>
@@ -60,7 +53,7 @@ export default function LandingPage() {
               Transform Speech into
             </span>
             <span className="block overflow-hidden appear appear--mask" style={{ "--d": "0.62s" } as React.CSSProperties}>
-              <em className="font-vesper-serif text-neutral-300 text-5xl md:text-7xl not-italic">Production-Ready</em> Enterprise
+              <em className="font-vesper-serif text-neutral-300">Production-Ready</em> Enterprise
             </span>
             <span className="block overflow-hidden appear appear--mask" style={{ "--d": "0.72s" } as React.CSSProperties}>
               Documents in Sub-Seconds
@@ -72,7 +65,7 @@ export default function LandingPage() {
           </p>
 
           <div className="flex flex-wrap items-center gap-4 mb-10">
-            <Link className="vesper-nav-pill px-6 py-3.5 text-xs md:text-sm font-semibold rounded-xl text-white hover:bg-neutral-200 transition-all flex items-center gap-2 shadow-[0_0_25px_rgba(255,255,255,0.15)]" href="/voice-agent">
+            <Link className="vesper-nav-pill px-6 py-3.5 text-xs md:text-sm font-semibold rounded-xl text-white hover:bg-neutral-200 transition-all flex items-center gap-2 shadow-[0_0_20px_rgba(255,255,255,0.1)]" href="/voice-agent">
               <span>Launch Voice Production Engine</span>
               <span>→</span>
             </Link>
@@ -187,7 +180,7 @@ export default function LandingPage() {
               When Kokoro speaks the confirmation through laptop or desktop speakers, Konthora&apos;s audio gate dampens playback frequency bleeding, preventing AssemblyAI from re-transcribing the assistant&apos;s own voice.
             </p>
           </div>
-          <Link className="vesper-nav-pill px-6 py-3 rounded-xl text-white font-semibold text-xs hover:bg-neutral-200 transition-all whitespace-nowrap shadow-[0_0_20px_rgba(255,255,255,0.15)]" href="/voice-agent">
+          <Link className="vesper-nav-pill px-6 py-3 rounded-xl text-white font-semibold text-xs hover:bg-neutral-200 transition-all whitespace-nowrap shadow-[0_0_20px_rgba(255,255,255,0.1)]" href="/voice-agent">
             Test Voice Agent →
           </Link>
         </div>
@@ -212,7 +205,7 @@ export default function LandingPage() {
               onClick={() => setActiveTab(tab.id as "invoice" | "financial" | "hr")}
               className={`px-5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                 activeTab === tab.id
-                  ? "bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.15)]"
+                  ? "bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.1)]"
                   : "text-neutral-400 hover:text-white hover:bg-white/5 border border-white/10"
               }`}
             >
@@ -389,7 +382,7 @@ export default function LandingPage() {
 
       {/* FINAL CTA */}
       <section className="appear appear--pop relative z-10 max-w-5xl mx-auto px-6 py-20" style={{ "--d": "0.8s" } as React.CSSProperties}>
-        <div className="vesper-glass-card p-12 rounded-3xl text-center relative overflow-hidden shadow-[0_0_60px_rgba(16,185,129,0.15)] border border-white/20">
+        <div className="vesper-glass-card p-12 rounded-3xl text-center relative overflow-hidden shadow-[0_0_60px_rgba(255,255,255,0.08)] border border-white/20">
           <span className="px-3.5 py-1.5 rounded-full bg-white/10 text-neutral-300 text-xs font-mono mb-6 inline-block">
             ● AssemblyAI Voice Agent Hackathon 2026
           </span>
@@ -398,7 +391,7 @@ export default function LandingPage() {
             Konthora transforms spoken word into signed, structured enterprise documents in under 850 milliseconds. No typing. No templates. Just voice.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
-            <Link className="vesper-nav-pill px-8 py-4 rounded-xl text-white font-semibold text-sm hover:bg-neutral-200 transition-all shadow-[0_0_30px_rgba(255,255,255,0.15)]" href="/voice-agent">
+            <Link className="vesper-nav-pill px-8 py-4 rounded-xl text-white font-semibold text-sm hover:bg-neutral-200 transition-all shadow-[0_0_20px_rgba(255,255,255,0.1)]" href="/voice-agent">
               Launch Voice Production Engine →
             </Link>
             <a href="https://github.com/DevBySharif/konthora-assemblyai" target="_blank" rel="noopener noreferrer" className="vesper-nav-pill px-8 py-4 rounded-xl text-neutral-300 font-semibold text-sm hover:text-white transition-all">

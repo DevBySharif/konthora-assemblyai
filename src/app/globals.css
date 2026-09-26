@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@1&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@1&display=swap');
 @import "tailwindcss";
 
 :root {
@@ -64,7 +64,7 @@
 
   --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4), 0 12px 32px -12px rgba(0, 0, 0, 0.6);
   --shadow-card-hover: 0 18px 50px rgba(0, 0, 0, 0.4), 0 1px 0 rgba(255, 255, 255, 0.05) inset;
-  --shadow-glow: 0 0 0 1px rgba(16, 185, 129, 0.2), 0 28px 72px -28px rgba(16, 185, 129, 0.25);
+  --shadow-glow: 0 0 0 1px rgba(255, 255, 255, 0.1), 0 28px 72px -28px rgba(255, 255, 255, 0.1);
 }
 
 .konthora-logo--dark {
@@ -106,7 +106,7 @@
   --color-brand-via: var(--brand-via);
   --color-brand-to: var(--brand-to);
 
-  --font-sans: var(--font-inter), system-ui, sans-serif;
+  --font-sans: var(--font-geist-sans), system-ui, sans-serif;
 }
 
 /* ---- Base resets & transitions ---- */
@@ -171,73 +171,6 @@ body {
 }
 
 /* ---- Premium helpers ---- */
-.text-gradient {
-  background-image: linear-gradient(120deg, var(--brand-from), var(--brand-via) 50%, var(--brand-to));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-
-.bg-radial-faint {
-  background-image: radial-gradient(
-    60% 55% at 50% 0%,
-    color-mix(in srgb, var(--primary) 10%, transparent),
-    transparent 70%
-  );
-}
-
-.glass {
-  background-color: var(--glass-bg);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid var(--glass-border);
-}
-
-.shadow-card {
-  box-shadow: var(--shadow-card);
-}
-
-.shadow-card-hover {
-  box-shadow: var(--shadow-card-hover);
-}
-
-.shadow-glow {
-  box-shadow: var(--shadow-glow);
-}
-
-/* Animated gradient border for premium cards */
-.border-gradient {
-  position: relative;
-  background-clip: padding-box;
-}
-
-.border-gradient::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  padding: 1px;
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--brand-from) 55%, transparent),
-    color-mix(in srgb, var(--brand-via) 45%, transparent) 45%,
-    color-mix(in srgb, var(--brand-to) 45%, transparent)
-  );
-  -webkit-mask:
-    linear-gradient(#fff 0 0) content-box,
-    linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  pointer-events: none;
-}
-
-/* Soft glowing orb used behind hero and CTA */
-.orb {
-  position: absolute;
-  border-radius: 9999px;
-  filter: blur(90px);
-  pointer-events: none;
-}
 
 /* Custom internal scrollbar for dashboard panels */
 .custom-scrollbar {
@@ -257,7 +190,7 @@ body {
   border-radius: 9999px;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(16, 185, 129, 0.7);
+  background: rgba(255, 255, 255, 0.4);
 }
 
 /* Clean print styling for Enterprise PDF generation */
@@ -319,13 +252,26 @@ body {
   }
 
   /* Neutralize dark card backgrounds inside target for print */
-  .print-card-target .bg-slate-900,
-  .print-card-target .bg-slate-900\/90,
-  .print-card-target .bg-slate-950,
-  .print-card-target .bg-slate-950\/70,
-  .print-card-target .bg-slate-950\/80,
-  .print-card-target .bg-slate-800,
-  .print-card-target .bg-slate-800\/80 {
+  .print-card-target .bg-neutral-900,
+  .print-card-target .bg-neutral-900\/90,
+  .print-card-target .bg-neutral-900\/80,
+  .print-card-target .bg-neutral-900\/70,
+  .print-card-target .bg-neutral-900\/60,
+  .print-card-target .bg-neutral-900\/50,
+  .print-card-target .bg-neutral-900\/40,
+  .print-card-target .bg-neutral-900\/30,
+  .print-card-target .bg-neutral-900\/20,
+  .print-card-target .bg-neutral-950,
+  .print-card-target .bg-neutral-950\/95,
+  .print-card-target .bg-neutral-950\/90,
+  .print-card-target .bg-neutral-950\/80,
+  .print-card-target .bg-neutral-950\/70,
+  .print-card-target .bg-neutral-950\/60,
+  .print-card-target .bg-neutral-950\/50,
+  .print-card-target .bg-neutral-800,
+  .print-card-target .bg-neutral-800\/80,
+  .print-card-target .bg-black,
+  .print-card-target .bg-black\/80 {
     background-color: #ffffff !important;
     border-color: #e2e8f0 !important;
   }
@@ -336,11 +282,12 @@ body {
   }
 
   /* Neutralize border colors */
-  .print-card-target .border-slate-800,
-  .print-card-target .border-slate-700,
-  .print-card-target .border-slate-700\/60,
-  .print-card-target .border-slate-800\/80,
-  .print-card-target .border-emerald-500\/30,
+  .print-card-target .border-neutral-800,
+  .print-card-target .border-neutral-700,
+  .print-card-target .border-white\/10,
+  .print-card-target .border-white\/15,
+  .print-card-target .border-white\/20,
+  .print-card-target .border-white\/30,
   .print-card-target .border-cyan-500\/30,
   .print-card-target .border-purple-500\/30,
   .print-card-target .border-amber-500\/30 {
@@ -348,8 +295,8 @@ body {
   }
 
   /* Text color overrides for muted captions */
-  .print-card-target .text-slate-400,
-  .print-card-target .text-slate-500 {
+  .print-card-target .text-neutral-400,
+  .print-card-target .text-neutral-500 {
     color: #64748b !important;
   }
 
@@ -385,41 +332,6 @@ body {
   z-index: 99999;
 }
 
-/* ── Vesper Metallic Nav Pills ── */
-.nav-link {
-  height: 38px;
-  padding: 0 16px;
-  border-radius: 8px;
-  overflow: hidden;
-  position: relative;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  background: linear-gradient(105deg, #050505 0%, #1f1f1f 48%, #3a3a3a 100%);
-  color: #f3f3f3;
-  font-size: 13px;
-  display: inline-flex;
-  align-items: center;
-  transition: all 0.35s ease;
-  text-decoration: none;
-}
-
-.nav-link::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.2) 50%, transparent 70%);
-  transform: translateX(-120%);
-  transition: transform 0.6s ease;
-}
-
-.nav-link:hover::before {
-  transform: translateX(120%);
-}
-
-.nav-link:hover {
-  border-color: rgba(255, 255, 255, 0.6);
-  box-shadow: 0 0 18px rgba(255, 255, 255, 0.15);
-}
-
 /* ── Liquid Metal Buttons ── */
 .btn-vesper {
   position: relative;
@@ -449,8 +361,10 @@ body {
   font-family: "Instrument Serif", "Times New Roman", Times, serif !important;
   font-style: italic !important;
   font-weight: 400 !important;
-  color: #9a9a9a !important;
+  color: #d4d4d4 !important;
   display: inline-block;
+  font-size: 0.95em;
+  letter-spacing: -0.01em;
 }
 
 /* ── Keyframe Animations ── */
