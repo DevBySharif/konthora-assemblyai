@@ -38,3 +38,9 @@ backend/storage/*
 Thumbs.db
 desktop.ini
 
+# /brag skill & output (hackathon video tool)
+.agents/skills/brag/
+.opencode/skills/brag/
+brag-output/
+brag-output-*/
+
