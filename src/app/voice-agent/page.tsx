@@ -482,24 +482,27 @@ function QuotationCard({
   verificationHash?: string;
   qrPayload?: string;
 }) {
+  const docRef = (customData?.doc_ref as string) || "PHOENIX-2026";
+  const clientName = (customData?.client as string) || (customData?.client_name as string) || "Acme Corp";
   const discountPct = (customData?.discount_pct as number) ?? 5;
-  const subtotal = 28500;
-  const discountAmt = (subtotal * discountPct) / 100;
-  const grandTotal = subtotal - discountAmt;
+  const totalAmount = (customData?.amount as number) || 27075;
+  const subtotal = totalAmount / (1 - discountPct / 100);
+  const discountAmt = subtotal - totalAmount;
+  const grandTotal = totalAmount;
 
   return (
     <div className="space-y-4">
       <FormalDocHeader
         docCategory="Commercial Enterprise Quotation"
-        docNumber="PHOENIX-2026"
-        issueDate="25 September 2026"
+        docNumber={docRef}
+        issueDate={new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "long", year: "numeric" })}
         badgeText={discountPct > 5 ? `Revised: ${discountPct}% Volume Discount` : "Valid Thru Dec 2026"}
       />
 
       <div className="grid grid-cols-2 gap-3 text-xs bg-neutral-950/60 p-3 rounded-xl border border-white/10">
         <div>
           <span className="text-[10px] font-mono text-neutral-500 uppercase tracking-wider">Client Organization:</span>
-          <div className="font-bold text-white mt-0.5">Acme Corp (US-99201)</div>
+          <div className="font-bold text-white mt-0.5">{clientName}</div>
           <div className="text-[11px] text-neutral-400">500 Market St, San Francisco, CA · billing@acme.com</div>
         </div>
         <div>
@@ -528,8 +531,8 @@ function QuotationCard({
                 <div className="text-[11px] text-neutral-400 font-normal">AssemblyAI Voice Agent 24kHz PCM streaming pipeline</div>
               </td>
               <td className="py-2.5 px-2 text-center font-mono text-neutral-300">1</td>
-              <td className="py-2.5 px-2 text-right font-mono text-neutral-300">$18,500.00</td>
-              <td className="py-2.5 pl-2 text-right font-mono text-white font-semibold">$18,500.00</td>
+              <td className="py-2.5 px-2 text-right font-mono text-neutral-300">${(subtotal * 0.65).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+              <td className="py-2.5 pl-2 text-right font-mono text-white font-semibold">${(subtotal * 0.65).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
             </tr>
             <tr>
               <td className="py-2.5 pr-2 font-mono text-neutral-500">02</td>
@@ -538,8 +541,8 @@ function QuotationCard({
                 <div className="text-[11px] text-neutral-400 font-normal">Managed STT + LLM + TTS in single WebSocket</div>
               </td>
               <td className="py-2.5 px-2 text-center font-mono text-neutral-300">2</td>
-              <td className="py-2.5 px-2 text-right font-mono text-neutral-300">$5,000.00</td>
-              <td className="py-2.5 pl-2 text-right font-mono text-white font-semibold">$10,000.00</td>
+              <td className="py-2.5 px-2 text-right font-mono text-neutral-300">${(subtotal * 0.35 / 2).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+              <td className="py-2.5 pl-2 text-right font-mono text-white font-semibold">${(subtotal * 0.35).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
             </tr>
           </tbody>
         </table>
@@ -548,15 +551,15 @@ function QuotationCard({
       <div className="bg-neutral-950/70 rounded-xl p-3.5 border border-white/10 space-y-1.5 text-xs">
         <div className="flex justify-between text-neutral-400">
           <span>Gross Subtotal</span>
-          <span className="font-mono text-white">${subtotal.toLocaleString()}.00</span>
+          <span className="font-mono text-white">${subtotal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
         </div>
         <div className="flex justify-between text-neutral-300 text-[11px]">
           <span>Enterprise Volume Discount ({discountPct}.0%)</span>
-          <span className="font-mono font-semibold">-${discountAmt.toLocaleString()}.00</span>
+          <span className="font-mono font-semibold">-${discountAmt.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
         </div>
         <div className="border-t border-white/10 pt-2 flex justify-between font-bold text-white text-sm">
           <span>Net Commercial Quotation (USD)</span>
-          <span className="font-mono text-neutral-300 text-base">${grandTotal.toLocaleString()}.00</span>
+          <span className="font-mono text-neutral-300 text-base">${grandTotal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
         </div>
       </div>
 
@@ -570,7 +573,7 @@ function QuotationCard({
 
       <div className="no-print text-[11px] text-neutral-400 bg-neutral-900/20 border border-white/15 rounded-lg p-2.5 flex items-start gap-2">
         <Sparkles className="w-3.5 h-3.5 text-neutral-300 shrink-0 mt-0.5" />
-        <span className="line-clamp-2">{text || "Verified commercial quotation generated from enterprise rate-card."}</span>
+        <span className="line-clamp-2">{text || `Verified commercial quotation for ${clientName} generated from enterprise rate-card.`}</span>
       </div>
     </div>
   );
@@ -757,18 +760,19 @@ function InvoiceCard({
   verificationHash?: string;
   qrPayload?: string;
 }) {
-  const inv = `INV-${String(ts).slice(-5)}`;
-  const maintenanceFee = (customData?.maintenance_fee as number) ?? 0;
-  const baseService = 4200;
-  const clusterAlloc = 850;
-  const totalDue = baseService + clusterAlloc + maintenanceFee;
+  const docRef = (customData?.doc_ref as string) || `INV-${String(ts).slice(-5)}`;
+  const clientName = (customData?.client as string) || (customData?.client_name as string) || "Acme Corp";
+  const totalAmount = (customData?.amount as number) || 5050;
   const paymentTerms = (customData?.payment_terms as string) ?? "NET-30";
+  const maintenanceFee = (customData?.maintenance_fee as number) ?? 0;
+  const baseService = totalAmount - maintenanceFee - 850 > 0 ? totalAmount - maintenanceFee - 850 : 4200;
+  const clusterAlloc = 850;
 
   return (
     <div className="space-y-4">
       <FormalDocHeader
         docCategory="Commercial Tax Invoice"
-        docNumber={inv}
+        docNumber={docRef}
         issueDate={new Date(ts).toLocaleDateString("en-GB")}
         badgeText={`Payment Terms: ${paymentTerms}`}
       />
@@ -776,7 +780,7 @@ function InvoiceCard({
       <div className="grid grid-cols-2 gap-3 text-xs bg-neutral-950/60 p-3 rounded-xl border border-white/10">
         <div>
           <span className="text-[10px] font-mono text-neutral-500 uppercase tracking-wider">Billed To (Client):</span>
-          <div className="font-bold text-white mt-0.5">Acme Corp</div>
+          <div className="font-bold text-white mt-0.5">{clientName}</div>
           <div className="text-[11px] text-neutral-400">Tax ID: US-99201 · Client ID: CLI-8821</div>
           <div className="text-[11px] text-neutral-500">500 Market St, San Francisco, CA 94103</div>
         </div>
@@ -806,7 +810,7 @@ function InvoiceCard({
                 <div className="text-[11px] text-neutral-400 font-normal">Custom acoustic lexicon tuning and sub-850ms streaming bridge</div>
               </td>
               <td className="py-2.5 px-2 text-center font-mono text-neutral-300">Phase 1</td>
-              <td className="py-2.5 pl-2 text-right font-mono text-white font-semibold">$4,200.00</td>
+              <td className="py-2.5 pl-2 text-right font-mono text-white font-semibold">${baseService.toLocaleString()}.00</td>
             </tr>
             <tr>
               <td className="py-2.5 pr-2 font-mono text-neutral-500">02</td>
@@ -815,7 +819,7 @@ function InvoiceCard({
                 <div className="text-[11px] text-neutral-400 font-normal">Isolated Voice Agent processing unit</div>
               </td>
               <td className="py-2.5 px-2 text-center font-mono text-neutral-300">30 Days</td>
-              <td className="py-2.5 pl-2 text-right font-mono text-white font-semibold">$850.00</td>
+              <td className="py-2.5 pl-2 text-right font-mono text-white font-semibold">${clusterAlloc.toLocaleString()}.00</td>
             </tr>
             {maintenanceFee > 0 && (
               <tr>
@@ -835,7 +839,7 @@ function InvoiceCard({
       <div className="bg-neutral-950/70 rounded-xl p-3.5 border border-white/10 space-y-1.5 text-xs">
         <div className="flex justify-between text-neutral-400">
           <span>Subtotal</span>
-          <span className="font-mono text-white">${totalDue.toFixed(2)}</span>
+          <span className="font-mono text-white">${totalAmount.toLocaleString()}.00</span>
         </div>
         <div className="flex justify-between text-neutral-400">
           <span>Applicable Sales Tax (0.0% B2B Reverse Charge)</span>
@@ -843,7 +847,7 @@ function InvoiceCard({
         </div>
         <div className="border-t border-white/10 pt-2 flex justify-between font-bold text-white text-sm">
           <span>Total Balance Due (USD)</span>
-          <span className="font-mono text-neutral-300 text-base">${totalDue.toFixed(2)}</span>
+          <span className="font-mono text-neutral-300 text-base">${totalAmount.toLocaleString()}.00</span>
         </div>
       </div>
 
@@ -857,7 +861,7 @@ function InvoiceCard({
 
       <div className="no-print text-[11px] text-neutral-400 bg-neutral-900/20 border border-white/15 rounded-lg p-2.5 flex items-start gap-2">
         <Sparkles className="w-3.5 h-3.5 text-neutral-300 shrink-0 mt-0.5" />
-        <span className="line-clamp-2">{text || "Verified matching record from Enterprise DB: Acme Corp."}</span>
+        <span className="line-clamp-2">{text || `Verified matching record from Enterprise DB: ${clientName}.`}</span>
       </div>
     </div>
   );
