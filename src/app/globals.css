@@ -416,8 +416,8 @@ body {
 }
 
 .nav-link:hover {
-  border-color: rgba(16, 185, 129, 0.6);
-  box-shadow: 0 0 18px rgba(16, 185, 129, 0.2);
+  border-color: rgba(255, 255, 255, 0.6);
+  box-shadow: 0 0 18px rgba(255, 255, 255, 0.15);
 }
 
 /* ── Liquid Metal Buttons ── */
@@ -441,7 +441,7 @@ body {
 }
 
 .btn-vesper:hover {
-  box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.15);
 }
 
 /* ── Headline Font Styling ── */
@@ -449,7 +449,7 @@ body {
   font-family: "Instrument Serif", "Times New Roman", Times, serif !important;
   font-style: italic !important;
   font-weight: 400 !important;
-  color: #10b981 !important;
+  color: #9a9a9a !important;
   display: inline-block;
 }
 
@@ -509,8 +509,8 @@ body {
   }
 
   .vesper-nav-pill:hover {
-    border-color: rgba(16, 185, 129, 0.6) !important;
-    box-shadow: 0 0 20px rgba(16, 185, 129, 0.25) !important;
+    border-color: rgba(255, 255, 255, 0.6) !important;
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.15) !important;
   }
 
   /* Glassmorphism Containers */
@@ -522,7 +522,7 @@ body {
   }
 
   .vesper-glass-card:hover {
-    border-color: rgba(16, 185, 129, 0.35) !important;
+    border-color: rgba(255, 255, 255, 0.3) !important;
   }
 
   /* Entrance Animations */
