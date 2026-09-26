@@ -11,35 +11,6 @@ export default function LandingPage() {
     <div className="bg-vesper-obsidian text-white min-h-screen overflow-y-auto relative font-sans selection:bg-white/20 selection:text-white scroll-smooth">
       <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-neutral-900/60 via-black to-black pointer-events-none z-0" />
 
-      {/* HEADER */}
-      <header className="sticky top-0 z-50 bg-black/80 backdrop-blur-xl border-b border-white/10 px-6 py-4">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <Link className="flex items-center gap-2 group appear appear--scale" href="/" style={{ "--d": "0.08s" } as React.CSSProperties}>
-            <div className="w-8 h-8 rounded-lg bg-white/10 border border-white/20 flex items-center justify-center text-neutral-300">
-              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-                <circle cx="7.3" cy="3.2" r="1.45" />
-                <rect x="5.5" y="4.7" width="3.6" height="14.6" rx="1.8" />
-                <rect x="14.9" y="4.7" width="3.6" height="14.6" rx="1.8" />
-                <circle cx="16.7" cy="20.8" r="1.45" />
-              </svg>
-            </div>
-            <span className="font-semibold tracking-tight text-base">
-              Konthora <span className="text-neutral-300 font-normal">AI</span>
-            </span>
-          </Link>
-
-          <nav className="hidden md:flex items-center gap-2">
-            <a href="#voice-engine" className="vesper-nav-pill appear appear--scale px-4 py-1.5 text-xs font-medium text-neutral-300 rounded-lg" style={{ "--d": "0.16s" } as React.CSSProperties}>Voice Engine</a>
-            <a href="#capabilities" className="vesper-nav-pill appear appear--soft px-4 py-1.5 text-xs font-medium text-neutral-300 rounded-lg" style={{ "--d": "0.28s" } as React.CSSProperties}>Enterprise Capabilities</a>
-            <a href="#architecture" className="vesper-nav-pill appear appear--scale px-4 py-1.5 text-xs font-medium text-neutral-300 rounded-lg" style={{ "--d": "0.40s" } as React.CSSProperties}>Architecture</a>
-          </nav>
-
-          <Link className="px-5 py-2 text-xs font-semibold rounded-xl bg-white text-black hover:bg-neutral-200 transition-all shadow-[0_0_20px_rgba(255,255,255,0.1)] appear appear--scale font-[family-name:var(--font-geist-sans)]" href="/voice-agent" style={{ "--d": "0.34s" } as React.CSSProperties}>
-            Live Demo →
-          </Link>
-        </div>
-      </header>
-
       {/* HERO SECTION */}
       <section id="voice-engine" className="relative z-10 max-w-7xl mx-auto px-6 pt-16 pb-20 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
         <div>
@@ -401,37 +372,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* FOOTER */}
-      <footer className="vesper-glass-card relative z-10 border-t border-white/10 py-16 px-8 text-xs text-neutral-400">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 mb-12">
-          <div className="lg:col-span-1 space-y-4">
-            <div className="font-semibold text-white text-base">Konthora AI</div>
-            <p className="text-[11px] text-neutral-300 font-semibold">Konthora — Autonomous Voice-Driven Enterprise Operations Engine</p>
-          </div>
-          <div className="space-y-2">
-            <h4 className="font-mono text-white text-[11px]">VOICE ENGINE</h4>
-            <p><Link className="hover:text-neutral-300 transition-colors" href="/voice-agent">Launch Engine</Link></p>
-          </div>
-          <div className="space-y-2">
-            <h4 className="font-mono text-white text-[11px]">CAPABILITIES</h4>
-            <p><a href="#capabilities" className="hover:text-neutral-300 transition-colors">Voice-to-Invoice</a></p>
-            <p><a href="#capabilities" className="hover:text-neutral-300 transition-colors">Financial Reports</a></p>
-            <p><a href="#capabilities" className="hover:text-neutral-300 transition-colors">HR Offer Letters</a></p>
-          </div>
-          <div className="space-y-2">
-            <h4 className="font-mono text-white text-[11px]">ARCHITECTURE</h4>
-            <p><a href="#architecture" className="hover:text-neutral-300 transition-colors">16kHz PCM Stream</a></p>
-            <p><a href="#architecture" className="hover:text-neutral-300 transition-colors">AssemblyAI + Groq + Kokoro</a></p>
-          </div>
-          <div className="space-y-2">
-            <h4 className="font-mono text-white text-[11px]">PROJECT</h4>
-            <p><a href="https://github.com/DevBySharif/konthora-assemblyai" target="_blank" rel="noopener noreferrer" className="hover:text-neutral-300 transition-colors">GitHub Repository</a></p>
-          </div>
-        </div>
-        <div className="max-w-7xl mx-auto pt-8 border-t border-white/10 text-center text-[11px] text-neutral-500">
-          © 2026 Konthora AI. Built for the AssemblyAI Voice Agent Hackathon.
-        </div>
-      </footer>
     </div>
   );
 }

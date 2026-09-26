@@ -4,7 +4,7 @@ import { usePathname } from 'next/navigation';
 import { Header } from './Header';
 import { Footer } from './Footer';
 
-const HIDE_CHROME_ROUTES = ['/'];
+const HIDE_CHROME_ROUTES: string[] = [];
 
 export function RouteChrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();

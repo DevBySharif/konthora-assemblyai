@@ -4,7 +4,6 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Mail, ExternalLink, Zap, Mic, Cpu } from 'lucide-react';
-import { Container } from '../ui/Container';
 import { KonthoraBrand } from '../brand/KonthoraBrand';
 
 function GithubIcon({ className = 'h-4 w-4' }: { className?: string }) {
@@ -66,9 +65,9 @@ export function Footer() {
   if (pathname === '/voice-agent') return null;
 
   return (
-    <footer className="border-t border-border/70 bg-card/60 text-foreground transition-colors duration-200" aria-labelledby="footer-heading">
+    <footer className="border-t border-white/10 bg-black text-white transition-colors duration-200" aria-labelledby="footer-heading">
       <h2 id="footer-heading" className="sr-only">Footer</h2>
-      <Container className="pt-16 pb-12 max-w-7xl mx-auto">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 lg:gap-16">
           {/* Brand section */}
           <div className="flex flex-col items-start lg:col-span-4">
@@ -76,7 +75,7 @@ export function Footer() {
             <h3 className="mt-4 text-sm font-semibold text-neutral-300 font-mono tracking-tight">
               Konthora — Autonomous Voice-Driven Enterprise Operations Engine
             </h3>
-            <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+            <p className="mt-3 text-sm leading-relaxed text-neutral-400">
               Enterprise-grade full-duplex voice intelligence engine for real-time B2B workflow automation, stateful document revisions, and cryptographic audit verification.
             </p>
 
@@ -98,14 +97,14 @@ export function Footer() {
                 href="https://github.com/DevBySharif/konthora-assemblyai"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 rounded-xl border border-border/70 bg-background/60 px-3.5 py-2 text-xs font-medium text-foreground hover:border-white/30 hover:bg-card transition-all"
+                className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-3.5 py-2 text-xs font-medium text-neutral-300 hover:border-white/30 hover:bg-white/10 transition-all"
               >
                 <GithubIcon className="h-4 w-4" />
                 GitHub Repo
               </a>
               <a
                 href="mailto:support@konthora.dev.bd"
-                className="inline-flex items-center gap-2 rounded-xl border border-border/70 bg-background/60 px-3.5 py-2 text-xs font-medium text-muted-foreground hover:border-white/30 hover:text-foreground hover:bg-card transition-all"
+                className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-3.5 py-2 text-xs font-medium text-neutral-400 hover:border-white/30 hover:text-neutral-300 hover:bg-white/10 transition-all"
               >
                 <Mail className="h-4 w-4" />
                 support@konthora.dev.bd
@@ -117,7 +116,7 @@ export function Footer() {
           <div className="lg:col-span-8 grid grid-cols-2 sm:grid-cols-4 gap-8">
             {footerColumns.map((col) => (
               <div key={col.title}>
-                <h3 className="text-xs font-bold uppercase tracking-widest text-foreground font-mono">
+                <h3 className="text-xs font-bold uppercase tracking-widest text-white font-mono">
                   {col.title}
                 </h3>
                 <ul className="mt-5 space-y-3">
@@ -150,16 +149,16 @@ export function Footer() {
         </div>
 
         {/* Bottom bar */}
-        <div className="mt-12 pt-8 border-t border-border/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <p className="text-xs text-muted-foreground">
+        <div className="mt-12 pt-8 border-t border-white/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <p className="text-xs text-neutral-400">
             &copy; {currentYear} Konthora AI. Developed for AssemblyAI Voice Agent Hackathon 2026.
           </p>
           <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3.5 py-1 text-xs font-medium text-neutral-300">
             <span className="h-2 w-2 rounded-full bg-white animate-pulse" />
-            AssemblyAI Voice Agent Hackathon 2026 🎙️⚡
+            AssemblyAI Voice Agent Hackathon 2026
           </div>
         </div>
-      </Container>
+      </div>
     </footer>
   );
 }

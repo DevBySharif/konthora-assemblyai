@@ -42,10 +42,9 @@ export function KonthoraBrand({ variant = 'header' }: KonthoraBrandProps) {
         />
       </span>
       <span
-        className={`font-sans font-[700] tracking-[-0.03em] text-foreground leading-none mt-[1px] flex items-center gap-1.5 ${wordmarkClass}`}
+        className={`font-sans font-[700] tracking-[-0.03em] text-white leading-none mt-[1px] flex items-center gap-1.5 ${wordmarkClass}`}
       >
         <span>Konthora AI</span>
-        <span className="text-base select-none" aria-hidden="true" title="Real-Time Voice AI">🎙️⚡</span>
       </span>
     </Link>
   );

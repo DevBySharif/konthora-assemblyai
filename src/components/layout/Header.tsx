@@ -5,10 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { headerNavLinks } from '@/config/navigation';
-import { ThemeToggle } from '../ThemeToggle';
-import { Container } from '../ui/Container';
-import { KonthoraBrand } from '../brand/KonthoraBrand';
-import { Menu, X, ArrowRight } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 
 export function Header() {
   const pathname = usePathname();
@@ -44,13 +41,25 @@ export function Header() {
   }, [mobileMenuOpen]);
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-border/70 bg-background/75 backdrop-blur-xl shadow-card">
-      <Container className="relative flex h-16 items-center justify-between">
+    <header className="sticky top-0 z-40 w-full border-b border-white/10 bg-black/80 backdrop-blur-xl">
+      <div className="relative flex h-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 items-center justify-between">
         {/* Brand Wordmark */}
-        <KonthoraBrand variant="header" />
+        <Link href="/" className="flex items-center gap-2.5 shrink-0">
+          <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-white/10 border border-white/15">
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+              <circle cx="7.3" cy="3.2" r="1.45" />
+              <rect x="5.5" y="4.7" width="3.6" height="14.6" rx="1.8" />
+              <rect x="14.9" y="4.7" width="3.6" height="14.6" rx="1.8" />
+              <circle cx="16.7" cy="20.8" r="1.45" />
+            </svg>
+          </div>
+          <span className="font-semibold tracking-tight text-base text-white">
+            Konthora <span className="text-neutral-300 font-normal">AI</span>
+          </span>
+        </Link>
 
         {/* Desktop Navigation Links */}
-        <nav className="hidden lg:flex items-center gap-1" aria-label="Main Navigation">
+        <nav className="hidden lg:flex items-center gap-2" aria-label="Main Navigation">
           {headerNavLinks.map((link) => {
             const isActive = pathname === link.href;
             return (
@@ -58,22 +67,11 @@ export function Header() {
                 key={link.href}
                 href={link.href}
                 aria-current={isActive ? 'page' : undefined}
-                className={`relative rounded-lg px-3.5 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 ${
-                  isActive ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
+                className={`vesper-nav-pill px-4 py-1.5 text-xs font-medium rounded-lg transition-all ${
+                  isActive ? 'text-white bg-white/10 border-white/30' : 'text-neutral-300 hover:text-white'
                 }`}
               >
                 {link.label}
-                {isActive && (
-                  <motion.span
-                    layoutId="header-active-pill"
-                    transition={{
-                      type: 'spring',
-                      duration: reduce ? 0 : 0.4,
-                      bounce: 0.25,
-                    }}
-                    className="absolute inset-0 -z-10 rounded-lg bg-primary/10 ring-1 ring-primary/20"
-                  />
-                )}
               </Link>
             );
           })}
@@ -81,19 +79,16 @@ export function Header() {
 
         {/* Action Controls */}
         <div className="flex items-center gap-2.5">
-          <ThemeToggle />
-
           {/* CTA Button (desktop) */}
           <Link
             href="/voice-agent"
-            className="group hidden lg:inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-black shadow-[0_0_20px_rgba(255,255,255,0.15)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_0_30px_rgba(255,255,255,0.25)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
+            className="group hidden lg:inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-xs font-bold text-black shadow-[0_0_20px_rgba(255,255,255,0.1)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_0_30px_rgba(255,255,255,0.2)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
           >
             <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-slate-950 opacity-60" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-slate-950" />
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-black opacity-60" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-black" />
             </span>
             <span>Live Demo</span>
-            <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" aria-hidden="true" />
           </Link>
 
           {/* Mobile Menu Toggle Button */}
@@ -103,7 +98,7 @@ export function Header() {
             aria-expanded={mobileMenuOpen}
             aria-controls="mobile-menu"
             aria-label="Toggle main menu"
-            className="inline-flex lg:hidden items-center justify-center w-10 h-10 rounded-xl border border-border bg-card/60 text-foreground hover:bg-secondary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 transition-colors cursor-pointer"
+            className="inline-flex lg:hidden items-center justify-center w-10 h-10 rounded-xl border border-white/15 bg-white/5 text-white hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 transition-colors cursor-pointer"
           >
             <AnimatePresence mode="wait" initial={false}>
               <motion.span
@@ -119,7 +114,7 @@ export function Header() {
             </AnimatePresence>
           </button>
         </div>
-      </Container>
+      </div>
 
       {/* Mobile Menu */}
       <AnimatePresence>
@@ -137,7 +132,7 @@ export function Header() {
           >
             {/* Backdrop */}
             <div
-              className="absolute inset-0 bg-background/60 backdrop-blur-sm"
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
               onClick={handleLinkClick}
               aria-hidden="true"
             />
@@ -147,9 +142,9 @@ export function Header() {
               animate={{ y: 0, opacity: 1 }}
               exit={reduce ? undefined : { y: -12, opacity: 0 }}
               transition={{ type: 'spring', damping: 26, stiffness: 320 }}
-              className="absolute inset-x-0 top-0 bg-background border-b border-border/70 shadow-card"
+              className="absolute inset-x-0 top-0 bg-neutral-950 border-b border-white/10"
             >
-              <Container className="py-4">
+              <div className="py-4 px-4">
                 <nav className="flex flex-col gap-1" aria-label="Mobile Navigation">
                   {headerNavLinks.map((link, i) => {
                     const isActive = pathname === link.href;
@@ -164,8 +159,8 @@ export function Header() {
                           href={link.href}
                           onClick={handleLinkClick}
                           aria-current={isActive ? 'page' : undefined}
-                          className={`flex items-center justify-between rounded-xl px-4 py-3 text-base font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 ${
-                            isActive ? 'bg-primary/10 text-primary ring-1 ring-primary/20' : 'text-foreground hover:bg-secondary/50'
+                          className={`flex items-center justify-between rounded-xl px-4 py-3 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 ${
+                            isActive ? 'bg-white/10 text-white border border-white/20' : 'text-neutral-300 hover:bg-white/5 hover:text-white'
                           }`}
                         >
                           {link.label}
@@ -175,17 +170,16 @@ export function Header() {
                   })}
                 </nav>
 
-                <div className="mt-4 border-t border-border/70 pt-4">
+                <div className="mt-4 border-t border-white/10 pt-4">
                   <Link
                     href="/voice-agent"
                     onClick={handleLinkClick}
-                    className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-white px-4 py-3 text-base font-bold text-black shadow-[0_0_20px_rgba(255,255,255,0.15)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-white px-4 py-3 text-sm font-bold text-black shadow-[0_0_20px_rgba(255,255,255,0.1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
                   >
                     <span>Live Demo</span>
-                    <ArrowRight className="h-4 w-4 text-slate-950" aria-hidden="true" />
                   </Link>
                 </div>
-              </Container>
+              </div>
             </motion.div>
           </motion.div>
         )}
