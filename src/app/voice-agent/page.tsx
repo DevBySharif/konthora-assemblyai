@@ -1622,7 +1622,7 @@ export default function VoiceAgentPage() {
   );
 
   const wsRef = useRef<WebSocket | null>(null);
-  const isConnectingRef = useRef(false);
+  const wsConnectingOrConnected = useRef(false);
   const isSpeakingRef = useRef(false);
   const audioQueueRef = useRef<Blob[]>([]);
   const currentAudioRef = useRef<HTMLAudioElement | null>(null);
@@ -1710,10 +1710,11 @@ export default function VoiceAgentPage() {
   // WebSocket lifecycle
   useEffect(() => {
     // Prevent duplicate connections from React 18 StrictMode double-mount
-    if (isConnectingRef.current || (wsRef.current && (wsRef.current.readyState === WebSocket.OPEN || wsRef.current.readyState === WebSocket.CONNECTING))) {
+    if (wsConnectingOrConnected.current) return;
+    if (wsRef.current && (wsRef.current.readyState === WebSocket.OPEN || wsRef.current.readyState === WebSocket.CONNECTING)) {
       return;
     }
-    isConnectingRef.current = true;
+    wsConnectingOrConnected.current = true;
 
     let isMounted = true;
     const wsUrl = process.env.NEXT_PUBLIC_WS_URL || "ws://localhost:8000/api/v1/ws/voice-agent";
@@ -1724,14 +1725,14 @@ export default function VoiceAgentPage() {
       if (isMounted) setIsConnected(true);
     };
     ws.onclose = () => {
-      isConnectingRef.current = false;
+      wsConnectingOrConnected.current = false;
       if (isMounted) {
         setIsConnected(false);
         setGroqStatus("idle");
       }
     };
     ws.onerror = () => {
-      isConnectingRef.current = false;
+      wsConnectingOrConnected.current = false;
       if (isMounted) setIsConnected(false);
     };
 
@@ -1824,10 +1825,9 @@ export default function VoiceAgentPage() {
 
     return () => {
       isMounted = false;
-      isConnectingRef.current = false;
+      wsConnectingOrConnected.current = false;
       stopMicrophone();
       stopPlayback();
-      // Close cleanly if open, otherwise abort if still connecting
       if (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING) {
         ws.close(1000, "Component unmounted");
       }
