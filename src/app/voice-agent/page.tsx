@@ -52,18 +52,12 @@ interface DocumentCard {
 }
 
 // ─────────────────────────────────────────────────────
-// RMS Noise Gate — prevent ghost transcripts from silence
+// AssemblyAI Voice Agent — browser-direct architecture
+// Browser → temp token → AssemblyAI (STT + LLM + TTS, all managed)
+// Tool calls → POST to backend REST → result → back to AssemblyAI
 // ─────────────────────────────────────────────────────
-const SILENCE_THRESHOLD = 0.015;   // Below this RMS, drop the PCM chunk (silent room noise)
-const BARGEIN_THRESHOLD = 0.04;    // Above this RMS during TTS playback, forward as interrupt
-
-function calculateRMS(samples: Float32Array): number {
-  let sum = 0;
-  for (let i = 0; i < samples.length; i++) {
-    sum += samples[i] * samples[i];
-  }
-  return Math.sqrt(sum / samples.length);
-}
+const AARI_BACKEND = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+const AARI_RATE = 24000; // AssemblyAI Voice Agent expects 24kHz PCM16
 
 // ─────────────────────────────────────────────────────
 // Cryptographic Hash & Verification Helpers
@@ -1640,81 +1634,92 @@ export default function VoiceAgentPage() {
   const wsRef = useRef<WebSocket | null>(null);
   const wsConnectingOrConnected = useRef(false);
   const isSpeakingRef = useRef(false);
-  const audioQueueRef = useRef<Blob[]>([]);
-  const currentAudioRef = useRef<HTMLAudioElement | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
-  const mediaStreamRef = useRef<MediaStream | null>(null);
-  const processorRef = useRef<ScriptProcessorNode | null>(null);
+  const playbackCtxRef = useRef<AudioContext | null>(null);
+  const playTRef = useRef(0);
+  const micStreamRef = useRef<MediaStream | null>(null);
+  const workletNodeRef = useRef<AudioWorkletNode | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const sessionReadyRef = useRef(false);
+
+  // AssemblyAI Voice Agent AudioWorklet — converts Float32 mic → PCM16 base64
+  const WORKLET_URL = typeof window !== "undefined"
+    ? URL.createObjectURL(new Blob([`
+      class P extends AudioWorkletProcessor {
+        process(inputs) {
+          const ch = inputs[0]?.[0];
+          if (ch) {
+            const buf = new Int16Array(ch.length);
+            for (let i = 0; i < ch.length; i++)
+              buf[i] = Math.max(-32768, Math.min(32767, ch[i] * 32767));
+            this.port.postMessage(buf.buffer, [buf.buffer]);
+          }
+          return true;
+        }
+      }
+      registerProcessor("pcm-encoder", P);
+    `], { type: "application/javascript" }))
+    : "";
 
   const triggerRevisionPulse = () => {
     setIsRevisedPulse(true);
     setTimeout(() => setIsRevisedPulse(false), 2600);
   };
 
-  const playNextAudioChunk = useCallback(() => {
-    if (audioQueueRef.current.length === 0) {
-      isSpeakingRef.current = false;
-      setIsPlayingAudio(false);
-      currentAudioRef.current = null;
-      return;
+  // Play base64 PCM16 audio via Web Audio API (monotonic scheduling for gapless playback)
+  const playPCM16Base64 = useCallback((b64: string) => {
+    if (!playbackCtxRef.current) {
+      playbackCtxRef.current = new AudioContext({ sampleRate: AARI_RATE });
     }
-    const nextBlob = audioQueueRef.current.shift();
-    if (!nextBlob) {
-      isSpeakingRef.current = false;
-      setIsPlayingAudio(false);
-      return;
-    }
+    const ctx = playbackCtxRef.current;
+
+    // Decode base64 → PCM16 → Float32
+    const raw = atob(b64);
+    const pcm = new Int16Array(raw.length / 2);
+    for (let i = 0; i < pcm.length; i++)
+      pcm[i] = raw.charCodeAt(i * 2) | (raw.charCodeAt(i * 2 + 1) << 8);
+    const f32 = new Float32Array(pcm.length);
+    for (let i = 0; i < pcm.length; i++) f32[i] = pcm[i] / 32768;
+
+    const buf = ctx.createBuffer(1, f32.length, AARI_RATE);
+    buf.getChannelData(0).set(f32);
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    src.connect(ctx.destination);
+    playTRef.current = Math.max(playTRef.current, ctx.currentTime);
+    src.start(playTRef.current);
+    playTRef.current += buf.duration;
     isSpeakingRef.current = true;
     setIsPlayingAudio(true);
-    const audioUrl = URL.createObjectURL(nextBlob);
-    const audio = new Audio(audioUrl);
-    currentAudioRef.current = audio;
-    const handleFinish = () => {
-      URL.revokeObjectURL(audioUrl);
-      currentAudioRef.current = null;
-      playNextAudioChunk();
-    };
-    audio.onended = handleFinish;
-    audio.onerror = handleFinish;
-    audio.play().catch(handleFinish);
   }, []);
 
-  const stopPlayback = useCallback(() => {
-    audioQueueRef.current = [];
-    if (currentAudioRef.current) {
-      currentAudioRef.current.pause();
-      currentAudioRef.current.currentTime = 0;
-      currentAudioRef.current = null;
+  const flushPlayback = useCallback(() => {
+    if (playbackCtxRef.current) {
+      playbackCtxRef.current.close().catch(() => {});
+      playbackCtxRef.current = null;
     }
+    playTRef.current = 0;
     isSpeakingRef.current = false;
     setIsPlayingAudio(false);
   }, []);
 
-  // Barge-in: kill audio playback and notify backend to cancel TTS/LLM
-  const interruptPlayback = useCallback(() => {
-    stopPlayback();
-    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-      wsRef.current.send(JSON.stringify({ type: "user_interrupt" }));
-    }
-  }, [stopPlayback]);
-
   const stopMicrophone = useCallback(() => {
-    stopPlayback();
-    if (processorRef.current) {
-      processorRef.current.disconnect();
-      processorRef.current = null;
+    flushPlayback();
+    if (workletNodeRef.current) {
+      workletNodeRef.current.disconnect();
+      workletNodeRef.current = null;
     }
     if (audioContextRef.current) {
       audioContextRef.current.close().catch(() => {});
       audioContextRef.current = null;
     }
-    if (mediaStreamRef.current) {
-      mediaStreamRef.current.getTracks().forEach((t) => t.stop());
-      mediaStreamRef.current = null;
+    if (micStreamRef.current) {
+      micStreamRef.current.getTracks().forEach((t) => t.stop());
+      micStreamRef.current = null;
     }
+    sessionReadyRef.current = false;
     setIsListening(false);
-  }, [stopPlayback]);
+  }, [flushPlayback]);
 
   // Smooth auto-scroll to bottom of transcripts stream whenever messages update
   useEffect(() => {
@@ -1723,9 +1728,8 @@ export default function VoiceAgentPage() {
     }
   }, [messages]);
 
-  // WebSocket lifecycle
+  // AssemblyAI Voice Agent WebSocket lifecycle
   useEffect(() => {
-    // Prevent duplicate connections from React 18 StrictMode double-mount
     if (wsConnectingOrConnected.current) return;
     if (wsRef.current && (wsRef.current.readyState === WebSocket.OPEN || wsRef.current.readyState === WebSocket.CONNECTING)) {
       return;
@@ -1733,286 +1737,287 @@ export default function VoiceAgentPage() {
     wsConnectingOrConnected.current = true;
 
     let isMounted = true;
-    const wsUrl = process.env.NEXT_PUBLIC_WS_URL || "ws://localhost:8000/api/v1/ws/voice-agent";
-    const ws = new WebSocket(wsUrl);
-    wsRef.current = ws;
+    let ws: WebSocket | null = null;
 
-    ws.onopen = () => {
-      if (isMounted) setIsConnected(true);
-    };
-    ws.onclose = () => {
-      wsConnectingOrConnected.current = false;
-      if (isMounted) {
-        setIsConnected(false);
-        setGroqStatus("idle");
-      }
-    };
-    ws.onerror = () => {
-      wsConnectingOrConnected.current = false;
-      if (isMounted) setIsConnected(false);
-    };
+    async function connect() {
+      try {
+        // 1) Fetch temp token from backend
+        const tokenResp = await fetch(`${AARI_BACKEND}/voice-agent/token`);
+        if (!tokenResp.ok) throw new Error(`Token fetch failed: ${tokenResp.status}`);
+        const { token } = await tokenResp.json();
 
-    ws.onmessage = async (event) => {
-      if (!isMounted) return;
-      if (typeof event.data === "string") {
-        const data = JSON.parse(event.data);
-        if (data.type === "transcript") {
-          setMessages((prev) => {
-            const filtered = prev.filter((m) => m.final !== false);
-            if (data.final) {
-              const last = filtered[filtered.length - 1];
-              if (last && last.role === "user" && last.text.trim() === (data.text ?? "").trim() && last.final) {
-                return filtered; // Skip exact duplicate final transcript
+        // 2) Fetch session config (system prompt, tools, voice)
+        const configResp = await fetch(`${AARI_BACKEND}/voice-agent/config`);
+        const config = await configResp.json();
+
+        // 3) Connect to AssemblyAI Voice Agent WebSocket
+        const url = new URL("wss://agents.assemblyai.com/v1/ws");
+        url.searchParams.set("token", token);
+        ws = new WebSocket(url);
+        wsRef.current = ws;
+
+        ws.onopen = () => {
+          // 4) Send session.update immediately (do NOT wait for session.ready)
+          ws!.send(JSON.stringify({
+            type: "session.update",
+            session: {
+              system_prompt: config.system_prompt,
+              output: { voice: config.voice || "anna" },
+              input: {
+                format: { encoding: "audio/pcm" },
+                turn_detection: {
+                  vad_threshold: 0.5,
+                  min_silence: 200,
+                  max_silence: 1000,
+                  interrupt_response: true,
+                },
+              },
+              tools: config.tools || [],
+            },
+          }));
+        };
+
+        ws.onclose = () => {
+          wsConnectingOrConnected.current = false;
+          sessionReadyRef.current = false;
+          if (isMounted) {
+            setIsConnected(false);
+            setGroqStatus("idle");
+          }
+        };
+        ws.onerror = () => {
+          wsConnectingOrConnected.current = false;
+          if (isMounted) setIsConnected(false);
+        };
+
+        ws.onmessage = async (event) => {
+          if (!isMounted) return;
+          if (typeof event.data !== "string") return;
+          const m = JSON.parse(event.data);
+
+          switch (m.type) {
+            case "session.ready":
+              sessionReadyRef.current = true;
+              if (isMounted) setIsConnected(true);
+              break;
+
+            case "session.error":
+              console.error("AssemblyAI session error:", m.message);
+              break;
+
+            // ── User speech transcripts ──
+            case "transcript.user.delta":
+            case "transcript.user":
+              if (m.text) {
+                setMessages((prev) => {
+                  const filtered = prev.filter((msg) => msg.final !== false);
+                  if (m.type === "transcript.user") {
+                    const last = filtered[filtered.length - 1];
+                    if (last && last.role === "user" && last.text.trim() === m.text.trim() && last.final) {
+                      return filtered;
+                    }
+                  }
+                  return [...filtered, { role: "user", text: m.text, final: m.type === "transcript.user", timestamp: Date.now() }];
+                });
+                if (m.type === "transcript.user") setGroqStatus("processing");
               }
-            }
-            return [...filtered, { role: "user", text: data.text, final: data.final, timestamp: Date.now() }];
-          });
-          if (data.final) setGroqStatus("processing");
-        } else if (data.type === "text_delta") {
-          setMessages((prev) => {
-            const last = prev[prev.length - 1];
-            if (last && last.role === "assistant" && !last.final) {
-              return [
-                ...prev.slice(0, -1),
-                { role: "assistant", text: last.text + data.content, final: false, timestamp: last.timestamp },
-              ];
-            }
-            return [...prev, { role: "assistant", text: data.content, final: false, timestamp: Date.now() }];
-          });
-        } else if (data.type === "action_card") {
-          // Backend emitted structured action_card with cryptographic hash & QR
-          const now = Date.now();
-          setDocCard((prev) => {
-            const existingPayload = prev?.payload ?? {};
-            return {
-              type: data.doc_type,
-              title: data.title || "Enterprise Document",
-              payload: { ...existingPayload, ...(data.data || {}), ...(data.conversion ? { conversion: data.conversion } : {}), ...(data.diff ? { diff: data.diff } : {}), ...(data.slack_channel ? { slack_channel: data.slack_channel, dispatch_target: data.dispatch_target } : {}) },
-              amount: data.amount || prev?.amount,
-              approval_status: data.approval_status || prev?.approval_status,
-              timestamp: now,
-              verification_hash: data.verification_hash,
-              qr_payload: data.qr_payload,
-              revised: data.revised ?? false,
-              revision_note: data.revised ? "Live delta update applied from voice conversation" : undefined,
-            };
-          });
-          if (data.revised) {
-            triggerRevisionPulse();
-          }
-        } else if (data.type === "text_response") {
-          const now = Date.now();
-          const fullText = (data.text as string) || "";
-          setMessages((prev) => {
-            const last = prev[prev.length - 1];
-            if (last && last.role === "assistant" && !last.final) {
-              return [...prev.slice(0, -1), { role: "assistant", text: fullText, final: true, timestamp: now }];
-            }
-            return [...prev, { role: "assistant", text: fullText, final: true, timestamp: now }];
-          });
-          setGroqStatus("done");
+              break;
 
-          // Inspect text and update right panel card if not already set by action_card
-          const docType = detectDocumentType(fullText);
-          if (docType !== "none") {
-            const payload = buildDocumentPayload(docType, fullText, now);
-            const { hash, qr } = generateClientHash(String(payload.quotation_id || payload.invoice_number || payload.po_number || docType.toUpperCase()), String(payload.grand_total || payload.total_due || 0));
-            setDocCard((prev) => ({
-              type: docType,
-              title: fullText.slice(0, 60),
-              payload: { ...(prev?.payload || {}), ...payload },
-              timestamp: now,
-              verification_hash: prev?.verification_hash || hash,
-              qr_payload: prev?.qr_payload || qr,
-              revised: prev?.revised ?? false,
-            }));
+            // ── Agent audio reply ──
+            case "reply.audio":
+              if (m.data) {
+                playPCM16Base64(m.data);
+              }
+              break;
+
+            // ── Agent text transcript ──
+            case "transcript.agent":
+              if (m.text) {
+                setMessages((prev) => {
+                  const last = prev[prev.length - 1];
+                  if (last && last.role === "assistant" && !last.final) {
+                    return [...prev.slice(0, -1), { role: "assistant", text: m.text, final: false, timestamp: last.timestamp }];
+                  }
+                  return [...prev, { role: "assistant", text: m.text, final: false, timestamp: Date.now() }];
+                });
+              }
+              break;
+
+            // ── Reply done ──
+            case "reply.done":
+              if (m.status === "interrupted") {
+                flushPlayback();
+              }
+              // Mark assistant message as final
+              setMessages((prev) => {
+                const last = prev[prev.length - 1];
+                if (last && last.role === "assistant" && !last.final) {
+                  return [...prev.slice(0, -1), { ...last, final: true }];
+                }
+                return prev;
+              });
+              setGroqStatus("done");
+              setTimeout(() => setGroqStatus("idle"), 2000);
+              break;
+
+            // ── Tool calling from AssemblyAI LLM ──
+            case "tool.call": {
+              const { call_id, name, arguments: args } = m;
+              try {
+                const resp = await fetch(`${AARI_BACKEND}/voice-agent/tool`, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ call_id, name, arguments: args }),
+                });
+                const result = await resp.json();
+                // Send tool.result back to AssemblyAI (AFTER reply.done)
+                if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+                  wsRef.current.send(JSON.stringify({
+                    type: "tool.result",
+                    call_id,
+                    result: JSON.stringify(result),
+                  }));
+                }
+                // Also update the document card on the right panel
+                if (result.success && result.doc_type) {
+                  const now = Date.now();
+                  setDocCard({
+                    type: result.doc_type as DocumentCard["type"],
+                    title: `${result.doc_type} ${result.doc_ref}`,
+                    payload: result,
+                    amount: result.amount,
+                    approval_status: result.approval_status,
+                    timestamp: now,
+                    verification_hash: result.verification_hash,
+                    qr_payload: result.qr_payload,
+                    revised: false,
+                  });
+                }
+              } catch (err) {
+                console.error("Tool call error:", err);
+                if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+                  wsRef.current.send(JSON.stringify({
+                    type: "tool.result",
+                    call_id,
+                    result: JSON.stringify({ result: "Tool execution failed", success: false }),
+                  }));
+                }
+              }
+              break;
+            }
+
+            // ── Speech started/stopped (VAD) ──
+            case "input.speech.started":
+              break;
+            case "input.speech.stopped":
+              break;
           }
-          setTimeout(() => setGroqStatus("idle"), 2500);
-        } else if (data.type === "interrupt_ack") {
-          stopPlayback();
-          setGroqStatus("idle");
-        }
-      } else if (event.data instanceof Blob || event.data instanceof ArrayBuffer) {
-        const audioBlob = new Blob([event.data], { type: "audio/wav" });
-        audioQueueRef.current.push(audioBlob);
-        if (!isSpeakingRef.current) playNextAudioChunk();
+        };
+      } catch (err) {
+        console.error("AssemblyAI Voice Agent connection failed:", err);
+        wsConnectingOrConnected.current = false;
+        if (isMounted) setIsConnected(false);
       }
-    };
+    }
+
+    connect();
 
     return () => {
       isMounted = false;
       wsConnectingOrConnected.current = false;
       stopMicrophone();
-      stopPlayback();
-      if (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING) {
+      flushPlayback();
+      if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) {
         ws.close(1000, "Component unmounted");
       }
       wsRef.current = null;
     };
-  }, [playNextAudioChunk, stopMicrophone, stopPlayback, interruptPlayback]);
+  }, [stopMicrophone, flushPlayback, playPCM16Base64]);
 
-  // Audio capture
+  // Audio capture — 24kHz AudioWorklet, sends base64 PCM16 JSON to AssemblyAI
   const startMicrophone = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      mediaStreamRef.current = stream;
+      if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+        console.error("WebSocket not connected");
+        return;
+      }
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+      });
+      micStreamRef.current = stream;
+
       const AudioContextClass =
         window.AudioContext ||
         (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-      const audioCtx = new AudioContextClass({ sampleRate: 16000 });
+      const audioCtx = new AudioContextClass({ sampleRate: AARI_RATE });
       audioContextRef.current = audioCtx;
+      await audioCtx.resume();
+
+      // Load AudioWorklet module
+      await audioCtx.audioWorklet.addModule(WORKLET_URL);
       const source = audioCtx.createMediaStreamSource(stream);
-      const processor = audioCtx.createScriptProcessor(4096, 1, 1);
-      processorRef.current = processor;
+      const worklet = new AudioWorkletNode(audioCtx, "pcm-encoder");
+      workletNodeRef.current = worklet;
 
-      processor.onaudioprocess = (e) => {
+      // Worklet posts PCM16 Int16Array buffers — encode to base64 and send as JSON
+      worklet.port.onmessage = ({ data }) => {
         if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) return;
-        const inputData = e.inputBuffer.getChannelData(0);
-
-        // Calculate RMS energy of this audio chunk
-        const rms = calculateRMS(inputData);
-
-        // During TTS playback: mute normal transmission, only allow loud barge-in
-        if (isSpeakingRef.current) {
-          if (rms > BARGEIN_THRESHOLD) {
-            interruptPlayback();
-          }
-          return; // Mute all PCM during agent speech to prevent echo loop
-        }
-
-        // Noise gate: drop silent chunks to keep AssemblyAI buffer clean
-        if (rms < SILENCE_THRESHOLD) return;
-
-        // Forward valid speech PCM to AssemblyAI
-        const pcm16 = new Int16Array(inputData.length);
-        for (let i = 0; i < inputData.length; i++) {
-          const s = Math.max(-1, Math.min(1, inputData[i]));
-          pcm16[i] = s < 0 ? s * 0x8000 : s * 0x7fff;
-        }
-        wsRef.current.send(pcm16.buffer);
+        if (!sessionReadyRef.current) return;
+        const buf = new Uint8Array(data);
+        let s = "";
+        for (let i = 0; i < buf.length; i++) s += String.fromCharCode(buf[i]);
+        wsRef.current.send(JSON.stringify({ type: "input.audio", audio: btoa(s) }));
       };
 
-      source.connect(processor);
-      processor.connect(audioCtx.destination);
+      source.connect(worklet).connect(audioCtx.destination);
       setIsListening(true);
     } catch (err) {
       console.error("Microphone capture error:", err);
     }
   };
 
-  // Dispatch text command with client-side stateful revision support
-  const sendTextCommand = (cmd: string) => {
+  // Dispatch text command — POST to backend (AssemblyAI Voice Agent only accepts audio)
+  const sendTextCommand = async (cmd: string) => {
     const text = cmd.trim();
     if (!text) return;
 
-    const lower = text.toLowerCase();
-    const isRevision = docCard !== null && (
-      lower.includes("discount") ||
-      lower.includes("change") ||
-      lower.includes("modify") ||
-      lower.includes("fee") ||
-      lower.includes("maintenance") ||
-      lower.includes("10%") ||
-      lower.includes("200") ||
-      lower.includes("salary") ||
-      lower.includes("terms") ||
-      lower.includes("net-60")
-    );
-
-    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-      wsRef.current.send(text);
-      // In online mode, do NOT append the user message locally —
-      // the backend streams back a `transcript` message that will
-      // be handled by the WS onmessage listener, preventing duplicates.
-      setGroqStatus("processing");
-    } else {
-      // Offline / Local Simulation Mode
-      appendMessage({ role: "user", text, final: true, timestamp: Date.now() });
-      setGroqStatus("processing");
-
-      setTimeout(() => {
-        const now = Date.now();
-
-        if (isRevision && docCard) {
-          let revisionReply = "";
-          const updatedPayload = { ...docCard.payload };
-
-          if (lower.includes("discount") || lower.includes("10%")) {
-            updatedPayload.discount_pct = 10;
-            const subtotal = 28500;
-            const grandTotal = subtotal * 0.9;
-            updatedPayload.grand_total = grandTotal;
-            revisionReply = "Updated PHOENIX-2026 quotation: discount adjusted from 5% to 10%. New grand total is $25,650.00.";
-          } else if (lower.includes("fee") || lower.includes("200") || lower.includes("maintenance")) {
-            updatedPayload.maintenance_fee = 200;
-            revisionReply = "Revised invoice: added recurring SLA maintenance fee of $200.00 to line items. New balance due is $5,250.00.";
-          } else if (lower.includes("terms") || lower.includes("net-60")) {
-            updatedPayload.payment_terms = "NET-60";
-            revisionReply = "Payment terms successfully revised from NET-30 to NET-60 on active invoice.";
-          } else if (lower.includes("salary") || lower.includes("140000")) {
-            updatedPayload.salary = "140,000 BDT / month";
-            revisionReply = "Revised HR Appointment Letter: compensation upgraded to 140,000 BDT/month.";
-          } else {
-            revisionReply = `Applied requested revision: "${text}". Document state and cryptographic seal updated.`;
-          }
-
-          const { hash, qr } = generateClientHash(String(updatedPayload.quotation_id || updatedPayload.invoice_number || docCard.type.toUpperCase()), String(updatedPayload.grand_total || updatedPayload.total_due || 0));
-
-          setDocCard({
-            ...docCard,
-            payload: updatedPayload,
-            timestamp: now,
-            verification_hash: hash,
-            qr_payload: qr,
-            revised: true,
-            revision_note: `Revised via voice: "${text}"`,
-          });
-          triggerRevisionPulse();
-
-          appendMessage({ role: "assistant", text: revisionReply, final: true, timestamp: now });
-        } else {
-          // Standard creation
-          let reply = "";
-          const docType = detectDocumentType(text);
-          if (docType === "quotation") {
-            reply = "Generated Enterprise Quotation PHOENIX-2026 for Acme Corp totaling $27,075.00 with 5% volume discount.";
-          } else if (docType === "purchase_order") {
-            reply = "Purchase Order PO-88301 generated for Apex Hardware Ltd totaling $15,050.00, authorized by Sarah Jenkins.";
-          } else if (docType === "tax_compliance") {
-            reply = "Corporate tax report FY-2026 compiled: $11,400 effective tax due with active BD VAT BIN-003928172-0102.";
-          } else if (docType === "invoice") {
-            reply = "Generated Tax Invoice INV-8821 for Acme Corp. Total due is $5,050.00 under NET-30 payment terms.";
-          } else if (docType === "financial") {
-            reply = "Konthora Q1 2026 financial brief: $142,000 revenue with 28.5% EBITDA margin and $57,000 net profit.";
-          } else if (docType === "hr_letter") {
-            reply = "Drafted appointment offer letter for Rafiqul Islam as Senior Full-Stack Engineer starting October 2026.";
-          } else if (docType === "inventory") {
-            reply = "Warehouse audit complete: 42 Apple M3 Pro chips and 8 server racks available across Singapore and Frankfurt.";
-          } else {
-            reply = `Acknowledged: "${text}". Voice-to-document engine processed the command.`;
-          }
-
-          const payload = buildDocumentPayload(docType, reply, now);
-          const { hash, qr } = generateClientHash(String(payload.quotation_id || payload.invoice_number || docType.toUpperCase()), String(payload.grand_total || payload.total_due || 0));
-
-          setDocCard({
-            type: docType,
-            title: text,
-            payload,
-            timestamp: now,
-            verification_hash: hash,
-            qr_payload: qr,
-            revised: false,
-          });
-
-          appendMessage({ role: "assistant", text: reply, final: true, timestamp: now });
-        }
-
-        setGroqStatus("done");
-        setTimeout(() => setGroqStatus("idle"), 2000);
-      }, 700);
-    }
+    appendMessage({ role: "user", text, final: true, timestamp: Date.now() });
+    setGroqStatus("processing");
     setTextInput("");
+
+    try {
+      const resp = await fetch(`${AARI_BACKEND}/voice-agent/text`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text }),
+      });
+      const data = await resp.json();
+
+      appendMessage({ role: "assistant", text: data.response, final: true, timestamp: Date.now() });
+
+      if (data.action_card) {
+        const now = Date.now();
+        setDocCard({
+          type: data.action_card.doc_type as DocumentCard["type"],
+          title: data.action_card.title || `${data.action_card.doc_type} ${data.action_card.doc_ref}`,
+          payload: data.action_card,
+          amount: data.action_card.amount,
+          approval_status: data.action_card.approval_status,
+          timestamp: now,
+          verification_hash: data.action_card.verification_hash,
+          qr_payload: data.action_card.qr_payload,
+          revised: data.action_card.revised ?? false,
+        });
+        if (data.action_card.revised) triggerRevisionPulse();
+      }
+
+      setGroqStatus("done");
+      setTimeout(() => setGroqStatus("idle"), 2000);
+    } catch (err) {
+      console.error("Text command error:", err);
+      appendMessage({ role: "assistant", text: "Text command failed. Please try again.", final: true, timestamp: Date.now() });
+      setGroqStatus("idle");
+    }
   };
 
   // Audio file upload handler
@@ -2083,7 +2088,7 @@ export default function VoiceAgentPage() {
               <div className="flex items-center gap-1.5 text-[10px] font-mono">
                 <Cpu className={`w-3 h-3 ${groqStatus === "processing" ? "text-cyan-400 animate-spin" : "text-neutral-400"}`} />
                 <span className={groqStatus === "processing" ? "text-cyan-400" : "text-neutral-400"}>
-                  {groqStatus === "processing" ? "Inferencing..." : "Groq 70B"}
+                  {groqStatus === "processing" ? "Inferencing..." : "Voice Agent"}
                 </span>
               </div>
               <span className="w-px h-3 bg-white/10" />
@@ -2099,7 +2104,7 @@ export default function VoiceAgentPage() {
               <div className="flex items-center justify-between text-[10px] font-mono text-neutral-400">
                 <span className="flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-full bg-white/20" />
-                  PCM SPECTRAL FEED (16kHz / 16-BIT)
+                  PCM SPECTRAL FEED (24kHz / 16-BIT)
                 </span>
                 <span className={isListening ? "text-neutral-300 font-bold" : "text-neutral-400"}>
                   {isListening ? "● STREAMING" : "○ STANDBY"}
@@ -2169,12 +2174,12 @@ export default function VoiceAgentPage() {
                   <span className="text-[10px] font-mono tracking-wider uppercase px-2.5 py-1 rounded-md bg-neutral-900 border border-white/10 text-neutral-400">
                     {isConnected ? <><span className="inline-block w-2 h-2 rounded-full bg-white animate-pulse" /> Connected</> : <><span className="inline-block w-2 h-2 rounded-full bg-red-500" /> Offline</>}
                   </span>
-                  <span className="text-[10px] font-mono tracking-wider uppercase px-2.5 py-1 rounded-md bg-neutral-900 border border-white/10 text-neutral-400">
-                    AssemblyAI v3
-                  </span>
-                  <span className="text-[10px] font-mono tracking-wider uppercase px-2.5 py-1 rounded-md bg-neutral-900 border border-white/10 text-neutral-400">
-                    16kHz PCM
-                  </span>
+                   <span className="text-[10px] font-mono tracking-wider uppercase px-2.5 py-1 rounded-md bg-neutral-900 border border-white/10 text-neutral-400">
+                     AssemblyAI Voice Agent
+                   </span>
+                   <span className="text-[10px] font-mono tracking-wider uppercase px-2.5 py-1 rounded-md bg-neutral-900 border border-white/10 text-neutral-400">
+                     24kHz PCM
+                   </span>
                   <span className="text-[10px] font-mono tracking-wider uppercase px-2.5 py-1 rounded-md bg-neutral-900 border border-white/10 text-neutral-400">
                     Full Duplex
                   </span>

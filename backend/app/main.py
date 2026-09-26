@@ -25,6 +25,7 @@ from app.api.v1.health import router as health_router
 from app.api.v1.tts import router as tts_router
 from app.api.v1.transcription import router as transcription_router
 from app.api.v1.voice_agent import router as voice_agent_router
+from app.api.v1.voice_agent_v2 import router as voice_agent_v2_router
 
 @contextlib.asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -115,6 +116,7 @@ app.include_router(health_router, prefix="/api/v1")
 app.include_router(tts_router, prefix="/api/v1")
 app.include_router(transcription_router, prefix="/api/v1")
 app.include_router(voice_agent_router, prefix="/api/v1")
+app.include_router(voice_agent_v2_router, prefix="/api/v1")
 
 # Global Exception Handlers
 
