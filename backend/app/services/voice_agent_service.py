@@ -40,24 +40,16 @@ def generate_verification_data(doc_type: str, doc_ref: str, amount: any = 0) -> 
 
 
 # ── PII Redaction Guardrails ──────────────────────────────────────────────
-# Patterns for sensitive identifiers that must never appear in live transcript displays
 _PII_PATTERNS = [
-    # BD VAT BIN: BIN-003928172-0102 → BIN-******172-****
     (re.compile(r'(BIN-\d{3})\d{4}(\d{3}-)\d{4}'), r'\1****\2****'),
-    # EU VAT: DE-319208194 → DE-******194
     (re.compile(r'(DE-)\d{6}(\d{3})'), r'\1******\2'),
-    # US EIN / Tax IDs: XX-XXXXXXX → XX-***-XXXX
     (re.compile(r'\b(\d{2})-?(\d{7})\b'), r'\1-***-\2'),
-    # Generic account numbers: 10+ consecutive digits → mask middle
     (re.compile(r'\b(\d{3})\d{4,}(\d{3})\b'), r'\1****\2'),
-    # SHA-256 verification hashes: SHA256-KNT-XXXX-XXXX-XXXX → SHA256-KNT-****-****-****
     (re.compile(r'(SHA256-KNT-)\w{4}(-\w{4}){2}'), r'\1****-****-****'),
 ]
 
 
 def redact_pii(text: str) -> str:
-    """Mask sensitive tax IDs, BINs, account digits, and verification hashes
-    from live transcript displays while preserving surrounding context."""
     if not text:
         return text
     for pattern, replacement in _PII_PATTERNS:
@@ -70,41 +62,57 @@ class VoiceAgentService:
         self.active_doc_state = None
         self.previous_doc_state = None
         self._interrupt_flag = False
-        self.system_prompt = (
-            "You are Konthora's Autonomous Voice-Driven Enterprise Operations Engine.\n"
-            "Your primary mission is to process real-time voice commands, query backend enterprise databases, execute operational workflows (Invoices, Quotations, POs, HR Letters, Meeting Minutes, Legal NDAs, Expense Claims, Analytics Charts), and perform voice-driven delta document revisions with cryptographic SHA-256 seals.\n"
-            "CRITICAL RULES:\n"
-            "1. Always maintain conversational state memory for dynamic document revisions.\n"
-            "2. Maintain professional, concise executive responses.\n"
-            "3. Ignore phonetic accent misclassifications and process all business queries strictly in English.\n"
-            "4. You have direct access to the enterprise database:\n"
-            "- Clients: Acme Corp (CLI-8821, USD, NET-30), SoftTech Bangladesh (CLI-3302, BDT, NET-45), InnoTech GmbH (CLI-7703, EUR, NET-60).\n"
-            "- Financials (FY 2026): Q1 Revenue $142K, Expenses $85K, Net Profit $57K, EBITDA 28.5%, Tax Liability $11.4K; Q2 Projected $185K.\n"
-            "- Inventory: Apple M3 Pro Chip (42 units @ $450), Enterprise Server Rack 42U (8 units @ $2800), Fiber Optic Transceiver 100G (120 units @ $180).\n"
-            "- Employees: Rafiqul Islam (EMP-1041, Senior Full-Stack Engineer, 120,000 BDT), Sarah Jenkins (EMP-0021, Lead Solutions Architect, $95,000).\n"
-            "- Quotations: PHOENIX-2026 ($27,075 USD for Acme Corp voice gateway), BD-GOV-TENDER-09 (4,500,000 BDT for ICT Ministry portal voice accessibility).\n"
-            "- Purchase Orders: PO-88301 ($15,050 USD to Apex Hardware for 20 M3 chips and 2 server racks approved by Sarah Jenkins).\n"
-            "- Tax & Compliance: FY-2026 Tax Summary ($11,400 due, $3,200 withholding paid), BD VAT BIN-003928172-0102, EU VAT DE-319208194.\n"
-            "- Meeting Minutes: MIN-2026-09 Product Strategy Sync with decisions on Kokoro Edge migration and FY26 Q4 budget.\n"
-            "- Legal Contracts: NDA-2026-88 Mutual NDA between Konthora and InnoTech GmbH, 2-year term, strict IP protection.\n"
-            "- Expense Vouchers: EXP-9902 Sarah Jenkins $450 hardware & travel claim, APPROVED by CFO.\n"
-            "- Email Dispatch: Can dispatch documents via enterprise SMTP to client emails (e.g., billing@acme.com).\n"
-            "- Analytics: Q1 vs Q2 revenue comparison chart data available.\n"
-            "CRITICAL VOICE & MULTILINGUAL RULES:\n"
-            "1. CONCISE RESPONSES: Keep answers strictly to 1 to 2 short sentences for immediate audio synthesis.\n"
-            "2. ENGLISH-ONLY OUTPUT: Always respond in English regardless of the input language. Even if the user speaks Bangla, Hindi, or any other language, you MUST reply in clear English. Never output Devanagari, Bengali, or any non-Latin script. Transliterate any foreign terms into English if needed.\n"
-            "3. ACCURACY: Always quote specific client names, IDs, currencies, and numbers from the database when handling document requests.\n"
-            "4. INTENT CLASSIFICATION: Recognize these intents — meeting minutes/summarize meeting -> meeting_minutes, NDA/contract/agreement -> legal_contract, expense/reimbursement/claim -> expense_voucher, email/dispatch/send -> dispatch_notification, chart/graph/visual revenue -> analytics_chart, convert/currency/BDT/EUR -> currency_conversion, approve/authorize/passkey -> approval_guard, compare/diff/changes -> document_diff, slack/teams/webhook -> slack_dispatch, upload/audio/recording -> audio_upload."
-        )
         self._cached_model = None
+        self._http_client: httpx.AsyncClient | None = None
+
+        # Condensed system prompt — enterprise data moved to intent-specific handlers
+        self.system_prompt = (
+            "You are Konthora, an autonomous voice-driven enterprise operations engine.\n"
+            "Process voice commands to create: invoices, quotations, purchase orders, HR letters, "
+            "meeting minutes, legal NDAs, expense claims, analytics charts, currency conversions, "
+            "approval guards, document diffs, Slack dispatches.\n"
+            "RULES:\n"
+            "- Keep responses to 1-2 short sentences max for fast audio synthesis.\n"
+            "- Always respond in English regardless of input language.\n"
+            "- Quote specific names, IDs, currencies, numbers from context.\n"
+            "- Maintain conversational state for document revisions.\n"
+            "- Be professional and concise.\n"
+            "DATABASE:\n"
+            "- Clients: Acme Corp (CLI-8821, USD, NET-30), SoftTech BD (CLI-3302, BDT, NET-45), InnoTech GmbH (CLI-7703, EUR, NET-60)\n"
+            "- Q1 2026: Revenue $142K, Profit $57K, EBITDA 28.5%, Tax $11.4K; Q2 projected $185K\n"
+            "- Inventory: M3 Pro Chip (42@\$450), Server Rack 42U (8@\$2800), Fiber 100G (120@\$180)\n"
+            "- Staff: Rafiqul Islam (EMP-1041, 120K BDT), Sarah Jenkins (EMP-0021, \$95K)\n"
+            "- Quotation PHOENIX-2026: \$27,075 for Acme Corp voice gateway\n"
+            "- PO-88301: \$15,050 to Apex Hardware, approved by Sarah\n"
+            "- Tax: \$11,400 due, BD VAT BIN-003928172-0102, EU VAT DE-319208194\n"
+            "- NDA-2026-88: Konthora & InnoTech, 2yr, strict IP\n"
+            "- EXP-9902: Sarah Jenkins \$450 hardware claim, CFO approved\n"
+            "- Finance: Q1 \$142K vs Q2 \$185K, EBITDA 28.5%→31%\n"
+        )
+
+    async def _get_client(self) -> httpx.AsyncClient:
+        """Get or create a persistent HTTP client with connection pooling."""
+        if self._http_client is None or self._http_client.is_closed:
+            self._http_client = httpx.AsyncClient(
+                timeout=httpx.Timeout(8.0, connect=3.0),
+                limits=httpx.Limits(
+                    max_connections=10,
+                    max_keepalive_connections=5,
+                    keepalive_expiry=30.0,
+                ),
+            )
+        return self._http_client
+
+    async def close(self):
+        """Clean up the persistent HTTP client."""
+        if self._http_client and not self._http_client.is_closed:
+            await self._http_client.aclose()
 
     def request_interrupt(self):
-        """Set interrupt flag to cancel ongoing TTS synthesis."""
         self._interrupt_flag = True
         logger.info("Interrupt flag set — cancelling pending TTS synthesis.")
 
     def clear_interrupt(self):
-        """Reset interrupt flag for next turn."""
         self._interrupt_flag = False
 
     # ── Multi-Currency Conversion ──
@@ -112,7 +120,6 @@ class VoiceAgentService:
     CURRENCY_SYMBOLS = {"USD": "$", "BDT": "৳", "EUR": "€"}
 
     def convert_currency(self, amount_usd: float, target: str) -> dict:
-        """Convert USD amount to target currency."""
         rate = self.EXCHANGE_RATES.get(target, 1.0)
         symbol = self.CURRENCY_SYMBOLS.get(target, "")
         converted = round(amount_usd * rate, 2)
@@ -122,16 +129,12 @@ class VoiceAgentService:
     PASSKEY = "KNT-2026"
 
     def check_approval_status(self, amount: float, currency: str = "USD") -> str:
-        """Check if document requires CFO approval based on threshold."""
         threshold_usd = 10000
         if currency == "BDT":
             threshold_usd = 1000000 / self.EXCHANGE_RATES["BDT"]
-        if amount > threshold_usd:
-            return "PENDING CFO APPROVAL"
-        return "AUTO-APPROVED"
+        return "PENDING CFO APPROVAL" if amount > threshold_usd else "AUTO-APPROVED"
 
     def try_approve_with_passkey(self, prompt: str) -> bool:
-        """Check if prompt contains approval passkey. Returns True if approved."""
         if self.PASSKEY in prompt.upper() or "approve" in prompt.lower() or "authorize" in prompt.lower():
             if self.active_doc_state:
                 self.active_doc_state["approval_status"] = "OFFICIAL CFO APPROVED"
@@ -142,11 +145,9 @@ class VoiceAgentService:
 
     # ── Document Diff Engine ──
     def compute_doc_diff(self) -> dict | None:
-        """Compare current doc state with previous version."""
         if not self.active_doc_state or not self.previous_doc_state:
             return None
-        current = self.active_doc_state
-        previous = self.previous_doc_state
+        current, previous = self.active_doc_state, self.previous_doc_state
         diffs = []
         for key in ["amount", "doc_type", "doc_ref"]:
             if current.get(key) != previous.get(key):
@@ -163,32 +164,23 @@ class VoiceAgentService:
 
         env_model = os.getenv("GROQ_MODEL") or os.getenv("OPENAI_MODEL")
         if env_model:
+            self._cached_model = env_model
             return env_model
 
         try:
             resp = await client.get(f"{base_url}/models", headers=headers)
             if resp.status_code == 200:
-                data = resp.json()
-                models = [m["id"] for m in data.get("data", [])]
-                
-                candidates = [
-                    "qwen/qwen3.8-27b",
-                    "groq/compound-mini",
-                    "groq/compound",
-                    "llama-3.3-70b-versatile",
-                    "gpt-4o-mini"
-                ]
-                for candidate in candidates:
+                models = [m["id"] for m in resp.json().get("data", [])]
+                for candidate in ["qwen/qwen3.8-27b", "groq/compound-mini", "llama-3.3-70b-versatile"]:
                     if candidate in models:
                         self._cached_model = candidate
-                        logger.info(f"Selected active LLM model: {candidate}")
+                        logger.info(f"Selected LLM model: {candidate}")
                         return candidate
-                
                 if models:
                     self._cached_model = models[0]
                     return models[0]
         except Exception as e:
-            logger.warning(f"Could not fetch dynamic models list: {e}")
+            logger.warning(f"Model discovery failed: {e}")
 
         return "qwen/qwen3.8-27b" if "groq" in base_url else "gpt-4o-mini"
 
@@ -198,248 +190,156 @@ class VoiceAgentService:
             return "I didn't hear anything clearly. Could you please repeat?"
 
         api_key = os.getenv("GROQ_API_KEY") or os.getenv("OPENAI_API_KEY")
-        
         if api_key:
             try:
                 is_groq = bool(os.getenv("GROQ_API_KEY"))
                 base_url = "https://api.groq.com/openai/v1" if is_groq else "https://api.openai.com/v1"
                 headers = {"Authorization": f"Bearer {api_key}"}
+                client = await self._get_client()
+                model_name = await self._get_active_model(client, base_url, headers)
 
-                async with httpx.AsyncClient(timeout=8.0) as client:
-                    model_name = await self._get_active_model(client, base_url, headers)
-
-                    response = await client.post(
-                        f"{base_url}/chat/completions",
-                        headers=headers,
-                        json={
-                            "model": model_name,
-                            "messages": [
-                                {"role": "system", "content": self.system_prompt},
-                                {"role": "user", "content": clean_prompt}
-                            ],
-                            "max_tokens": 150,
-                            "temperature": 0.7
-                        }
-                    )
-                    if response.status_code == 200:
-                        data = response.json()
-                        reply = data["choices"][0]["message"]["content"].strip()
-                        return reply
-                    else:
-                        logger.error(f"LLM API Error {response.status_code} with model '{model_name}': {response.text}")
-                        self._cached_model = None
+                response = await client.post(
+                    f"{base_url}/chat/completions",
+                    headers=headers,
+                    json={
+                        "model": model_name,
+                        "messages": [
+                            {"role": "system", "content": self.system_prompt},
+                            {"role": "user", "content": clean_prompt}
+                        ],
+                        "max_tokens": 120,
+                        "temperature": 0.7
+                    }
+                )
+                if response.status_code == 200:
+                    return response.json()["choices"][0]["message"]["content"].strip()
+                else:
+                    logger.error(f"LLM API Error {response.status_code}: {response.text}")
+                    self._cached_model = None
             except Exception as e:
-                logger.error(f"Async LLM generation failed: {e}")
+                logger.error(f"LLM generation failed: {e}")
 
-        lowered = clean_prompt.lower()
-        if any(w in lowered for w in ["bangla", "বাংলা", "bengali", "banglay"]):
-            if "invoice" in lowered or "chalan" in lowered:
-                return "Ji, Acme Corp er jonno 5,050 dollar er invoice toiri kora hoyeche. Payment terms holo NET-30."
-            if "quote" in lowered or "quotation" in lowered or "tender" in lowered or "কোটেশন" in lowered or "টেন্ডার" in lowered:
-                return "Ji, PHOENIX-2026 quotation toiri kora hoyeche, total 27,075 dollar. Validity ache 2026 porjonto."
-            if "po" in lowered or "purchase order" in lowered or "ক্রয়াদেশ" in lowered or "অর্ডার" in lowered:
-                return "PO-88301 purchase order toiri kora hoyeche Apex Hardware er jonno, mot 15,050 dollar."
-            if "tax" in lowered or "ট্যাক্স" in lowered or "কর" in lowered or "vat" in lowered or "ভ্যাট" in lowered:
-                return "FY-2026 er tax compliance summary te 11,400 dollar tax liability o BD VAT BIN sonjukto ache."
-            return "Ji, ami Bangla bujhte pari! Kon dhoroner enterprise document toiri korte chan?"
+        # Fast intent-based fallback (no API call needed)
+        return self._fast_fallback(clean_prompt)
 
-        # Stateful revision handling
-        if self.active_doc_state and any(w in lowered for w in ["change", "discount", "modify", "update", "add fee", "maintenance", "terms", "adjust", "fee"]):
-            if "discount" in lowered or "10%" in lowered:
-                return "Updated PHOENIX-2026 quotation: discount adjusted from 5% to 10%, new grand total is $25,650.00."
-            if "fee" in lowered or "200" in lowered or "maintenance" in lowered:
-                return "Revised document: added recurring maintenance fee of $200.00 to line items."
-            return f"Applied live revision to active {self.active_doc_state.get('doc_type', 'document')}. All calculations and cryptographic hash updated."
-
-        if any(w in lowered for w in ["quotation", "quote", "tender", "phoenix"]):
-            return "Quotation PHOENIX-2026 generated for Acme Corp totaling $27,075.00 with 5% enterprise discount."
-        if any(w in lowered for w in ["purchase order", "po", "po-88301", "apex"]):
-            return "Purchase Order PO-88301 generated for Apex Hardware Ltd totaling $15,050.00, approved by Sarah Jenkins."
-        if any(w in lowered for w in ["tax", "vat", "compliance", "bin"]):
-            return "Corporate tax report FY-2026 loaded: $11,400 effective tax due with active BD VAT BIN-003928172-0102."
-        if any(w in lowered for w in ["invoice", "bill", "chalan", "challan"]):
-            return "Generated Tax Invoice for Acme Corp totaling $5,050.00 with payment terms NET-30."
-        if any(w in lowered for w in ["financial", "revenue", "ebitda", "profit", "q1"]):
-            return "Konthora Q1 2026 recorded $142,000 in revenue, $57,000 net profit, and a 28.5% EBITDA margin."
-        if any(w in lowered for w in ["offer letter", "hr", "salary", "rafiqul", "employee"]):
-            return "Appointment offer letter generated for Rafiqul Islam as Senior Full-Stack Engineer at 120,000 BDT."
-        if any(w in lowered for w in ["inventory", "stock", "warehouse", "m3", "rack"]):
-            return "Inventory audit shows 42 Apple M3 Pro chips and 8 server racks available in active warehouses."
-        if any(w in lowered for w in ["meeting", "minutes", "sync", "strategy", "summarize meeting"]):
-            return "Meeting Minutes MIN-2026-09 loaded: Product Strategy Sync with 2 decisions and 2 action items for Rafiqul and Sarah."
-        if any(w in lowered for w in ["nda", "contract", "agreement", "non-disclosure"]):
-            return "Legal Contract NDA-2026-88 loaded: Mutual NDA between Konthora and InnoTech GmbH, 2-year term, pending digital signature."
-        if any(w in lowered for w in ["expense", "reimbursement", "claim", "voucher"]):
-            return "Expense Voucher EXP-9902 loaded: Sarah Jenkins claim of $450.00 for hardware and client travel, approved by CFO."
-        if any(w in lowered for w in ["email", "dispatch", "send quotation", "send invoice"]):
-            return "Enterprise dispatch confirmed. Document PHOENIX-2026 sent via SMTP to billing@acme.com with delivery receipt logged."
-        if any(w in lowered for w in ["chart", "graph", "visual", "revenue chart"]):
-            return "Analytics chart loaded: Q1 Revenue $142K vs Q2 Projected $185K with EBITDA margin expansion to 31%."
-        if any(w in lowered for w in ["convert", "currency", "bdt", "eur", "taka", "euro"]):
-            target = "BDT" if any(w in lowered for w in ["bdt", "taka", "bangladeshi"]) else "EUR"
+    def _fast_fallback(self, prompt: str) -> str:
+        """Instant fallback responses — no API call, zero latency."""
+        lowered = prompt.lower()
+        if any(w in lowered for w in ["quotation", "quote", "phoenix"]):
+            return "Quotation PHOENIX-2026 generated for Acme Corp totaling \$27,075.00 with 5% enterprise discount."
+        if any(w in lowered for w in ["purchase order", "po", "apex"]):
+            return "Purchase Order PO-88301 generated for Apex Hardware totaling \$15,050.00, approved by Sarah Jenkins."
+        if any(w in lowered for w in ["tax", "vat", "compliance"]):
+            return "Corporate tax report FY-2026 loaded: \$11,400 effective tax due with active BD VAT BIN."
+        if any(w in lowered for w in ["invoice", "bill"]):
+            return "Generated Tax Invoice for Acme Corp totaling \$5,050.00 with payment terms NET-30."
+        if any(w in lowered for w in ["financial", "revenue", "ebitda", "profit"]):
+            return "Q1 2026 recorded \$142,000 revenue, \$57,000 net profit, and 28.5% EBITDA margin."
+        if any(w in lowered for w in ["offer letter", "hr", "salary", "rafiqul"]):
+            return "Offer letter generated for Rafiqul Islam as Senior Full-Stack Engineer at 120,000 BDT."
+        if any(w in lowered for w in ["meeting", "minutes"]):
+            return "Meeting Minutes MIN-2026-09 loaded: Product Strategy Sync with 2 decisions and 2 action items."
+        if any(w in lowered for w in ["nda", "contract", "agreement"]):
+            return "Legal NDA-2026-88 loaded: Mutual NDA between Konthora and InnoTech, 2-year term."
+        if any(w in lowered for w in ["expense", "claim"]):
+            return "Expense Voucher EXP-9902 loaded: Sarah Jenkins claim of \$450.00, CFO approved."
+        if any(w in lowered for w in ["email", "dispatch"]):
+            return "Enterprise dispatch confirmed. Document sent via SMTP with delivery receipt logged."
+        if any(w in lowered for w in ["chart", "graph", "revenue chart"]):
+            return "Analytics chart loaded: Q1 Revenue \$142K vs Q2 Projected \$185K with EBITDA expansion."
+        if any(w in lowered for w in ["convert", "currency", "bdt", "eur"]):
+            target = "BDT" if any(w in lowered for w in ["bdt", "taka"]) else "EUR"
             conv = self.convert_currency(27075, target)
             return f"PHOENIX-2026 quotation converted: {conv['display']} at rate {conv['rate']} per USD."
-        if any(w in lowered for w in ["approve", "authorize", "passkey", "knt-2026"]):
-            approved = self.try_approve_with_passkey(clean_prompt)
-            if approved:
-                return "Document officially approved by CFO. Authorization timestamp logged and cryptographic seal regenerated."
-            return "Approval requires valid CFO passkey. Say 'Authorize with KNT-2026 passkey' to approve."
-        if any(w in lowered for w in ["compare", "diff", "changes", "version"]):
-            return "Document comparison loaded. Showing deltas between original and revised versions with change highlights."
-        if any(w in lowered for w in ["slack", "teams", "webhook"]):
-            channel = "#product-strategy" if "meeting" in lowered or "summary" in lowered else "#finance"
-            return f"Slack dispatch confirmed. Document summary posted to {channel} via enterprise webhook API."
-        if any(w in lowered for w in ["upload", "audio", "recording", "file"]):
-            return "Audio upload ready. Drop an MP3 or WAV file to process via AssemblyAI Batch transcription API."
-
-        return f"Voice-to-document engine processed your request for: '{clean_prompt}'. Document card is ready."
+        if any(w in lowered for w in ["approve", "authorize"]):
+            approved = self.try_approve_with_passkey(prompt)
+            return "Document approved by CFO. Authorization timestamp logged." if approved else "Approval requires CFO passkey."
+        if any(w in lowered for w in ["compare", "diff"]):
+            return "Document comparison loaded. Showing deltas between original and revised versions."
+        if any(w in lowered for w in ["slack", "webhook"]):
+            channel = "#product-strategy" if "meeting" in lowered else "#finance"
+            return f"Slack dispatch confirmed. Summary posted to {channel} via webhook API."
+        if any(w in lowered for w in ["inventory", "stock"]):
+            return "Inventory: 42 Apple M3 Pro chips and 8 server racks available in warehouses."
+        if any(w in lowered for w in ["upload", "audio"]):
+            return "Audio upload ready. Drop an MP3 or WAV file to process via AssemblyAI Batch API."
+        if any(w in lowered for w in ["bangla", "bengali"]):
+            return "I understand Bangla! What enterprise document would you like to create?"
+        return f"Voice-to-document engine processed: '{prompt}'. Document card is ready."
 
     def resolve_document_action(self, response_text: str, user_prompt: str) -> dict | None:
-        """Determines active document state, revisions, and attaches cryptographic verification."""
         combined = (response_text + " " + user_prompt).lower()
-        doc_type = None
-        doc_ref = "DOC-2026"
-        amount = 0
-        is_revised = False
+        doc_type, doc_ref, amount, is_revised = None, "DOC-2026", 0, False
 
-        if self.active_doc_state and any(w in combined for w in ["change", "discount", "modify", "update", "add fee", "adjust", "fee", "maintenance", "terms"]):
+        if self.active_doc_state and any(w in combined for w in ["change", "discount", "modify", "update", "adjust", "fee"]):
             is_revised = True
             doc_type = self.active_doc_state.get("doc_type")
             doc_ref = self.active_doc_state.get("doc_ref", "DOC-2026")
             amount = self.active_doc_state.get("amount", 0)
 
         if not doc_type:
-            if any(w in combined for w in ["quotation", "quote", "phoenix", "tender", "কোটেশন", "টেন্ডার"]):
-                doc_type = "quotation"
-                doc_ref = "PHOENIX-2026"
-                amount = 27075
-            elif any(w in combined for w in ["purchase order", "po-88301", "apex", "ক্রয়াদেশ", "পিও"]):
-                doc_type = "purchase_order"
-                doc_ref = "PO-88301"
-                amount = 15050
-            elif any(w in combined for w in ["tax", "vat", "compliance", "bin", "ট্যাক্স", "ভ্যাট"]):
-                doc_type = "tax_compliance"
-                doc_ref = "FY2026-TAX-01"
-                amount = 11400
-            elif any(w in combined for w in ["invoice", "bill", "chalan", "challan", "acme", "চালান", "ইনভয়েস"]):
-                doc_type = "invoice"
-                doc_ref = "INV-8821"
-                amount = 5050
-            elif any(w in combined for w in ["financial", "revenue", "ebitda", "profit", "q1", "লাভ", "আয়"]):
-                doc_type = "financial"
-                doc_ref = "FY2026-Q1-REP"
-                amount = 142000
-            elif any(w in combined for w in ["offer letter", "hr", "salary", "rafiqul", "employee", "বেতন", "নিয়োগপত্র"]):
-                doc_type = "hr_letter"
-                doc_ref = "EMP-1041-OFFER"
-                amount = 120000
-            elif any(w in combined for w in ["inventory", "stock", "warehouse", "m3", "rack", "স্টক", "মজুদ"]):
-                doc_type = "inventory"
-                doc_ref = "INV-LOG-2026"
-                amount = 62900
-            elif any(w in combined for w in ["meeting", "minutes", "sync", "strategy", "সভা", "মিটিং"]):
-                doc_type = "meeting_minutes"
-                doc_ref = "MIN-2026-09"
-                amount = 0
-            elif any(w in combined for w in ["nda", "contract", "agreement", "non-disclosure", "চুক্তি", "এনডিএ"]):
-                doc_type = "legal_contract"
-                doc_ref = "NDA-2026-88"
-                amount = 0
-            elif any(w in combined for w in ["expense", "reimbursement", "claim", "voucher", "খরচ", "ব্যয়"]):
-                doc_type = "expense_voucher"
-                doc_ref = "EXP-9902"
-                amount = 450
-            elif any(w in combined for w in ["chart", "graph", "visual", "revenue chart"]):
-                doc_type = "analytics_chart"
-                doc_ref = "CHART-2026-Q1Q2"
-                amount = 0
-            elif any(w in combined for w in ["email", "dispatch", "send quotation", "send invoice"]):
-                doc_type = "dispatch_notification"
-                doc_ref = "DISP-2026"
-                amount = 0
-            elif any(w in combined for w in ["convert", "currency", "bdt", "eur"]):
-                doc_type = "currency_conversion"
-                doc_ref = "CC-2026"
-                amount = self.active_doc_state.get("amount", 27075) if self.active_doc_state else 27075
-            elif any(w in combined for w in ["approve", "authorize", "passkey", "knt-2026"]):
-                if self.active_doc_state:
-                    doc_type = self.active_doc_state.get("doc_type")
-                    doc_ref = self.active_doc_state.get("doc_ref", "DOC-2026")
-                    amount = self.active_doc_state.get("amount", 0)
-                else:
-                    doc_type = "approval_guard"
-                    doc_ref = "APPROVAL-2026"
-                    amount = 0
-            elif any(w in combined for w in ["compare", "diff", "changes", "version"]):
-                doc_type = "document_diff"
-                doc_ref = "DIFF-2026"
-                amount = 0
-            elif any(w in combined for w in ["slack", "teams", "webhook"]):
-                doc_type = "slack_dispatch"
-                doc_ref = "SLACK-2026"
-                amount = 0
-            elif any(w in combined for w in ["upload", "audio", "recording", "file"]):
-                doc_type = "audio_upload"
-                doc_ref = "UPLOAD-2026"
-                amount = 0
+            doc_map = [
+                (["quotation", "quote", "phoenix"], "quotation", "PHOENIX-2026", 27075),
+                (["purchase order", "po", "apex"], "purchase_order", "PO-88301", 15050),
+                (["tax", "vat", "compliance"], "tax_compliance", "FY2026-TAX-01", 11400),
+                (["invoice", "bill"], "invoice", "INV-8821", 5050),
+                (["financial", "revenue", "ebitda"], "financial", "FY2026-Q1-REP", 142000),
+                (["offer letter", "hr", "salary"], "hr_letter", "EMP-1041-OFFER", 120000),
+                (["meeting", "minutes"], "meeting_minutes", "MIN-2026-09", 0),
+                (["nda", "contract"], "legal_contract", "NDA-2026-88", 0),
+                (["expense", "claim"], "expense_voucher", "EXP-9902", 450),
+                (["chart", "graph"], "analytics_chart", "CHART-2026-Q1Q2", 0),
+                (["email", "dispatch"], "dispatch_notification", "DISP-2026", 0),
+                (["convert", "currency"], "currency_conversion", "CC-2026", self.active_doc_state.get("amount", 27075) if self.active_doc_state else 27075),
+                (["approve", "authorize"], "approval_guard", "APPROVAL-2026", 0),
+                (["compare", "diff"], "document_diff", "DIFF-2026", 0),
+                (["slack", "webhook"], "slack_dispatch", "SLACK-2026", 0),
+                (["upload", "audio"], "audio_upload", "UPLOAD-2026", 0),
+            ]
+            for keywords, dtype, dref, damt in doc_map:
+                if any(w in combined for w in keywords):
+                    doc_type, doc_ref, amount = dtype, dref, damt
+                    break
 
         if not doc_type:
             return None
 
-        # Save previous state for diff comparison
         if self.active_doc_state:
             self.previous_doc_state = dict(self.active_doc_state)
 
-        # Generate cryptographic SHA-256 verification hash and QR payload
         verif = generate_verification_data(doc_type, doc_ref, amount)
         approval_status = self.check_approval_status(amount) if amount > 0 else "N/A"
 
-        # Handle approval passkey
-        if any(w in combined for w in ["approve", "authorize", "passkey", "knt-2026"]):
+        if any(w in combined for w in ["approve", "authorize"]):
             if self.active_doc_state and self.active_doc_state.get("approval_status") == "PENDING CFO APPROVAL":
                 approval_status = "OFFICIAL CFO APPROVED"
                 self.active_doc_state["approval_status"] = approval_status
 
         self.active_doc_state = {
-            "doc_type": doc_type,
-            "doc_ref": doc_ref,
-            "amount": amount,
-            "verification_hash": verif["verification_hash"],
-            "qr_payload": verif["qr_payload"],
-            "revised": is_revised,
-            "updated_at": verif["verified_at"],
-            "approval_status": approval_status,
+            "doc_type": doc_type, "doc_ref": doc_ref, "amount": amount,
+            "verification_hash": verif["verification_hash"], "qr_payload": verif["qr_payload"],
+            "revised": is_revised, "updated_at": verif["verified_at"], "approval_status": approval_status,
         }
 
-        # Build extra payload for currency conversion
         extra = {}
         if doc_type == "currency_conversion":
-            target = "BDT" if any(w in combined for w in ["bdt", "taka", "bangladeshi"]) else "EUR"
-            conv = self.convert_currency(amount, target)
-            extra = {"conversion": conv}
+            target = "BDT" if any(w in combined for w in ["bdt", "taka"]) else "EUR"
+            extra = {"conversion": self.convert_currency(amount, target)}
         elif doc_type == "document_diff":
-            diff_data = self.compute_doc_diff()
-            extra = {"diff": diff_data or {"diffs": []}}
+            extra = {"diff": self.compute_doc_diff() or {"diffs": []}}
         elif doc_type == "slack_dispatch":
-            channel = "#product-strategy" if any(w in combined for w in ["meeting", "summary"]) else "#finance"
+            channel = "#product-strategy" if "meeting" in combined else "#finance"
             extra = {"slack_channel": channel, "dispatch_target": "SLACK_WEBHOOK"}
 
         return {
-            "type": "action_card",
-            "action": "update" if is_revised else "create",
-            "doc_type": doc_type,
-            "doc_ref": doc_ref,
-            "amount": amount,
-            "verification_hash": verif["verification_hash"],
-            "qr_payload": verif["qr_payload"],
-            "revised": is_revised,
-            "title": response_text[:70],
-            "approval_status": approval_status,
+            "type": "action_card", "action": "update" if is_revised else "create",
+            "doc_type": doc_type, "doc_ref": doc_ref, "amount": amount,
+            "verification_hash": verif["verification_hash"], "qr_payload": verif["qr_payload"],
+            "revised": is_revised, "title": response_text[:70], "approval_status": approval_status,
             **extra,
         }
 
     async def stream_ai_response(self, prompt: str):
-        """Streams text tokens asynchronously from Groq/OpenAI compatible LLM."""
         clean_prompt = prompt.strip()
         if not clean_prompt:
             yield "I didn't hear anything clearly. Could you please repeat?"
@@ -451,59 +351,55 @@ class VoiceAgentService:
                 is_groq = bool(os.getenv("GROQ_API_KEY"))
                 base_url = "https://api.groq.com/openai/v1" if is_groq else "https://api.openai.com/v1"
                 headers = {"Authorization": f"Bearer {api_key}"}
+                client = await self._get_client()
+                model_name = await self._get_active_model(client, base_url, headers)
 
-                async with httpx.AsyncClient(timeout=12.0) as client:
-                    model_name = await self._get_active_model(client, base_url, headers)
-
-                    async with client.stream(
-                        "POST",
-                        f"{base_url}/chat/completions",
-                        headers=headers,
-                        json={
-                            "model": model_name,
-                            "messages": [
-                                {"role": "system", "content": self.system_prompt},
-                                {"role": "user", "content": clean_prompt}
-                            ],
-                            "max_tokens": 150,
-                            "temperature": 0.7,
-                            "stream": True,
-                        }
-                    ) as resp:
-                        if resp.status_code == 200:
-                            async for line in resp.aiter_lines():
-                                line_str = line.strip()
-                                if not line_str or not line_str.startswith("data: "):
-                                    continue
-                                data_str = line_str[6:].strip()
-                                if data_str == "[DONE]":
-                                    break
-                                try:
-                                    chunk = json.loads(data_str)
-                                    delta = chunk.get("choices", [{}])[0].get("delta", {})
-                                    content = delta.get("content", "")
-                                    if content:
-                                        yield content
-                                except Exception:
-                                    continue
-                            return
-                        else:
-                            err_body = await resp.aread()
-                            logger.error(f"Streaming LLM error {resp.status_code}: {err_body}")
-                            self._cached_model = None
+                async with client.stream(
+                    "POST",
+                    f"{base_url}/chat/completions",
+                    headers=headers,
+                    json={
+                        "model": model_name,
+                        "messages": [
+                            {"role": "system", "content": self.system_prompt},
+                            {"role": "user", "content": clean_prompt}
+                        ],
+                        "max_tokens": 120,
+                        "temperature": 0.7,
+                        "stream": True,
+                    }
+                ) as resp:
+                    if resp.status_code == 200:
+                        async for line in resp.aiter_lines():
+                            line_str = line.strip()
+                            if not line_str or not line_str.startswith("data: "):
+                                continue
+                            data_str = line_str[6:].strip()
+                            if data_str == "[DONE]":
+                                break
+                            try:
+                                chunk = json.loads(data_str)
+                                delta = chunk.get("choices", [{}])[0].get("delta", {})
+                                content = delta.get("content", "")
+                                if content:
+                                    yield content
+                            except Exception:
+                                continue
+                        return
+                    else:
+                        logger.error(f"Streaming LLM error {resp.status_code}")
+                        self._cached_model = None
             except Exception as e:
                 logger.error(f"Streaming LLM exception: {e}")
 
-        # Fallback if streaming failed or key is absent
-        fallback_reply = await self.generate_ai_response(clean_prompt)
-        yield fallback_reply
+        # Fallback — instant, no API call
+        yield self._fast_fallback(clean_prompt)
 
     def generate_speech_bytes(self, text: str) -> bytes:
         if not text or not text.strip():
             return b""
         try:
             from app.services.kokoro_service import kokoro_service
-            # Sanitize text to ensure clean phoneme generation
             clean_text = re.sub(r'[^\w\s\.,\?!-]', '', text)
             if not clean_text.strip():
                 clean_text = text
@@ -513,7 +409,4 @@ class VoiceAgentService:
             return b""
 
     async def generate_speech_bytes_async(self, text: str) -> bytes:
-        """Run CPU-bound Kokoro synthesis in an executor to avoid blocking event loop."""
-        if not text or not text.strip():
-            return b""
         return await asyncio.to_thread(self.generate_speech_bytes, text)

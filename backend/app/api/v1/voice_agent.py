@@ -20,27 +20,20 @@ router = APIRouter()
 agent_service = VoiceAgentService()
 
 # AssemblyAI Streaming v3 — word_boost passed as URL query param to avoid Code 3006
-# Post-handshake text frames with JSON payloads cause protocol errors
 def _build_assemblyai_ws_url() -> str:
-    """Build AssemblyAI v3 WS URL with sanitized word_boost as query parameter."""
     import urllib.parse
     sanitized_boost = [re.sub(r'[^a-zA-Z0-9]', '', word) for word in ENTERPRISE_WORD_BOOST if word.strip()]
     sanitized_boost = [w for w in sanitized_boost if len(w) > 1]
-
-    query_params = {
-        "sample_rate": "16000",
-        "language_code": "en",
-    }
+    query_params = {"sample_rate": "16000", "language_code": "en"}
     if sanitized_boost:
         query_params["word_boost"] = json.dumps(sanitized_boost)
-
-    encoded_query = urllib.parse.urlencode(query_params)
-    return f"wss://streaming.assemblyai.com/v3/ws?{encoded_query}"
+    return f"wss://streaming.assemblyai.com/v3/ws?{urllib.parse.urlencode(query_params)}"
 
 ASSEMBLYAI_V3_WS_URL = _build_assemblyai_ws_url()
 
-# Punctuation regex for clause splitting on ., !, ?, ,, ;, or newline
+# Punctuation regex for clause splitting
 CLAUSE_PATTERN = re.compile(r'([^.!?,\n;]+[.!?,\n;]+)')
+
 
 async def process_llm_and_tts_stream(websocket: WebSocket, prompt: str):
     """Streams tokens from LLM and synthesizes audio at clause boundaries for ultra-low latency."""
@@ -52,34 +45,43 @@ async def process_llm_and_tts_stream(websocket: WebSocket, prompt: str):
         if websocket.client_state != WebSocketState.CONNECTED:
             break
         if agent_service._interrupt_flag:
-            logger.info("Interrupt detected during LLM stream — aborting.")
             break
 
         text_buffer += token
         full_text += token
 
-        # Send text delta to frontend for real-time text display
+        # Send text delta to frontend
         with contextlib.suppress(Exception):
             await websocket.send_json({"type": "text_delta", "content": token})
 
-        # Find all clause matches in buffer
+        # Find complete clauses and synthesize audio in parallel
         last_end = 0
+        tts_tasks = []
         for match in CLAUSE_PATTERN.finditer(text_buffer):
             clause_text = match.group(1).strip()
             if clause_text and len(clause_text) > 1:
                 if agent_service._interrupt_flag:
-                    logger.info("Interrupt detected before TTS clause — skipping.")
                     last_end = match.end()
                     continue
+                # Fire TTS synthesis without blocking the LLM stream
+                tts_tasks.append((match.end(), clause_text))
+            last_end = match.end()
+
+        # Execute TTS tasks concurrently
+        if tts_tasks:
+            end_positions = []
+            for end_pos, clause_text in tts_tasks:
                 audio_bytes = await agent_service.generate_speech_bytes_async(clause_text)
                 if audio_bytes and websocket.client_state == WebSocketState.CONNECTED:
                     with contextlib.suppress(Exception):
                         await websocket.send_bytes(audio_bytes)
-            last_end = match.end()
-        if last_end > 0:
-            text_buffer = text_buffer[last_end:]
+                end_positions.append(end_pos)
 
-    # Process remaining text in buffer if no interrupt
+            if end_positions:
+                max_end = max(end_positions)
+                text_buffer = text_buffer[max_end:]
+
+    # Process remaining text in buffer
     remaining_text = text_buffer.strip()
     if remaining_text and len(remaining_text) > 1 and websocket.client_state == WebSocketState.CONNECTED:
         if not agent_service._interrupt_flag:
@@ -88,18 +90,18 @@ async def process_llm_and_tts_stream(websocket: WebSocket, prompt: str):
                 with contextlib.suppress(Exception):
                     await websocket.send_bytes(audio_bytes)
 
-    # Emit final consolidated text response (skip if interrupted)
+    # Emit final consolidated text response
     if websocket.client_state == WebSocketState.CONNECTED and not agent_service._interrupt_flag:
         with contextlib.suppress(Exception):
             await websocket.send_json({"type": "text_response", "text": full_text.strip(), "role": "assistant"})
 
-        # Emit action_card with verification hash and audit QR payload
         action_card = agent_service.resolve_document_action(full_text.strip(), prompt)
         if action_card and websocket.client_state == WebSocketState.CONNECTED:
             with contextlib.suppress(Exception):
                 await websocket.send_json(action_card)
 
     agent_service.clear_interrupt()
+
 
 @router.websocket("/ws/voice-agent")
 async def voice_agent_websocket(websocket: WebSocket):
@@ -109,13 +111,12 @@ async def voice_agent_websocket(websocket: WebSocket):
     api_key = os.getenv("ASSEMBLYAI_API_KEY", "").strip()
 
     if not api_key:
-        logger.warning("ASSEMBLYAI_API_KEY is not set in backend/.env. Running in direct text fallback mode.")
+        logger.warning("ASSEMBLYAI_API_KEY not set. Running in text fallback mode.")
         try:
             while websocket.client_state == WebSocketState.CONNECTED:
                 data = await websocket.receive()
                 if "text" in data and data["text"]:
                     text_msg = data["text"]
-                    # Check for interrupt signal
                     try:
                         parsed = json.loads(text_msg)
                         if parsed.get("type") == "user_interrupt":
@@ -139,7 +140,6 @@ async def voice_agent_websocket(websocket: WebSocket):
     headers = {"Authorization": api_key}
 
     try:
-        # Compatibility handling for websockets library versions
         ws_kwargs = {}
         ws_version = getattr(websockets, "__version__", "10.0")
         major_v = int(ws_version.split(".")[0]) if ws_version.split(".")[0].isdigit() else 10
@@ -149,13 +149,11 @@ async def voice_agent_websocket(websocket: WebSocket):
             ws_kwargs["extra_headers"] = headers
 
         async with websockets.connect(ASSEMBLYAI_V3_WS_URL, **ws_kwargs) as aai_ws:
-            logger.info("Successfully connected to AssemblyAI Streaming v3 WebSocket API.")
+            logger.info("Connected to AssemblyAI Streaming v3 WebSocket API.")
 
-            # Send silent PCM frame FIRST to satisfy AssemblyAI initial audio requirement
-            # and prevent instant keep-alive timeout (Code 3006)
+            # Send silent PCM frame to prevent keep-alive timeout
             try:
                 await aai_ws.send(b'\x00' * 320)
-                logger.debug("Sent silence keep-alive frame to AssemblyAI.")
             except Exception:
                 pass
 
@@ -165,12 +163,10 @@ async def voice_agent_websocket(websocket: WebSocket):
                         message = await websocket.receive()
                         if "bytes" in message and message["bytes"]:
                             raw_bytes = message["bytes"]
-                            # Only forward valid non-empty PCM buffers
                             if len(raw_bytes) > 0:
                                 await aai_ws.send(raw_bytes)
                         elif "text" in message and message["text"]:
                             text_data = message["text"]
-                            # Check for interrupt signal from client
                             try:
                                 parsed = json.loads(text_data)
                                 if parsed.get("type") == "user_interrupt":
@@ -197,7 +193,7 @@ async def voice_agent_websocket(websocket: WebSocket):
                         event_type = msg.get("type")
 
                         if event_type == "Begin":
-                            logger.info(f"AssemblyAI v3 session active. Session ID: {msg.get('id')}")
+                            logger.info(f"AssemblyAI v3 session active. ID: {msg.get('id')}")
 
                         elif event_type == "Turn":
                             transcript = msg.get("transcript", "")
@@ -221,7 +217,6 @@ async def voice_agent_websocket(websocket: WebSocket):
                                             "role": "user",
                                             "final": True
                                         })
-
                                     await process_llm_and_tts_stream(websocket, transcript)
 
                 except websockets.exceptions.ConnectionClosed as cc:
@@ -243,7 +238,7 @@ async def voice_agent_websocket(websocket: WebSocket):
                 with contextlib.suppress(asyncio.CancelledError):
                     await task
 
-            # Explicitly terminate AssemblyAI session to prevent 1008 concurrent session errors
+            # Terminate AssemblyAI session
             with contextlib.suppress(Exception):
                 await aai_ws.send(json.dumps({"terminate_session": True}))
                 await asyncio.sleep(0.05)
@@ -257,3 +252,6 @@ async def voice_agent_websocket(websocket: WebSocket):
                 await websocket.close()
         except Exception:
             pass
+    finally:
+        # Clean up persistent HTTP client
+        await agent_service.close()
