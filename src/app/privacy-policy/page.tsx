@@ -12,7 +12,7 @@ import { siteConfig } from '@/config/site';
 
 export const metadata: Metadata = constructMetadata({
   title: `Privacy Policy | ${siteConfig.name}`,
-  description: `Understand how we collect, use, and protect your information when utilizing our services.`,
+  description: `Learn how Konthora collects, processes, and protects your data when using the voice-to-document engine.`,
   path: '/privacy-policy',
 });
 
@@ -38,7 +38,7 @@ export default function Page() {
             <Breadcrumbs items={[{ name: 'Home', href: '/' }, { name: 'Privacy Policy' }]} />
             <PageHeader
               title="Privacy Policy"
-              description="Understand how we collect, use, and protect your information when utilizing our services."
+              description="Learn how Konthora collects, processes, and protects your data when using the voice-to-document engine."
               badge="Privacy"
             />
           </div>
@@ -56,59 +56,59 @@ export default function Page() {
           <div className="space-y-8">
             <div className="rounded-2xl border border-border/60 bg-card/40 p-6 sm:p-8">
               <p className="leading-8 text-muted-foreground max-w-[75ch]">
-                At <strong className="text-foreground">{siteConfig.name}</strong>, accessibility and user trust are core values. This policy explains our guidelines concerning data handling for visitors using our website.
+                At <strong className="text-foreground">{siteConfig.name}</strong>, user privacy is a fundamental value. This policy explains how we handle data when you use the voice-to-document engine.
               </p>
             </div>
             <div className="rounded-2xl border border-border/60 bg-card/40 p-6 sm:p-8">
               <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-6">
-                1. Temporary File Processing
+                1. Voice Data Processing
               </h2>
               <p className="leading-8 text-muted-foreground max-w-[75ch] mb-4">
-                  When the transcription and speech processing engines are integrated, the following data lifecycle policy will apply:
-                </p>
-                <ul className="list-disc pl-6 space-y-3 leading-8 text-muted-foreground max-w-[75ch] marker:text-muted-foreground/50">
-                  <li className="pl-2">
-                    <strong className="text-foreground">Uploaded Files:</strong> Any audio or video files uploaded to the transcription workspace will be processed temporarily on our servers to parse language and generate text timestamps.
-                  </li>
-                  <li className="pl-2">
-                    <strong className="text-foreground">Generated Audio:</strong> Text scripts converted into voice output will be compiled on our servers to output downloadable MP3 or WAV files.
-                  </li>
-                  <li className="pl-2">
-                    <strong className="text-foreground">Retention & Deletion:</strong> Uploaded texts are processed strictly in-memory and immediately wiped from server memory once synthesis concludes. Generated audio output files are cached temporarily under secure, randomized paths and automatically deleted after exactly 60 minutes.
-                  </li>
-                </ul>
+                When you use the voice agent, the following data lifecycle applies:
+              </p>
+              <ul className="list-disc pl-6 space-y-3 leading-8 text-muted-foreground max-w-[75ch] marker:text-muted-foreground/50">
+                <li className="pl-2">
+                  <strong className="text-foreground">Audio Capture:</strong> Your microphone audio is streamed in real-time to AssemblyAI&apos;s Voice Agent API over an encrypted WebSocket connection for speech-to-text processing.
+                </li>
+                <li className="pl-2">
+                  <strong className="text-foreground">Voice Data:</strong> Audio data is processed transiently by AssemblyAI and is never stored on our servers. AssemblyAI processes audio in-memory and discards it immediately after transcription.
+                </li>
+                <li className="pl-2">
+                  <strong className="text-foreground">Document Generation:</strong> Voice commands are converted to structured document data on our backend. Generated documents are returned to your browser in real-time.
+                </li>
+              </ul>
             </div>
             <div className="rounded-2xl border border-border/60 bg-card/40 p-6 sm:p-8">
               <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-6">
-                2. Analytical Tools
+                2. Document Storage
               </h2>
               <p className="leading-8 text-muted-foreground max-w-[75ch]">
-                  We may utilize basic website analytics to monitor traffic, load performance, and browser compatibility. These analytics do not inspect the content of your text scripts or media uploads and serve only to improve platform stability.
-                </p>
+                All documents are generated and stored locally in your browser. We do not maintain a database of your generated documents. Document data exists only in your active browser session and is lost when you close the page.
+              </p>
             </div>
             <div className="rounded-2xl border border-border/60 bg-card/40 p-6 sm:p-8">
               <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-6">
-                3. Cookies and Storage
+                3. Analytics & Cookies
               </h2>
               <p className="leading-8 text-muted-foreground max-w-[75ch]">
-                  We use local storage within your browser to store user preferences such as your visual theme choice (Light or Dark mode). We do not track users across third-party websites.
-                </p>
+                We use local storage within your browser to store user preferences such as your visual theme choice (Light or Dark mode). We do not use third-party analytics trackers or cross-site cookies.
+              </p>
             </div>
             <div className="rounded-2xl border border-border/60 bg-card/40 p-6 sm:p-8">
               <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-6">
-                4. Future Advertising Integration
+                4. Third-Party Services
               </h2>
               <p className="leading-8 text-muted-foreground max-w-[75ch]">
-                  To keep our tools free, we plan to monetize the platform by serving advertisements. These ad services may use basic device identifiers to serve non-intrusive placements. We do not share user script files or media assets with advertising partners.
-                </p>
+                Our voice agent uses AssemblyAI&apos;s managed Voice Agent API for speech recognition and text-to-speech. AssemblyAI&apos;s own privacy policy governs how they handle transient audio data. We do not share any personal information with third parties beyond what is required for voice processing.
+              </p>
             </div>
             <div className="rounded-2xl border border-border/60 bg-card/40 p-6 sm:p-8">
               <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-6">
                 5. Changes to This Policy
               </h2>
               <p className="leading-8 text-muted-foreground max-w-[75ch]">
-                  We reserves the right to revise this Privacy Policy to reflect backend integrations or regulatory updates. We recommend checking this page periodically for updates.
-                </p>
+                We reserve the right to revise this Privacy Policy to reflect backend integrations or regulatory updates. We recommend checking this page periodically for updates.
+              </p>
             </div>
 
           </div>

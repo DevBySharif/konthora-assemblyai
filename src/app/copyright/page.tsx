@@ -12,7 +12,7 @@ import { siteConfig } from '@/config/site';
 
 export const metadata: Metadata = constructMetadata({
   title: `Copyright and Content Removal Requests | ${siteConfig.name}`,
-  description: `Our policy regarding content disputes, intellectual property claims, and removal procedures.`,
+  description: `Our policy regarding content disputes, intellectual property claims, and removal procedures for the Konthora platform.`,
   path: '/copyright',
 });
 
@@ -56,7 +56,7 @@ export default function Page() {
           <div className="space-y-8">
             <div className="rounded-2xl border border-border/60 bg-card/40 p-6 sm:p-8">
               <p className="leading-8 text-muted-foreground max-w-[75ch]">
-                At <strong className="text-foreground">{siteConfig.name}</strong>, we respect the intellectual property rights of others. We expect our users to display the same level of respect when uploading content or using our synthesis workspaces.
+                At <strong className="text-foreground">{siteConfig.name}</strong>, we respect the intellectual property rights of others. We expect our users to display the same level of respect when generating or using documents through our platform.
               </p>
             </div>
             <div className="rounded-2xl border border-border/60 bg-card/40 p-6 sm:p-8">
@@ -64,40 +64,40 @@ export default function Page() {
                 Policy Overview
               </h2>
               <p className="leading-8 text-muted-foreground max-w-[75ch] mb-4">
-                  Because our platform is designed around temporary local processing, we do not host a public database of user files, nor do we run a index page of public user audio or transcripts. When the backend launches, uploaded files and generated outputs will be processed temporarily and automatically deleted after a short processing window.
-                </p>
-                <p className="leading-8 text-muted-foreground max-w-[75ch]">
-                  However, if you believe that any content generated or processed through our services infringes on your intellectual property rights, you can submit a removal or dispute notice to our team.
-                </p>
+                Konthora is a browser-based voice-to-document tool. All documents are generated locally in your browser session and are never stored on our servers. We do not host a public database or index of user-generated content.
+              </p>
+              <p className="leading-8 text-muted-foreground max-w-[75ch]">
+                However, if you believe that any content generated through our services infringes on your intellectual property rights, you can submit a removal or dispute notice to our team.
+              </p>
             </div>
             <div className="rounded-2xl border border-border/60 bg-card/40 p-6 sm:p-8">
               <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-6">
                 Procedure for Submitting a Request
               </h2>
               <p className="leading-8 text-muted-foreground max-w-[75ch] mb-4">
-                  To report a copyright issue or request content removal, please send an email to our support team at:{' '}
-                  <a href={`mailto:${siteConfig.contactEmail}`} className="text-primary hover:underline font-semibold">
-                    {siteConfig.contactEmail}
-                  </a>
-                </p>
-                <p className="leading-8 text-muted-foreground max-w-[75ch] mb-4">
-                  To expedite your request, please include the following details in your message:
-                </p>
-                <ul className="list-disc pl-6 space-y-3 leading-8 text-muted-foreground max-w-[75ch] marker:text-muted-foreground/50">
-                  <li className="pl-2"><strong className="text-foreground">Identification of the Work:</strong> A description of the copyrighted work that you claim has been infringed.</li>
-                  <li className="pl-2"><strong className="text-foreground">Details of Infringement:</strong> Details explaining how the material processed through our tools infringes your copyright.</li>
-                  <li className="pl-2"><strong className="text-foreground">Contact Details:</strong> Your full name, mailing address, telephone number, and email address.</li>
-                  <li className="pl-2"><strong className="text-foreground">Ownership Declaration:</strong> A statement indicating that you have a good-faith belief that use of the material is not authorized by the copyright owner, its agent, or the law.</li>
-                  <li className="pl-2"><strong className="text-foreground">Truth Declaration:</strong> A statement certifying that the details in the notice are accurate, and under penalty of perjury, that you are the owner or authorized to act on behalf of the owner of the copyright.</li>
-                </ul>
+                To report a copyright issue or request content removal, please send an email to our support team at:{' '}
+                <a href={`mailto:${siteConfig.contactEmail}`} className="text-primary hover:underline font-semibold">
+                  {siteConfig.contactEmail}
+                </a>
+              </p>
+              <p className="leading-8 text-muted-foreground max-w-[75ch] mb-4">
+                To expedite your request, please include the following details in your message:
+              </p>
+              <ul className="list-disc pl-6 space-y-3 leading-8 text-muted-foreground max-w-[75ch] marker:text-muted-foreground/50">
+                <li className="pl-2"><strong className="text-foreground">Identification of the Work:</strong> A description of the copyrighted work that you claim has been infringed.</li>
+                <li className="pl-2"><strong className="text-foreground">Details of Infringement:</strong> Details explaining how the content generated through our platform infringes your copyright.</li>
+                <li className="pl-2"><strong className="text-foreground">Contact Details:</strong> Your full name, mailing address, telephone number, and email address.</li>
+                <li className="pl-2"><strong className="text-foreground">Ownership Declaration:</strong> A statement indicating that you have a good-faith belief that use of the material is not authorized by the copyright owner, its agent, or the law.</li>
+                <li className="pl-2"><strong className="text-foreground">Truth Declaration:</strong> A statement certifying that the details in the notice are accurate, and under penalty of perjury, that you are the owner or authorized to act on behalf of the owner of the copyright.</li>
+              </ul>
             </div>
             <div className="rounded-2xl border border-border/60 bg-card/40 p-6 sm:p-8">
               <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-6">
                 Review Process
               </h2>
               <p className="leading-8 text-muted-foreground max-w-[75ch]">
-                  Once a valid dispute notice is received, our team will review the claim and take appropriate measures, which may include disabling temporary features or restricting specific access keys. Because all user files are deleted automatically, many disputes are resolved immediately through system-level file expirations.
-                </p>
+                Once a valid dispute notice is received, our team will review the claim and take appropriate measures. Because all user documents are stored locally in the browser and never persisted on our servers, many disputes are resolved by simply closing the browser session, which permanently deletes all generated documents.
+              </p>
             </div>
 
           </div>

@@ -12,7 +12,7 @@ import { siteConfig } from '@/config/site';
 
 export const metadata: Metadata = constructMetadata({
   title: `Terms of Service | ${siteConfig.name}`,
-  description: `Read the terms and rules governing the use of our speech synthesis and transcription services.`,
+  description: `Read the terms and rules governing the use of Konthora's voice-to-document enterprise operations engine.`,
   path: '/terms',
 });
 
@@ -38,7 +38,7 @@ export default function Page() {
             <Breadcrumbs items={[{ name: 'Home', href: '/' }, { name: 'Terms of Service' }]} />
             <PageHeader
               title="Terms of Service"
-              description="Read the terms and rules governing the use of our speech synthesis and transcription services."
+              description="Read the terms and rules governing the use of Konthora's voice-to-document enterprise operations engine."
               badge="Terms"
             />
           </div>
@@ -64,53 +64,62 @@ export default function Page() {
                 1. Acceptance of Terms
               </h2>
               <p className="leading-8 text-muted-foreground max-w-[75ch]">
-                  By utilizing the text-to-speech and transcription workspaces, you confirm that you accept these terms and agree to abide by them. If you do not agree, you must not utilize our website tools.
-                </p>
+                By using the voice-to-document engine, you confirm that you accept these terms and agree to abide by them. If you do not agree, you must not use the platform.
+              </p>
             </div>
             <div className="rounded-2xl border border-border/60 bg-card/40 p-6 sm:p-8">
               <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-6">
                 2. Acceptable Use and Restrictions
               </h2>
               <p className="leading-8 text-muted-foreground max-w-[75ch] mb-4">
-                  You agree to use our platform only for lawful purposes. You must not use the platform to:
-                </p>
-                <ul className="list-disc pl-6 space-y-3 leading-8 text-muted-foreground max-w-[75ch] marker:text-muted-foreground/50">
-                  <li className="pl-2">Upload, transcribe, or generate audio containing illegal material, hate speech, harassment, or defamatory statements.</li>
-                  <li className="pl-2">Engage in any automated scraping, reverse engineering, or rate-limiting abuse of our browser workspaces or underlying systems.</li>
-                  <li className="pl-2">Infringe on third-party copyright, patents, or intellectual property rights.</li>
-                </ul>
+                You agree to use the platform only for lawful purposes. You must not:
+              </p>
+              <ul className="list-disc pl-6 space-y-3 leading-8 text-muted-foreground max-w-[75ch] marker:text-muted-foreground/50">
+                <li className="pl-2">Generate documents containing illegal content, fraud, hate speech, or defamatory material.</li>
+                <li className="pl-2">Attempt to reverse-engineer, scrape, or abuse the voice agent or backend API.</li>
+                <li className="pl-2">Use the platform to infringe on third-party intellectual property rights.</li>
+                <li className="pl-2">Resell or redistribute generated documents in a misleading or unauthorized manner.</li>
+              </ul>
             </div>
             <div className="rounded-2xl border border-border/60 bg-card/40 p-6 sm:p-8">
               <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-6">
                 3. Ownership of Content
               </h2>
               <p className="leading-8 text-muted-foreground max-w-[75ch]">
-                  You retain all ownership rights in the source text scripts and media files that you submit to Konthora. We do not claim any proprietary rights over your uploaded text or audio, and all generated outputs (such as voice files or transcription logs) belong entirely to you for personal or commercial use.
-                </p>
+                You retain all ownership rights in the voice commands you provide and the documents generated through the platform. Konthora does not claim any proprietary rights over your generated outputs, which you are free to use for personal or commercial purposes.
+              </p>
             </div>
             <div className="rounded-2xl border border-border/60 bg-card/40 p-6 sm:p-8">
               <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-6">
                 4. Service Availability
               </h2>
               <p className="leading-8 text-muted-foreground max-w-[75ch]">
-                  Our workspaces are provided on an &ldquo;as is&rdquo; and &ldquo;as available&rdquo; basis. We do not guarantee uninterrupted runtime, zero transcription errors, or that server capacities will always be available during peak traffic.
-                </p>
+                The voice-to-document engine is provided on an &ldquo;as is&rdquo; and &ldquo;as available&rdquo; basis. We do not guarantee uninterrupted availability, error-free voice recognition, or zero downtime. Third-party dependencies (AssemblyAI) may affect service availability.
+              </p>
             </div>
             <div className="rounded-2xl border border-border/60 bg-card/40 p-6 sm:p-8">
               <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-6">
-                5. Limitation of Liability
+                5. Document Accuracy
               </h2>
               <p className="leading-8 text-muted-foreground max-w-[75ch]">
-                  To the maximum extent permitted by law, Konthora and its developers shall not be liable for any direct, indirect, or incidental damages resulting from file upload loss, generated audio quality, transcription inaccuracies, or system downtime.
-                </p>
+                Documents are generated from voice input using AI. While we strive for accuracy, we do not guarantee that generated documents are free from errors. Users are responsible for reviewing all generated documents before use.
+              </p>
             </div>
             <div className="rounded-2xl border border-border/60 bg-card/40 p-6 sm:p-8">
               <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-6">
-                6. Governing Law
+                6. Limitation of Liability
               </h2>
               <p className="leading-8 text-muted-foreground max-w-[75ch]">
-                  These Terms of Service are governed by local regulatory guidelines. Any disputes arising from the use of our services will be subject to local court jurisdictions.
-                </p>
+                To the maximum extent permitted by law, Konthora and its developers shall not be liable for any direct, indirect, or incidental damages resulting from use of, or inability to use, the platform or any generated documents.
+              </p>
+            </div>
+            <div className="rounded-2xl border border-border/60 bg-card/40 p-6 sm:p-8">
+              <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-6">
+                7. Governing Law
+              </h2>
+              <p className="leading-8 text-muted-foreground max-w-[75ch]">
+                These Terms of Service are governed by local regulatory guidelines. Any disputes arising from the use of our services will be subject to local court jurisdictions.
+              </p>
             </div>
 
           </div>

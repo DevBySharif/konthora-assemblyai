@@ -47,17 +47,17 @@ export default function AboutPage() {
           <Breadcrumbs items={[{ name: 'Home', href: '/' }, { name: 'About' }]} />
           <PageHeader
             title={`About ${siteConfig.name}`}
-            description="Our mission is to build clean, fast, and professional AI audio utilities for content creators, transcribers, and developers."
+            description="An autonomous voice-driven enterprise operations engine that transforms spoken words into production-ready documents."
             badge="Our Story"
           />
 
           <div className="prose dark:prose-invert max-w-none mt-8 space-y-6 text-muted-foreground leading-relaxed">
             <p>
-              The name <strong className="text-foreground">{siteConfig.name}</strong> is inspired by the Bengali word <strong className="text-foreground">&ldquo;Kontho,&rdquo;</strong> which translates to <strong className="text-foreground">voice</strong>. True to this etymology, our platform focuses on expanding the possibilities of human voice and spoken content by providing high-quality tools to generate natural speech and parse audio recordings into highly readable, timestamped transcripts.
+              The name <strong className="text-foreground">{siteConfig.name}</strong> is inspired by the Bengali word <strong className="text-foreground">&ldquo;Kontho,&rdquo;</strong> which translates to <strong className="text-foreground">voice</strong>. True to this etymology, our platform transforms natural voice commands into fully formatted, verified, and printable enterprise documents — eliminating administrative overhead through intuitive voice interaction.
             </p>
 
             <p>
-              We believe that powerful tools don&rsquo;t need to be complex or cluttered. By designing browser-centric workspaces, we make it easy for public users to draft high-fidelity audio tracks or transcribe speech without requiring bloated software installations, subscription accounts, or complex onboarding.
+              Powered by AssemblyAI&apos;s managed Voice Agent API, Konthora handles real-time speech recognition, LLM reasoning, and natural voice synthesis in a single WebSocket connection. Users can create invoices, quotations, purchase orders, HR letters, financial reports, and more — all through simple voice commands in English, Bangla, or Banglish.
             </p>
           </div>
 
@@ -67,9 +67,9 @@ export default function AboutPage() {
               <div className="inline-flex p-2 rounded-lg bg-primary/10 text-primary mb-4">
                 <Volume2 className="w-5 h-5" />
               </div>
-              <h2 className="text-lg font-bold text-foreground mb-2">Natural Speech Output</h2>
+              <h2 className="text-lg font-bold text-foreground mb-2">Voice-to-Document Engine</h2>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Konthora uses neural voice synthesis models to create conversational, human-like voice outputs that avoid standard robotic inflections.
+                Speak naturally and Konthora generates production-ready enterprise documents — invoices, quotations, purchase orders, HR letters, and more — in sub-seconds.
               </p>
             </div>
 
@@ -77,9 +77,9 @@ export default function AboutPage() {
               <div className="inline-flex p-2 rounded-lg bg-primary/10 text-primary mb-4">
                 <FileAudio className="w-5 h-5" />
               </div>
-              <h2 className="text-lg font-bold text-foreground mb-2">Accurate Timestamps</h2>
+              <h2 className="text-lg font-bold text-foreground mb-2">Multilingual & Code-Switching</h2>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Our transcription workflow is designed to parse media files and link text segments directly with timeline timestamps down to individual words, ideal for syncing subtitles and indexes.
+                Konthora understands English, Bangla, and Banglish — mixed-language utterances parsed seamlessly, with currency conversion and entity extraction built in.
               </p>
             </div>
 
@@ -87,9 +87,9 @@ export default function AboutPage() {
               <div className="inline-flex p-2 rounded-lg bg-primary/10 text-primary mb-4">
                 <Target className="w-5 h-5" />
               </div>
-              <h2 className="text-lg font-bold text-foreground mb-2">Quality-First Approach</h2>
+              <h2 className="text-lg font-bold text-foreground mb-2">Cryptographic Verification</h2>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                We focus only on doing two things exceptionally well—Text to Speech and Audio Transcription—rather than building a bloated platform with dozens of unrelated, mediocre AI features.
+                Every document is sealed with a SHA-256 cryptographic hash and QR audit code, enabling instant verification and tamper-proof record keeping.
               </p>
             </div>
 
@@ -97,9 +97,9 @@ export default function AboutPage() {
               <div className="inline-flex p-2 rounded-lg bg-primary/10 text-primary mb-4">
                 <Users className="w-5 h-5" />
               </div>
-              <h2 className="text-lg font-bold text-foreground mb-2">Privacy & Transparency</h2>
+              <h2 className="text-lg font-bold text-foreground mb-2">Privacy & Security</h2>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                We are committed to transparent user agreements and safe content management, providing clear notices about temporary data processing and automatic deletion parameters.
+                Audio is processed by AssemblyAI with enterprise-grade security. Document generation happens on our backend. Voice data is never stored beyond the active session.
               </p>
             </div>
           </div>
