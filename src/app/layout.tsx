@@ -3,7 +3,8 @@ import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import Analytics from '@/components/analytics/Analytics';
-import { RouteChrome } from '@/components/layout/RouteChrome';
+import { Header } from '@/components/layout/Header';
+import { Footer } from '@/components/layout/Footer';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -67,7 +68,11 @@ export default function RootLayout({
           <a href="#main-content" className="skip-to-content">
             Skip to main content
           </a>
-          <RouteChrome>{children}</RouteChrome>
+          <Header />
+          <main id="main-content" className="flex-grow flex flex-col">
+            {children}
+          </main>
+          <Footer />
         </ThemeProvider>
         <Analytics />
       </body>
