@@ -1,6 +1,7 @@
 import os
 import re
 import json
+import time
 import asyncio
 import contextlib
 from dotenv import load_dotenv
@@ -24,7 +25,7 @@ def _build_assemblyai_ws_url() -> str:
     import urllib.parse
     sanitized_boost = [re.sub(r'[^a-zA-Z0-9]', '', word) for word in ENTERPRISE_WORD_BOOST if word.strip()]
     sanitized_boost = [w for w in sanitized_boost if len(w) > 1]
-    query_params = {"sample_rate": "16000", "language_code": "en"}
+    query_params = {"sample_rate": "16000", "language_code": "en", "end_of_turn_sensitivity": "0.5", "min_end_of_turn_silence": "300"}
     if sanitized_boost:
         query_params["word_boost"] = json.dumps(sanitized_boost)
     return f"wss://streaming.assemblyai.com/v3/ws?{urllib.parse.urlencode(query_params)}"
@@ -36,9 +37,10 @@ CLAUSE_PATTERN = re.compile(r'([^.!?,\n;]+[.!?,\n;]+)')
 
 
 async def process_llm_and_tts_stream(websocket: WebSocket, prompt: str):
-    """Streams tokens from LLM, sends text immediately, synthesizes audio in background."""
+    """Streams tokens from LLM, sends text immediately, synthesizes audio after."""
     full_text = ""
     agent_service.clear_interrupt()
+    t_start = time.monotonic()
 
     # ── Phase 1: Stream text tokens ASAP (no TTS blocking) ──
     async for token in agent_service.stream_ai_response(prompt):
@@ -50,13 +52,16 @@ async def process_llm_and_tts_stream(websocket: WebSocket, prompt: str):
         with contextlib.suppress(Exception):
             await websocket.send_json({"type": "text_delta", "content": token})
 
-    # ── Phase 2: Synthesize audio for complete response (background) ──
+    t_text_done = time.monotonic()
+    logger.info(f"Text streaming done in {t_text_done - t_start:.2f}s — '{full_text[:60]}...'")
+
+    # ── Phase 2: Synthesize audio for complete response ──
     if not agent_service._interrupt_flag and full_text.strip():
-        # Split into clauses and synthesize audio
         clauses = CLAUSE_PATTERN.findall(full_text)
         if not clauses:
             clauses = [full_text.strip()]
 
+        t_tts_start = time.monotonic()
         for clause in clauses:
             clause = clause.strip()
             if not clause or len(clause) < 2:
@@ -67,6 +72,7 @@ async def process_llm_and_tts_stream(websocket: WebSocket, prompt: str):
             if audio_bytes and websocket.client_state == WebSocketState.CONNECTED:
                 with contextlib.suppress(Exception):
                     await websocket.send_bytes(audio_bytes)
+        logger.info(f"TTS done in {time.monotonic() - t_tts_start:.2f}s for {len(clauses)} clauses")
 
     # ── Phase 3: Emit final text + action card ──
     if websocket.client_state == WebSocketState.CONNECTED and not agent_service._interrupt_flag:
@@ -176,9 +182,11 @@ async def voice_agent_websocket(websocket: WebSocket):
                         elif event_type == "Turn":
                             transcript = msg.get("transcript", "")
                             end_of_turn = msg.get("end_of_turn", False)
+                            is_partial = msg.get("is_partial", True)
 
                             if transcript.strip():
                                 if not end_of_turn:
+                                    logger.debug(f"Partial: '{transcript}'")
                                     if websocket.client_state == WebSocketState.CONNECTED:
                                         await websocket.send_json({
                                             "type": "transcript",
@@ -187,7 +195,7 @@ async def voice_agent_websocket(websocket: WebSocket):
                                             "final": False
                                         })
                                 else:
-                                    logger.info(f"AssemblyAI v3 Final Turn: '{transcript}'")
+                                    logger.info(f"Final Turn ({len(transcript)} chars): '{transcript}'")
                                     if websocket.client_state == WebSocketState.CONNECTED:
                                         await websocket.send_json({
                                             "type": "transcript",

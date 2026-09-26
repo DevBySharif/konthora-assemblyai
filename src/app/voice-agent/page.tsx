@@ -2297,7 +2297,7 @@ export default function VoiceAgentPage() {
 
                 <button
                   onClick={handlePrintPDF}
-                  className="btn-vesper flex items-center gap-1.5 px-3 py-1 rounded-lg bg-neutral-900 hover:bg-white text-slate-950 font-bold text-[11px] font-mono shadow-[0_0_12px_rgba(255,255,255,0.1)] transition-all cursor-pointer"
+                  className="btn-vesper flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white hover:bg-neutral-200 text-black font-bold text-[11px] font-mono shadow-[0_0_12px_rgba(255,255,255,0.1)] transition-all cursor-pointer"
                   title="Print or Save as PDF"
                 >
                   <Printer className="w-3 h-3" />
