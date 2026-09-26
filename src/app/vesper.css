@@ -70,27 +70,27 @@ html, body {
 }
 
 /* ── Headline Font Styling ── */
-.hero-headline em,
 .hero-headline em {
-  font-family: "Instrument Serif", "Times New Roman", Times, serif;
-  font-style: italic;
-  font-weight: 400;
-  color: #10b981;
+  font-family: "Instrument Serif", "Times New Roman", Times, serif !important;
+  font-style: italic !important;
+  font-weight: 400 !important;
+  color: #10b981 !important;
+  display: inline-block;
 }
 
 /* ── Keyframe Animations ── */
 .appear {
-  opacity: 1;
-  animation-duration: 1.05s;
-  animation-fill-mode: both;
-  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
-  animation-delay: var(--d, 0.08s);
+  opacity: 1 !important;
+  animation-duration: 1.05s !important;
+  animation-fill-mode: both !important;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1) !important;
+  animation-delay: var(--d, 0.08s) !important;
 }
 
-.appear--scale { animation-name: in-scale; }
-.appear--soft { animation-name: in-soft; }
-.appear--mask { animation-name: in-mask; }
-.appear--pop { animation-name: in-pop; }
+.appear--scale { animation-name: in-scale !important; }
+.appear--soft { animation-name: in-soft !important; }
+.appear--mask { animation-name: in-mask !important; }
+.appear--pop { animation-name: in-pop !important; }
 
 @keyframes in-scale {
   0% { opacity: 0; transform: scale(0.85); }
