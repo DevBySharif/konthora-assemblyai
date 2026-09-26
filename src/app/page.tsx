@@ -41,7 +41,7 @@ export default function LandingPage() {
             <a href="#architecture" className="vesper-nav-pill appear appear--scale px-4 py-1.5 text-xs font-medium text-neutral-300 rounded-lg" style={{ "--d": "0.40s" } as React.CSSProperties}>Architecture</a>
           </nav>
 
-          <Link className="px-5 py-2 text-xs font-semibold rounded-xl bg-white text-black hover:bg-neutral-200 transition-all shadow-[0_0_20px_rgba(255,255,255,0.15)] appear appear--scale" href="/voice-agent" style={{ "--d": "0.34s" } as React.CSSProperties}>
+          <Link className="px-5 py-2 text-xs font-semibold rounded-xl bg-white text-black hover:bg-neutral-200 transition-all shadow-[0_0_20px_rgba(255,255,255,0.15)] appear appear--scale font-[family-name:var(--font-geist-sans)]" href="/voice-agent" style={{ "--d": "0.34s" } as React.CSSProperties}>
             Live Demo →
           </Link>
         </div>
@@ -72,11 +72,11 @@ export default function LandingPage() {
           </p>
 
           <div className="flex flex-wrap items-center gap-4 mb-10">
-            <Link className="vesper-nav-pill px-6 py-3.5 text-xs md:text-sm font-semibold rounded-xl bg-white text-black hover:bg-neutral-200 transition-all flex items-center gap-2 shadow-[0_0_25px_rgba(255,255,255,0.15)]" href="/voice-agent">
+            <Link className="vesper-nav-pill px-6 py-3.5 text-xs md:text-sm font-semibold rounded-xl text-white hover:bg-neutral-200 transition-all flex items-center gap-2 shadow-[0_0_25px_rgba(255,255,255,0.15)]" href="/voice-agent">
               <span>Launch Voice Production Engine</span>
               <span>→</span>
             </Link>
-            <a href="#architecture" className="vesper-nav-pill px-6 py-3.5 text-xs md:text-sm font-medium rounded-xl bg-neutral-900 text-neutral-300 border border-white/15 hover:border-white/30 transition-all">
+            <a href="#architecture" className="vesper-nav-pill px-6 py-3.5 text-xs md:text-sm font-medium rounded-xl text-neutral-300 hover:text-white transition-all">
               View Architecture &amp; Docs
             </a>
           </div>
@@ -187,7 +187,7 @@ export default function LandingPage() {
               When Kokoro speaks the confirmation through laptop or desktop speakers, Konthora&apos;s audio gate dampens playback frequency bleeding, preventing AssemblyAI from re-transcribing the assistant&apos;s own voice.
             </p>
           </div>
-          <Link className="vesper-nav-pill px-6 py-3 rounded-xl bg-white text-black font-semibold text-xs hover:bg-neutral-200 transition-all whitespace-nowrap shadow-[0_0_20px_rgba(255,255,255,0.15)]" href="/voice-agent">
+          <Link className="vesper-nav-pill px-6 py-3 rounded-xl text-white font-semibold text-xs hover:bg-neutral-200 transition-all whitespace-nowrap shadow-[0_0_20px_rgba(255,255,255,0.15)]" href="/voice-agent">
             Test Voice Agent →
           </Link>
         </div>
@@ -210,10 +210,10 @@ export default function LandingPage() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as "invoice" | "financial" | "hr")}
-              className={`vesper-nav-pill px-5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+              className={`px-5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                 activeTab === tab.id
                   ? "bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.15)]"
-                  : "bg-neutral-900 text-neutral-400 hover:text-white border border-white/10"
+                  : "text-neutral-400 hover:text-white hover:bg-white/5 border border-white/10"
               }`}
             >
               {tab.label}
@@ -398,10 +398,10 @@ export default function LandingPage() {
             Konthora transforms spoken word into signed, structured enterprise documents in under 850 milliseconds. No typing. No templates. Just voice.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
-            <Link className="vesper-nav-pill px-8 py-4 rounded-xl bg-white text-black font-semibold text-sm hover:bg-neutral-200 transition-all shadow-[0_0_30px_rgba(255,255,255,0.15)]" href="/voice-agent">
+            <Link className="vesper-nav-pill px-8 py-4 rounded-xl text-white font-semibold text-sm hover:bg-neutral-200 transition-all shadow-[0_0_30px_rgba(255,255,255,0.15)]" href="/voice-agent">
               Launch Voice Production Engine →
             </Link>
-            <a href="https://github.com/DevBySharif/konthora-assemblyai" target="_blank" rel="noopener noreferrer" className="vesper-nav-pill px-8 py-4 rounded-xl bg-neutral-900 text-neutral-300 font-semibold text-sm border border-white/15 hover:border-white/30 transition-all">
+            <a href="https://github.com/DevBySharif/konthora-assemblyai" target="_blank" rel="noopener noreferrer" className="vesper-nav-pill px-8 py-4 rounded-xl text-neutral-300 font-semibold text-sm hover:text-white transition-all">
               View GitHub Repository
             </a>
           </div>
