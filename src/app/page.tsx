@@ -72,11 +72,11 @@ export default function LandingPage() {
           </p>
 
           <div className="flex flex-wrap items-center gap-4 mb-10">
-            <Link className="px-6 py-3.5 text-xs md:text-sm font-semibold rounded-xl bg-emerald-400 text-black hover:bg-emerald-300 transition-all flex items-center gap-2 shadow-[0_0_25px_rgba(16,185,129,0.3)]" href="/voice-agent">
+            <Link className="btn-vesper px-6 py-3.5 text-xs md:text-sm font-semibold rounded-xl bg-emerald-400 text-black hover:bg-emerald-300 transition-all flex items-center gap-2 shadow-[0_0_25px_rgba(16,185,129,0.3)]" href="/voice-agent">
               <span>Launch Voice Production Engine</span>
               <span>→</span>
             </Link>
-            <a href="#architecture" className="px-6 py-3.5 text-xs md:text-sm font-medium rounded-xl bg-neutral-900 text-neutral-300 border border-white/15 hover:border-white/30 transition-all">
+            <a href="#architecture" className="btn-vesper px-6 py-3.5 text-xs md:text-sm font-medium rounded-xl bg-neutral-900 text-neutral-300 border border-white/15 hover:border-white/30 transition-all">
               View Architecture &amp; Docs
             </a>
           </div>
@@ -130,7 +130,7 @@ export default function LandingPage() {
       </section>
 
       {/* CAPABILITIES SECTION */}
-      <section id="capabilities" className="relative z-10 max-w-7xl mx-auto px-6 py-20 border-t border-white/10">
+      <section id="capabilities" className="appear appear--soft relative z-10 max-w-7xl mx-auto px-6 py-20 border-t border-white/10" style={{ "--d": "0.3s" } as React.CSSProperties}>
         <div className="text-center max-w-2xl mx-auto mb-16">
           <span className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-mono">Enterprise Document Capabilities</span>
           <h2 className="text-3xl md:text-5xl font-semibold mt-4 mb-4">Designed for Real-World Commercial Workflows</h2>
@@ -154,7 +154,7 @@ export default function LandingPage() {
       </section>
 
       {/* ARCHITECTURE SECTION */}
-      <section id="architecture" className="relative z-10 max-w-7xl mx-auto px-6 py-20 border-t border-white/10">
+      <section id="architecture" className="appear appear--soft relative z-10 max-w-7xl mx-auto px-6 py-20 border-t border-white/10" style={{ "--d": "0.4s" } as React.CSSProperties}>
         <div className="text-center max-w-2xl mx-auto mb-16">
           <span className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-mono">Sub-Second Pipeline Architecture</span>
           <h2 className="text-3xl md:text-5xl font-semibold mt-4 mb-4">How Konthora Turns Soundwaves into Signed Documents</h2>
@@ -187,14 +187,14 @@ export default function LandingPage() {
               When Kokoro speaks the confirmation through laptop or desktop speakers, Konthora&apos;s audio gate dampens playback frequency bleeding, preventing AssemblyAI from re-transcribing the assistant&apos;s own voice.
             </p>
           </div>
-          <Link className="px-6 py-3 rounded-xl bg-emerald-400 text-black font-semibold text-xs hover:bg-emerald-300 transition-all whitespace-nowrap shadow-[0_0_20px_rgba(16,185,129,0.3)]" href="/voice-agent">
+          <Link className="btn-vesper px-6 py-3 rounded-xl bg-emerald-400 text-black font-semibold text-xs hover:bg-emerald-300 transition-all whitespace-nowrap shadow-[0_0_20px_rgba(16,185,129,0.3)]" href="/voice-agent">
             Test Voice Agent →
           </Link>
         </div>
       </section>
 
       {/* INTERACTIVE SIMULATOR */}
-      <section className="relative z-10 max-w-6xl mx-auto px-6 py-20 border-t border-white/10">
+      <section className="appear appear--soft relative z-10 max-w-6xl mx-auto px-6 py-20 border-t border-white/10" style={{ "--d": "0.5s" } as React.CSSProperties}>
         <div className="text-center mb-12">
           <span className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-mono">Interactive Engine Simulator</span>
           <h2 className="text-3xl md:text-4xl font-semibold mt-4 mb-2">See the Full-Duplex Flow in Action</h2>
@@ -210,7 +210,7 @@ export default function LandingPage() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as "invoice" | "financial" | "hr")}
-              className={`px-5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+              className={`btn-vesper px-5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                 activeTab === tab.id
                   ? "bg-emerald-400 text-black shadow-[0_0_20px_rgba(16,185,129,0.3)]"
                   : "bg-neutral-900 text-neutral-400 hover:text-white border border-white/10"
@@ -322,7 +322,7 @@ export default function LandingPage() {
       </section>
 
       {/* MULTILINGUAL SECTION */}
-      <section className="relative z-10 max-w-7xl mx-auto px-6 py-20 border-t border-white/10">
+      <section className="appear appear--soft relative z-10 max-w-7xl mx-auto px-6 py-20 border-t border-white/10" style={{ "--d": "0.6s" } as React.CSSProperties}>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div>
             <span className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-mono">Multilingual &amp; Code-Switching Speech</span>
@@ -357,7 +357,7 @@ export default function LandingPage() {
       </section>
 
       {/* FAQS SECTION */}
-      <section className="relative z-10 max-w-4xl mx-auto px-6 py-20 border-t border-white/10">
+      <section className="appear appear--soft relative z-10 max-w-4xl mx-auto px-6 py-20 border-t border-white/10" style={{ "--d": "0.7s" } as React.CSSProperties}>
         <div className="text-center mb-16">
           <span className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-mono">Frequently Asked Questions</span>
           <h2 className="text-3xl md:text-4xl font-semibold mt-4 mb-2">Everything You Need to Know About Konthora</h2>
@@ -388,7 +388,7 @@ export default function LandingPage() {
       </section>
 
       {/* FINAL CTA */}
-      <section className="relative z-10 max-w-5xl mx-auto px-6 py-20">
+      <section className="appear appear--pop relative z-10 max-w-5xl mx-auto px-6 py-20" style={{ "--d": "0.8s" } as React.CSSProperties}>
         <div className="p-12 rounded-3xl bg-neutral-950 border border-emerald-500/30 text-center relative overflow-hidden shadow-[0_0_60px_rgba(16,185,129,0.15)]">
           <span className="px-3.5 py-1.5 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-mono mb-6 inline-block">
             ● AssemblyAI Voice Agent Hackathon 2026
@@ -398,10 +398,10 @@ export default function LandingPage() {
             Konthora transforms spoken word into signed, structured enterprise documents in under 850 milliseconds. No typing. No templates. Just voice.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
-            <Link className="px-8 py-4 rounded-xl bg-emerald-400 text-black font-semibold text-sm hover:bg-emerald-300 transition-all shadow-[0_0_30px_rgba(16,185,129,0.35)]" href="/voice-agent">
+            <Link className="btn-vesper px-8 py-4 rounded-xl bg-emerald-400 text-black font-semibold text-sm hover:bg-emerald-300 transition-all shadow-[0_0_30px_rgba(16,185,129,0.35)]" href="/voice-agent">
               Launch Voice Production Engine →
             </Link>
-            <a href="https://github.com/DevBySharif/konthora-assemblyai" target="_blank" rel="noopener noreferrer" className="px-8 py-4 rounded-xl bg-neutral-900 text-neutral-300 font-semibold text-sm border border-white/15 hover:border-white/30 transition-all">
+            <a href="https://github.com/DevBySharif/konthora-assemblyai" target="_blank" rel="noopener noreferrer" className="btn-vesper px-8 py-4 rounded-xl bg-neutral-900 text-neutral-300 font-semibold text-sm border border-white/15 hover:border-white/30 transition-all">
               View GitHub Repository
             </a>
           </div>
