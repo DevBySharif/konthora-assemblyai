@@ -34,9 +34,9 @@ export default function LandingPage() {
           </Link>
 
           <nav className="hidden md:flex items-center gap-1 bg-neutral-900/90 p-1.5 rounded-xl border border-white/10 shadow-2xl">
-            <a href="#voice-engine" className="px-4 py-1.5 text-xs font-medium text-neutral-300 hover:text-white hover:bg-neutral-800 rounded-lg transition-all">Voice Engine</a>
-            <a href="#capabilities" className="px-4 py-1.5 text-xs font-medium text-neutral-300 hover:text-white hover:bg-neutral-800 rounded-lg transition-all">Enterprise Capabilities</a>
-            <a href="#architecture" className="px-4 py-1.5 text-xs font-medium text-neutral-300 hover:text-white hover:bg-neutral-800 rounded-lg transition-all">Architecture</a>
+            <a href="#voice-engine" className="nav-link">Voice Engine</a>
+            <a href="#capabilities" className="nav-link">Enterprise Capabilities</a>
+            <a href="#architecture" className="nav-link">Architecture</a>
           </nav>
 
           <Link className="px-5 py-2 text-xs font-semibold rounded-xl bg-emerald-400 text-black hover:bg-emerald-300 transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)]" href="/voice-agent">
@@ -46,16 +46,16 @@ export default function LandingPage() {
       </header>
 
       {/* SECTION 1: HERO & LIVE TERMINAL SIMULATION */}
-      <section id="voice-engine" className="relative z-10 max-w-7xl mx-auto px-6 pt-16 pb-20 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+      <section id="voice-engine" className="appear appear--soft relative z-10 max-w-7xl mx-auto px-6 pt-16 pb-20 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center" style={{'--d': '0.1s'} as React.CSSProperties}>
         <div>
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-neutral-900 border border-emerald-500/30 text-[11px] text-emerald-400 mb-6">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
             <span>AssemblyAI Voice Agent Hackathon 2026 | AssemblyAI v3 + Groq + Kokoro</span>
           </div>
 
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-semibold tracking-tight leading-[1.1] mb-6">
+          <h1 className="hero-headline text-4xl md:text-5xl lg:text-6xl font-semibold tracking-tight leading-[1.1] mb-6">
             Transform Speech into{' '}
-            <span className="font-serif italic font-normal text-emerald-400">Production-Ready</span>{' '}
+            <em>Production-Ready</em>{' '}
             Enterprise Documents in Sub-Seconds
           </h1>
 
@@ -90,7 +90,7 @@ export default function LandingPage() {
         </div>
 
         {/* Right Hero Card - Live Engine Code Preview */}
-        <div className="bg-neutral-950/80 border border-emerald-500/30 rounded-2xl p-6 shadow-[0_0_50px_rgba(0,0,0,0.8)] backdrop-blur-xl">
+        <div className="appear appear--scale bg-neutral-950/80 border border-emerald-500/30 rounded-2xl p-6 shadow-[0_0_50px_rgba(0,0,0,0.8)] backdrop-blur-xl" style={{'--d': '0.3s'} as React.CSSProperties}>
           <div className="flex items-center justify-between border-b border-white/10 pb-3 mb-4 text-xs font-mono text-neutral-400">
             <span className="text-emerald-400">konthora-voice-engine://live</span>
             <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 text-[10px]">● WebSocket v3 Active</span>
@@ -122,7 +122,7 @@ export default function LandingPage() {
       </section>
 
       {/* SECTION 2: ENTERPRISE CAPABILITIES & CORE TOOLS */}
-      <section id="capabilities" className="relative z-10 max-w-7xl mx-auto px-6 py-20 border-t border-white/10">
+      <section id="capabilities" className="appear appear--soft relative z-10 max-w-7xl mx-auto px-6 py-20 border-t border-white/10" style={{'--d': '0.2s'} as React.CSSProperties}>
         <div className="text-center max-w-2xl mx-auto mb-16">
           <span className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-mono">Enterprise Document Capabilities</span>
           <h2 className="text-3xl md:text-5xl font-semibold mt-4 mb-4">Designed for Real-World Commercial Workflows</h2>
@@ -149,7 +149,7 @@ export default function LandingPage() {
       </section>
 
       {/* SECTION 3: PIPELINE ARCHITECTURE (STAGE 01 - 04) */}
-      <section id="architecture" className="relative z-10 max-w-7xl mx-auto px-6 py-20 border-t border-white/10">
+      <section id="architecture" className="appear appear--soft relative z-10 max-w-7xl mx-auto px-6 py-20 border-t border-white/10" style={{'--d': '0.3s'} as React.CSSProperties}>
         <div className="text-center max-w-2xl mx-auto mb-16">
           <span className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-mono">Sub-Second Pipeline Architecture</span>
           <h2 className="text-3xl md:text-5xl font-semibold mt-4 mb-4">How Konthora Turns Soundwaves into Signed Documents</h2>
@@ -189,7 +189,7 @@ export default function LandingPage() {
       </section>
 
       {/* SECTION 4: INTERACTIVE FULL-DUPLEX SIMULATOR */}
-      <section className="relative z-10 max-w-6xl mx-auto px-6 py-20 border-t border-white/10">
+      <section className="appear appear--soft relative z-10 max-w-6xl mx-auto px-6 py-20 border-t border-white/10" style={{'--d': '0.4s'} as React.CSSProperties}>
         <div className="text-center mb-12">
           <span className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-mono">Interactive Engine Simulator</span>
           <h2 className="text-3xl md:text-4xl font-semibold mt-4 mb-2">See the Full-Duplex Flow in Action</h2>
@@ -318,7 +318,7 @@ export default function LandingPage() {
       </section>
 
       {/* SECTION 5: MULTILINGUAL & CODE-SWITCHING SPEECH */}
-      <section className="relative z-10 max-w-7xl mx-auto px-6 py-20 border-t border-white/10">
+      <section className="appear appear--soft relative z-10 max-w-7xl mx-auto px-6 py-20 border-t border-white/10" style={{'--d': '0.5s'} as React.CSSProperties}>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div>
             <span className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-mono">Multilingual &amp; Code-Switching Speech</span>
@@ -351,7 +351,7 @@ export default function LandingPage() {
       </section>
 
       {/* SECTION 6: FREQUENTLY ASKED QUESTIONS (FAQ) ACCORDION */}
-      <section className="relative z-10 max-w-4xl mx-auto px-6 py-20 border-t border-white/10">
+      <section className="appear appear--soft relative z-10 max-w-4xl mx-auto px-6 py-20 border-t border-white/10" style={{'--d': '0.6s'} as React.CSSProperties}>
         <div className="text-center mb-16">
           <span className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-mono">Frequently Asked Questions</span>
           <h2 className="text-3xl md:text-4xl font-semibold mt-4 mb-2">Everything You Need to Know About Konthora</h2>
@@ -404,7 +404,7 @@ export default function LandingPage() {
       </section>
 
       {/* SECTION 7: FINAL CTA CALLOUT CARD */}
-      <section className="relative z-10 max-w-5xl mx-auto px-6 py-20">
+      <section className="appear appear--pop relative z-10 max-w-5xl mx-auto px-6 py-20" style={{'--d': '0.7s'} as React.CSSProperties}>
         <div className="p-12 rounded-3xl bg-neutral-950 border border-emerald-500/30 text-center relative overflow-hidden shadow-[0_0_60px_rgba(16,185,129,0.15)]">
           <span className="px-3.5 py-1.5 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-mono mb-6 inline-block">
             ● AssemblyAI Voice Agent Hackathon 2026
@@ -429,7 +429,7 @@ export default function LandingPage() {
       </section>
 
       {/* SECTION 8: COMPLETE 5-COLUMN ENTERPRISE FOOTER */}
-      <footer className="relative z-10 border-t border-white/10 bg-neutral-950 py-16 px-8 text-xs text-neutral-400">
+      <footer className="appear appear--soft relative z-10 border-t border-white/10 bg-neutral-950 py-16 px-8 text-xs text-neutral-400" style={{'--d': '0.8s'} as React.CSSProperties}>
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 mb-12">
           {/* Brand Info */}
           <div className="lg:col-span-1 space-y-4">
