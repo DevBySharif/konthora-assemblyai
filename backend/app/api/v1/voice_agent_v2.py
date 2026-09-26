@@ -434,7 +434,7 @@ def _handle_dispatch_slack(args: dict) -> dict:
 
 
 # ── Search Documents ──
- MOCK_DOCUMENTS = [
+MOCK_DOCUMENTS = [
     {"doc_type": "quotation", "doc_ref": "PHOENIX-2026", "client": "Acme Corp", "amount": 27075, "date": "2026-01-15", "status": "APPROVED"},
     {"doc_type": "purchase_order", "doc_ref": "PO-88301", "client": "Apex Hardware", "amount": 15050, "date": "2026-02-10", "status": "APPROVED"},
     {"doc_type": "invoice", "doc_ref": "INV-8821", "client": "Acme Corp", "amount": 5050, "date": "2026-03-01", "status": "SENT"},
