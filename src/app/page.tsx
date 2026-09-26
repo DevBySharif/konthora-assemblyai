@@ -1,216 +1,132 @@
-import React from 'react';
-import { Metadata } from 'next';
+'use client';
+
 import Link from 'next/link';
-import { constructMetadata } from '@/lib/metadata';
-import { JsonLd } from '@/components/JsonLd';
-import { siteConfig } from '@/config/site';
-import { voiceDocFaqs } from '@/config/voiceDocFaqs';
-import {
-  Sparkles,
-  Mic,
-  ShieldCheck,
-  Layers,
-  ArrowRight,
-  Zap,
-  FileCheck,
-  Users,
-} from 'lucide-react';
+import React from 'react';
 
-export const metadata: Metadata = constructMetadata({
-  title: 'Konthora — Autonomous Voice-Driven Enterprise Operations Engine',
-  description:
-    'Enterprise-grade full-duplex voice intelligence engine for real-time B2B workflow automation, stateful document revisions, and cryptographic audit verification.',
-  path: '/',
-});
-
-export default function HomePage() {
-  const organizationSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'Organization',
-    name: 'Konthora AI',
-    url: siteConfig.url,
-    logo: `${siteConfig.url}/icon.png`,
-    contactPoint: {
-      '@type': 'ContactPoint',
-      email: siteConfig.contactEmail,
-      contactType: 'customer support',
-      availableLanguage: ['English', 'Bengali'],
-    },
-  };
-
-  const websiteSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'WebSite',
-    name: 'Konthora AI',
-    url: siteConfig.url,
-    description:
-      'Enterprise-grade full-duplex voice intelligence engine for real-time B2B workflow automation.',
-    publisher: {
-      '@type': 'Organization',
-      name: 'Konthora AI',
-      url: siteConfig.url,
-      logo: `${siteConfig.url}/icon.png`,
-    },
-  };
-
-  const faqSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'FAQPage',
-    mainEntity: voiceDocFaqs.map((f) => ({
-      '@type': 'Question',
-      name: f.question,
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: f.answer,
-      },
-    })),
-  };
-
-  const navLinks = [
-    { label: 'Benefits', href: '#benefits' },
-    { label: 'Architecture', href: '#architecture' },
-    { label: 'Security', href: '#security' },
-    { label: 'Workflows', href: '#workflows' },
-  ];
-
-  const stats = [
-    {
-      icon: Zap,
-      value: '<100ms',
-      label: 'Full-Duplex Barge-In Latency',
-    },
-    {
-      icon: ShieldCheck,
-      value: '99.9%',
-      label: 'Cryptographic Audit Integrity',
-    },
-    {
-      icon: Users,
-      value: '15+',
-      label: 'Autonomous B2B Workflows',
-    },
-  ];
-
+export default function LandingPage() {
   return (
-    <div className="bg-black text-white min-h-screen overflow-x-hidden relative">
-      <JsonLd schema={organizationSchema} />
-      <JsonLd schema={websiteSchema} />
-      <JsonLd schema={faqSchema} />
+    <div className="bg-black text-white min-h-screen h-[100dvh] overflow-hidden relative font-sans flex flex-col justify-between selection:bg-emerald-500 selection:text-black">
+      {/* Background Ambient Glow */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-neutral-900/60 via-black to-black pointer-events-none z-0" />
 
-      {/* Ambient gradient blobs */}
-      <div className="pointer-events-none fixed inset-0 z-0">
-        <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full bg-emerald-500/[0.04] blur-[120px]" />
-        <div className="absolute bottom-[-10%] right-[-5%] w-[500px] h-[500px] rounded-full bg-cyan-500/[0.03] blur-[100px]" />
-        <div className="absolute top-[40%] left-[50%] w-[400px] h-[400px] rounded-full bg-violet-500/[0.02] blur-[80px]" />
-      </div>
-
-      {/* ── Navigation Bar ── */}
-      <nav className="relative z-10 flex items-center justify-between px-6 lg:px-10 py-5 border-b border-white/[0.06]">
-        <Link href="/" className="flex items-center gap-2 group">
-          <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-[0_0_20px_rgba(16,185,129,0.3)]">
-            <Mic className="w-4 h-4 text-black" />
+      {/* 1. Header Navigation */}
+      <header className="relative z-20 grid grid-cols-3 items-center px-8 py-6 max-w-7xl mx-auto w-full">
+        {/* Logo */}
+        <Link className="flex items-center gap-2 justify-self-start group" href="/">
+          <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 group-hover:border-emerald-400 transition-colors">
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+              <circle cx="7.3" cy="3.2" r="1.45" />
+              <rect x="5.5" y="4.7" width="3.6" height="14.6" rx="1.8" />
+              <rect x="14.9" y="4.7" width="3.6" height="14.6" rx="1.8" />
+              <circle cx="16.7" cy="20.8" r="1.45" />
+            </svg>
           </div>
-          <span className="text-lg font-semibold tracking-tight text-white">
-            Konthora
-            <span className="text-emerald-400 font-normal">.ai</span>
+          <span className="font-semibold tracking-tight text-base">
+            Konthora<span className="text-emerald-400 font-normal">.ai</span>
           </span>
         </Link>
 
-        <div className="hidden md:flex items-center gap-1">
-          {navLinks.map((link) => (
+        {/* Liquid Metal Nav Pills */}
+        <nav className="flex items-center gap-2 justify-self-center bg-neutral-900/80 backdrop-blur-md p-1.5 rounded-xl border border-white/10 shadow-2xl">
+          {['Benefits', 'Architecture', 'Security', 'Workflows'].map((item) => (
             <a
-              key={link.label}
-              href={link.href}
-              className="px-4 py-2 text-[13px] font-medium text-neutral-400 hover:text-white border border-white/[0.08] hover:border-white/20 rounded-full transition-all duration-300 hover:bg-white/[0.04]"
+              key={item}
+              href={`#${item.toLowerCase()}`}
+              className="px-4 py-1.5 text-xs font-medium text-neutral-300 hover:text-white hover:bg-neutral-800/80 rounded-lg transition-all"
             >
-              {link.label}
+              {item}
             </a>
           ))}
-        </div>
+        </nav>
 
+        {/* Right CTA */}
         <Link
+          className="justify-self-end px-5 py-2 text-xs font-semibold rounded-lg bg-white text-black hover:bg-neutral-200 transition-all shadow-[0_0_20px_rgba(255,255,255,0.2)]"
           href="/voice-agent"
-          className="px-5 py-2.5 text-[13px] font-semibold rounded-full bg-white text-black hover:bg-neutral-200 transition-all duration-300 shadow-[0_0_20px_rgba(255,255,255,0.15)] hover:shadow-[0_0_30px_rgba(255,255,255,0.25)]"
         >
-          Launch Engine
+          Launch Engine →
         </Link>
-      </nav>
+      </header>
 
-      {/* ── Hero Section ── */}
-      <section className="relative z-10 flex flex-col items-center justify-center min-h-[85vh] px-6 text-center">
-        {/* Badge */}
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-neutral-800 via-neutral-900 to-black border border-white/10 mb-8 shadow-[0_0_30px_rgba(255,255,255,0.05)]">
-          <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
-          <span className="text-xs font-medium text-neutral-300 tracking-wide">
-            Autonomous Voice Operations Engine
-          </span>
+      {/* 2. Hero Section */}
+      <main className="relative z-10 flex flex-col items-center justify-center text-center px-4 max-w-4xl mx-auto my-auto">
+        {/* Metallic Badge */}
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-gradient-to-r from-neutral-800 via-neutral-900 to-black border border-white/15 text-xs text-neutral-300 mb-6 shadow-inner">
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          <span>Autonomous Voice Operations Engine</span>
         </div>
 
-        {/* Headline */}
-        <h1 className="text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-bold tracking-[-0.03em] leading-[1.05] max-w-5xl">
-          <span className="block text-white">
-            Automate{' '}
-            <em className="font-serif italic font-normal text-slate-400 not-italic" style={{ fontStyle: 'italic' }}>
-              Voice Operations
-            </em>{' '}
-            in
-          </span>
-          <span className="block text-white mt-1">
-            enterprise workflows instantly.
-          </span>
+        {/* Hero Headline */}
+        <h1 className="text-4xl md:text-6xl lg:text-7xl font-semibold tracking-tight leading-[1.1] text-white mb-6">
+          Automate{' '}
+          <span className="font-serif italic font-normal text-neutral-400">
+            Voice Operations
+          </span>{' '}
+          in
+          <br />
+          enterprise workflows instantly.
         </h1>
 
-        {/* Lede */}
-        <p className="mt-8 text-base sm:text-lg text-neutral-400 max-w-2xl leading-relaxed font-light">
+        {/* Lede Subtitle */}
+        <p className="text-sm md:text-base text-neutral-400 max-w-xl font-normal leading-relaxed mb-8">
           Deploy full-duplex AI voice engines that query enterprise databases,
           execute stateful document revisions, and seal cryptographic audit
           approvals in real time.
         </p>
 
-        {/* CTA Buttons */}
-        <div className="mt-10 flex flex-col sm:flex-row items-center gap-4">
+        {/* Action Buttons */}
+        <div className="flex items-center gap-4">
           <Link
+            className="px-6 py-3 text-xs md:text-sm font-semibold rounded-xl bg-white text-black hover:bg-neutral-100 transition-all shadow-[0_0_30px_rgba(255,255,255,0.25)] flex items-center gap-2"
             href="/voice-agent"
-            className="group relative px-8 py-3.5 bg-white text-black text-sm font-semibold rounded-full transition-all duration-300 hover:bg-neutral-200 shadow-[0_0_25px_rgba(255,255,255,0.15)] hover:shadow-[0_0_40px_rgba(255,255,255,0.3)] flex items-center gap-2"
           >
-            Launch Voice Engine
-            <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
+            <span>Launch Voice Engine</span>
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M14 5l7 7m0 0l-7 7m7-7H3"
+              />
+            </svg>
           </Link>
           <a
-            href="#benefits"
-            className="px-8 py-3.5 text-sm font-medium text-neutral-300 border border-white/15 hover:border-white/30 rounded-full transition-all duration-300 hover:bg-white/[0.04]"
+            href="#capabilities"
+            className="px-6 py-3 text-xs md:text-sm font-medium rounded-xl bg-neutral-900/90 text-neutral-300 border border-white/15 hover:border-white/30 hover:text-white transition-all backdrop-blur-md"
           >
             Explore Capabilities
           </a>
         </div>
-      </section>
+      </main>
 
-      {/* ── Stats Footer Bar ── */}
-      <section className="relative z-10 border-t border-white/[0.06] bg-black/50 backdrop-blur-sm">
-        <div className="max-w-6xl mx-auto px-6 py-8 grid grid-cols-1 sm:grid-cols-3 gap-6">
-          {stats.map((stat) => {
-            const Icon = stat.icon;
-            return (
-              <div
-                key={stat.label}
-                className="flex items-center gap-4 group"
-              >
-                <div className="h-11 w-11 rounded-xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-center shrink-0 group-hover:border-emerald-500/30 transition-colors">
-                  <Icon className="w-5 h-5 text-neutral-400 group-hover:text-emerald-400 transition-colors" />
-                </div>
-                <div>
-                  <div className="text-2xl font-bold tracking-tight text-white">
-                    {stat.value}
-                  </div>
-                  <div className="text-xs text-neutral-500 font-medium mt-0.5">
-                    {stat.label}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+      {/* 3. Stats Footer */}
+      <footer className="relative z-10 border-t border-white/10 bg-black/60 backdrop-blur-xl py-6 px-8">
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 text-xs text-neutral-400">
+          <div className="flex items-center gap-3">
+            <span className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-mono font-bold">
+              &lt;100ms
+            </span>
+            <span>Full-Duplex Barge-In Latency</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-mono font-bold">
+              99.9%
+            </span>
+            <span>Cryptographic Audit Integrity (SHA-256)</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-mono font-bold">
+              15+
+            </span>
+            <span>Autonomous B2B Workflows Supported</span>
+          </div>
         </div>
-      </section>
+      </footer>
     </div>
   );
 }
