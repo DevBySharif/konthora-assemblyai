@@ -133,7 +133,7 @@ function QRCodeSVG({ value, size = 64 }: { value: string; size?: number }) {
       width={size}
       height={size}
       viewBox={`0 0 ${gridSize} ${gridSize}`}
-      className="bg-white p-1 rounded-lg border border-slate-300 shadow-sm shrink-0"
+      className="bg-white p-1 rounded-lg border border-neutral-300 shadow-sm shrink-0"
       shapeRendering="crispEdges"
     >
       {cells.flatMap((row, r) =>
@@ -209,7 +209,7 @@ function LiveWaveform({ active }: { active: boolean }) {
       ref={canvasRef}
       width={400}
       height={56}
-      className="w-full h-14 rounded-xl bg-slate-950/80 border border-emerald-500/20 shadow-inner"
+      className="w-full h-14 rounded-xl bg-neutral-950/80 border border-emerald-500/20 shadow-inner"
     />
   );
 }
@@ -393,17 +393,17 @@ function FormalDocHeader({
           <h2 className="text-lg sm:text-xl font-bold tracking-tight text-white mt-0.5">
             {docCategory}
           </h2>
-          <div className="text-[10px] text-slate-400 mt-0.5">
+          <div className="text-[10px] text-neutral-400 mt-0.5">
             Silicon Valley HQ · Singapore Regional Hub · Dhaka Tech Park
           </div>
         </div>
 
         <div className="text-right">
-          <div className="text-xs font-mono font-bold text-white bg-slate-800/90 px-2.5 py-1 rounded border border-slate-700 inline-block">
+          <div className="text-xs font-mono font-bold text-white bg-neutral-800/90 px-2.5 py-1 rounded border border-white/10 inline-block">
             {docNumber}
           </div>
-          <div className="text-[10px] text-slate-400 mt-1 font-mono">
-            Date: <span className="text-slate-200">{issueDate}</span>
+          <div className="text-[10px] text-neutral-400 mt-1 font-mono">
+            Date: <span className="text-neutral-200">{issueDate}</span>
           </div>
           {badgeText && (
             <div className="mt-1">
@@ -434,19 +434,19 @@ function FormalDocFooter({
   return (
     <div className="border-t border-slate-700/80 pt-3 mt-4 space-y-3">
       {notes && (
-        <div className="text-[10.5px] text-slate-400 leading-relaxed bg-slate-950/50 p-2.5 rounded-lg border border-slate-800/80">
-          <span className="font-semibold text-slate-300">Terms &amp; Notes: </span>
+        <div className="text-[10.5px] text-neutral-400 leading-relaxed bg-neutral-950/50 p-2.5 rounded-lg border border-white/10/80">
+          <span className="font-semibold text-neutral-300">Terms &amp; Notes: </span>
           {notes}
         </div>
       )}
 
       <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
         <div>
-          <div className="text-[9.5px] font-mono text-slate-500 uppercase tracking-widest">
+          <div className="text-[9.5px] font-mono text-neutral-500 uppercase tracking-widest">
             Authorized Digital Signatory
           </div>
           <div className="text-xs font-bold text-white font-mono mt-0.5">{signatory}</div>
-          <div className="text-[10px] text-slate-400">{department}</div>
+          <div className="text-[10px] text-neutral-400">{department}</div>
           <div className="text-[9px] font-mono text-emerald-400 font-bold uppercase tracking-wider flex items-center gap-1 mt-1">
             <CheckCircle2 className="w-3 h-3 text-emerald-400" />
             Officially Verified Record
@@ -454,16 +454,16 @@ function FormalDocFooter({
         </div>
 
         {/* Cryptographic Trust Badge with Real QR Code */}
-        <div className="flex items-center gap-3 bg-slate-950/70 p-2.5 rounded-xl border border-slate-800">
+        <div className="flex items-center gap-3 bg-neutral-950/70 p-2.5 rounded-xl border border-white/10">
           <QRCodeSVG value={qrPayload} size={54} />
           <div className="space-y-0.5 text-left">
             <div className="text-[9px] font-mono font-bold text-emerald-400 uppercase tracking-wider">
               OFFICIAL DIGITAL VERIFICATION HASH
             </div>
-            <div className="text-[10.5px] font-mono font-bold text-slate-200">
+            <div className="text-[10.5px] font-mono font-bold text-neutral-200">
               {verificationHash}
             </div>
-            <div className="text-[9px] text-slate-400">
+            <div className="text-[9px] text-neutral-400">
               Scannable for real-time B2B audit authentication.
             </div>
           </div>
@@ -498,23 +498,23 @@ function QuotationCard({
         badgeText={discountPct > 5 ? `Revised: ${discountPct}% Volume Discount` : "Valid Thru Dec 2026"}
       />
 
-      <div className="grid grid-cols-2 gap-3 text-xs bg-slate-950/60 p-3 rounded-xl border border-slate-800">
+      <div className="grid grid-cols-2 gap-3 text-xs bg-neutral-950/60 p-3 rounded-xl border border-white/10">
         <div>
-          <span className="text-[10px] font-mono text-slate-500 uppercase tracking-wider">Client Organization:</span>
+          <span className="text-[10px] font-mono text-neutral-500 uppercase tracking-wider">Client Organization:</span>
           <div className="font-bold text-white mt-0.5">Acme Corp (US-99201)</div>
-          <div className="text-[11px] text-slate-400">500 Market St, San Francisco, CA · billing@acme.com</div>
+          <div className="text-[11px] text-neutral-400">500 Market St, San Francisco, CA · billing@acme.com</div>
         </div>
         <div>
-          <span className="text-[10px] font-mono text-slate-500 uppercase tracking-wider">Project Specification:</span>
+          <span className="text-[10px] font-mono text-neutral-500 uppercase tracking-wider">Project Specification:</span>
           <div className="font-bold text-emerald-400 mt-0.5">Real-Time Voice-to-Document Pipeline</div>
-          <div className="text-[11px] text-slate-400">Sub-850ms SLA · Kokoro-82M High-Density Nodes</div>
+          <div className="text-[11px] text-neutral-400">Sub-850ms SLA · Kokoro-82M High-Density Nodes</div>
         </div>
       </div>
 
       <div className="overflow-x-auto">
         <table className="w-full text-left text-xs">
           <thead>
-            <tr className="border-b border-slate-800 text-slate-400 font-mono text-[10px] uppercase tracking-wider">
+            <tr className="border-b border-white/10 text-neutral-400 font-mono text-[10px] uppercase tracking-wider">
               <th className="py-2 pr-2">#</th>
               <th className="py-2 pr-4">Item &amp; Description</th>
               <th className="py-2 px-2 text-center">Qty</th>
@@ -524,31 +524,31 @@ function QuotationCard({
           </thead>
           <tbody className="divide-y divide-slate-800/60">
             <tr>
-              <td className="py-2.5 pr-2 font-mono text-slate-500">01</td>
+              <td className="py-2.5 pr-2 font-mono text-neutral-500">01</td>
               <td className="py-2.5 pr-4 text-white font-medium">
                 Konthora Real-Time Multilingual Voice Gateway
-                <div className="text-[10.5px] text-slate-400 font-normal">AssemblyAI Streaming v3 16kHz PCM streaming pipeline</div>
+                <div className="text-[10.5px] text-neutral-400 font-normal">AssemblyAI Streaming v3 16kHz PCM streaming pipeline</div>
               </td>
-              <td className="py-2.5 px-2 text-center font-mono text-slate-300">1</td>
-              <td className="py-2.5 px-2 text-right font-mono text-slate-300">$18,500.00</td>
+              <td className="py-2.5 px-2 text-center font-mono text-neutral-300">1</td>
+              <td className="py-2.5 px-2 text-right font-mono text-neutral-300">$18,500.00</td>
               <td className="py-2.5 pl-2 text-right font-mono text-white font-semibold">$18,500.00</td>
             </tr>
             <tr>
-              <td className="py-2.5 pr-2 font-mono text-slate-500">02</td>
+              <td className="py-2.5 pr-2 font-mono text-neutral-500">02</td>
               <td className="py-2.5 pr-4 text-white font-medium">
                 Kokoro-82M High-Density Edge TTS Cluster
-                <div className="text-[10.5px] text-slate-400 font-normal">Dual-node on-prem high-throughput audio synthesis cluster</div>
+                <div className="text-[10.5px] text-neutral-400 font-normal">Dual-node on-prem high-throughput audio synthesis cluster</div>
               </td>
-              <td className="py-2.5 px-2 text-center font-mono text-slate-300">2</td>
-              <td className="py-2.5 px-2 text-right font-mono text-slate-300">$5,000.00</td>
+              <td className="py-2.5 px-2 text-center font-mono text-neutral-300">2</td>
+              <td className="py-2.5 px-2 text-right font-mono text-neutral-300">$5,000.00</td>
               <td className="py-2.5 pl-2 text-right font-mono text-white font-semibold">$10,000.00</td>
             </tr>
           </tbody>
         </table>
       </div>
 
-      <div className="bg-slate-950/70 rounded-xl p-3.5 border border-slate-800 space-y-1.5 text-xs">
-        <div className="flex justify-between text-slate-400">
+      <div className="bg-neutral-950/70 rounded-xl p-3.5 border border-white/10 space-y-1.5 text-xs">
+        <div className="flex justify-between text-neutral-400">
           <span>Gross Subtotal</span>
           <span className="font-mono text-white">${subtotal.toLocaleString()}.00</span>
         </div>
@@ -556,7 +556,7 @@ function QuotationCard({
           <span>Enterprise Volume Discount ({discountPct}.0%)</span>
           <span className="font-mono font-semibold">-${discountAmt.toLocaleString()}.00</span>
         </div>
-        <div className="border-t border-slate-800 pt-2 flex justify-between font-bold text-white text-sm">
+        <div className="border-t border-white/10 pt-2 flex justify-between font-bold text-white text-sm">
           <span>Net Commercial Quotation (USD)</span>
           <span className="font-mono text-emerald-400 text-base">${grandTotal.toLocaleString()}.00</span>
         </div>
@@ -570,7 +570,7 @@ function QuotationCard({
         qrPayload={qrPayload}
       />
 
-      <div className="no-print text-[11px] text-slate-400 bg-emerald-950/20 border border-emerald-500/20 rounded-lg p-2.5 flex items-start gap-2">
+      <div className="no-print text-[11px] text-neutral-400 bg-emerald-950/20 border border-emerald-500/20 rounded-lg p-2.5 flex items-start gap-2">
         <Sparkles className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
         <span className="line-clamp-2">{text || "Verified commercial quotation generated from enterprise rate-card."}</span>
       </div>
@@ -596,23 +596,23 @@ function PurchaseOrderCard({
         badgeText="Approved &amp; Processing"
       />
 
-      <div className="grid grid-cols-2 gap-3 text-xs bg-slate-950/60 p-3 rounded-xl border border-slate-800">
+      <div className="grid grid-cols-2 gap-3 text-xs bg-neutral-950/60 p-3 rounded-xl border border-white/10">
         <div>
-          <span className="text-[10px] font-mono text-slate-500 uppercase tracking-wider">Authorized Vendor:</span>
+          <span className="text-[10px] font-mono text-neutral-500 uppercase tracking-wider">Authorized Vendor:</span>
           <div className="font-bold text-white mt-0.5">Apex Hardware International Ltd.</div>
-          <div className="text-[11px] text-slate-400">Hong Kong &amp; Singapore Global Logistics Centre</div>
+          <div className="text-[11px] text-neutral-400">Hong Kong &amp; Singapore Global Logistics Centre</div>
         </div>
         <div>
-          <span className="text-[10px] font-mono text-slate-500 uppercase tracking-wider">Delivery Destination:</span>
+          <span className="text-[10px] font-mono text-neutral-500 uppercase tracking-wider">Delivery Destination:</span>
           <div className="font-bold text-cyan-400 mt-0.5">Singapore Hub Data Center (Tier-4)</div>
-          <div className="text-[11px] text-slate-400">Attn: Enterprise Logistics &amp; Rack Deployment</div>
+          <div className="text-[11px] text-neutral-400">Attn: Enterprise Logistics &amp; Rack Deployment</div>
         </div>
       </div>
 
       <div className="overflow-x-auto">
         <table className="w-full text-left text-xs">
           <thead>
-            <tr className="border-b border-slate-800 text-slate-400 font-mono text-[10px] uppercase tracking-wider">
+            <tr className="border-b border-white/10 text-neutral-400 font-mono text-[10px] uppercase tracking-wider">
               <th className="py-2 pr-2">SKU</th>
               <th className="py-2 pr-4">Hardware Component</th>
               <th className="py-2 px-2 text-center">Qty</th>
@@ -622,33 +622,33 @@ function PurchaseOrderCard({
           </thead>
           <tbody className="divide-y divide-slate-800/60">
             <tr>
-              <td className="py-2.5 pr-2 font-mono text-slate-500">HW-M3P-001</td>
+              <td className="py-2.5 pr-2 font-mono text-neutral-500">HW-M3P-001</td>
               <td className="py-2.5 pr-4 text-white font-medium">Apple M3 Pro Chip (OEM Architecture Grade)</td>
-              <td className="py-2.5 px-2 text-center font-mono text-slate-300">20</td>
-              <td className="py-2.5 px-2 text-right font-mono text-slate-300">$450.00</td>
+              <td className="py-2.5 px-2 text-center font-mono text-neutral-300">20</td>
+              <td className="py-2.5 px-2 text-right font-mono text-neutral-300">$450.00</td>
               <td className="py-2.5 pl-2 text-right font-mono text-white font-semibold">$9,000.00</td>
             </tr>
             <tr>
-              <td className="py-2.5 pr-2 font-mono text-slate-500">HW-SRV-42U</td>
+              <td className="py-2.5 pr-2 font-mono text-neutral-500">HW-SRV-42U</td>
               <td className="py-2.5 pr-4 text-white font-medium">Enterprise Server Rack 42U Heavy Duty Enclosure</td>
-              <td className="py-2.5 px-2 text-center font-mono text-slate-300">2</td>
-              <td className="py-2.5 px-2 text-right font-mono text-slate-300">$2,800.00</td>
+              <td className="py-2.5 px-2 text-center font-mono text-neutral-300">2</td>
+              <td className="py-2.5 px-2 text-right font-mono text-neutral-300">$2,800.00</td>
               <td className="py-2.5 pl-2 text-right font-mono text-white font-semibold">$5,600.00</td>
             </tr>
           </tbody>
         </table>
       </div>
 
-      <div className="bg-slate-950/70 rounded-xl p-3.5 border border-slate-800 space-y-1.5 text-xs">
-        <div className="flex justify-between text-slate-400">
+      <div className="bg-neutral-950/70 rounded-xl p-3.5 border border-white/10 space-y-1.5 text-xs">
+        <div className="flex justify-between text-neutral-400">
           <span>Equipment Subtotal</span>
           <span className="font-mono text-white">$14,600.00</span>
         </div>
-        <div className="flex justify-between text-slate-400">
+        <div className="flex justify-between text-neutral-400">
           <span>Secured Air Freight &amp; Handling</span>
           <span className="font-mono text-white">$450.00</span>
         </div>
-        <div className="border-t border-slate-800 pt-2 flex justify-between font-bold text-white text-sm">
+        <div className="border-t border-white/10 pt-2 flex justify-between font-bold text-white text-sm">
           <span>Authorized Purchase Order Grand Total</span>
           <span className="font-mono text-cyan-400 text-base">$15,050.00 USD</span>
         </div>
@@ -662,7 +662,7 @@ function PurchaseOrderCard({
         qrPayload={qrPayload}
       />
 
-      <div className="no-print text-[11px] text-slate-400 bg-cyan-950/20 border border-cyan-500/20 rounded-lg p-2.5 flex items-start gap-2">
+      <div className="no-print text-[11px] text-neutral-400 bg-cyan-950/20 border border-cyan-500/20 rounded-lg p-2.5 flex items-start gap-2">
         <Sparkles className="w-3.5 h-3.5 text-cyan-400 shrink-0 mt-0.5" />
         <span className="line-clamp-2">{text || "Hardware procurement PO cross-referenced against warehouse replenishment limits."}</span>
       </div>
@@ -689,43 +689,43 @@ function TaxComplianceCard({
       />
 
       <div className="grid grid-cols-3 gap-2.5 text-center">
-        <div className="bg-slate-950/70 p-3 rounded-xl border border-slate-800">
-          <div className="text-[10px] font-mono text-slate-500 uppercase">Gross Operating Income</div>
+        <div className="bg-neutral-950/70 p-3 rounded-xl border border-white/10">
+          <div className="text-[10px] font-mono text-neutral-500 uppercase">Gross Operating Income</div>
           <div className="text-base font-bold text-white font-mono mt-0.5">$57,000.00</div>
-          <div className="text-[9.5px] text-slate-400">Q1 Taxable Base</div>
+          <div className="text-[9.5px] text-neutral-400">Q1 Taxable Base</div>
         </div>
-        <div className="bg-slate-950/70 p-3 rounded-xl border border-slate-800">
-          <div className="text-[10px] font-mono text-slate-500 uppercase">Effective Tax Rate</div>
+        <div className="bg-neutral-950/70 p-3 rounded-xl border border-white/10">
+          <div className="text-[10px] font-mono text-neutral-500 uppercase">Effective Tax Rate</div>
           <div className="text-base font-bold text-amber-400 font-mono mt-0.5">20.0%</div>
-          <div className="text-[9.5px] text-slate-400">Statutory Bracket</div>
+          <div className="text-[9.5px] text-neutral-400">Statutory Bracket</div>
         </div>
-        <div className="bg-slate-950/70 p-3 rounded-xl border border-slate-800">
-          <div className="text-[10px] font-mono text-slate-500 uppercase">Net Payable</div>
+        <div className="bg-neutral-950/70 p-3 rounded-xl border border-white/10">
+          <div className="text-[10px] font-mono text-neutral-500 uppercase">Net Payable</div>
           <div className="text-base font-bold text-emerald-400 font-mono mt-0.5">$8,200.00</div>
-          <div className="text-[9.5px] text-slate-400">Post-Withholding</div>
+          <div className="text-[9.5px] text-neutral-400">Post-Withholding</div>
         </div>
       </div>
 
-      <div className="bg-slate-950/70 rounded-xl p-3.5 border border-slate-800 space-y-2 text-xs">
-        <div className="text-[10px] font-mono text-slate-500 uppercase tracking-wider pb-1 border-b border-slate-800">
+      <div className="bg-neutral-950/70 rounded-xl p-3.5 border border-white/10 space-y-2 text-xs">
+        <div className="text-[10px] font-mono text-neutral-500 uppercase tracking-wider pb-1 border-b border-white/10">
           Statutory Entity &amp; VAT Identification
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
           <div>
-            <span className="text-slate-400">Bangladesh VAT BIN:</span>
+            <span className="text-neutral-400">Bangladesh VAT BIN:</span>
             <div className="font-mono text-amber-300 font-bold">BIN-003928172-0102</div>
           </div>
           <div>
-            <span className="text-slate-400">European Union VAT:</span>
+            <span className="text-neutral-400">European Union VAT:</span>
             <div className="font-mono text-white">DE-319208194 (19.0%)</div>
           </div>
           <div>
-            <span className="text-slate-400">United States EIN:</span>
+            <span className="text-neutral-400">United States EIN:</span>
             <div className="font-mono text-white">12-9920194 (CA Nexus)</div>
           </div>
           <div>
-            <span className="text-slate-400">Filing Deadline:</span>
-            <div className="font-mono text-slate-300">30 November 2026</div>
+            <span className="text-neutral-400">Filing Deadline:</span>
+            <div className="font-mono text-neutral-300">30 November 2026</div>
           </div>
         </div>
       </div>
@@ -738,7 +738,7 @@ function TaxComplianceCard({
         qrPayload={qrPayload}
       />
 
-      <div className="no-print text-[11px] text-slate-400 bg-amber-950/20 border border-amber-500/20 rounded-lg p-2.5 flex items-start gap-2">
+      <div className="no-print text-[11px] text-neutral-400 bg-amber-950/20 border border-amber-500/20 rounded-lg p-2.5 flex items-start gap-2">
         <Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
         <span className="line-clamp-2">{text || "Verified statutory compliance with National Board of Revenue & International VAT registries."}</span>
       </div>
@@ -775,25 +775,25 @@ function InvoiceCard({
         badgeText={`Payment Terms: ${paymentTerms}`}
       />
 
-      <div className="grid grid-cols-2 gap-3 text-xs bg-slate-950/60 p-3 rounded-xl border border-slate-800">
+      <div className="grid grid-cols-2 gap-3 text-xs bg-neutral-950/60 p-3 rounded-xl border border-white/10">
         <div>
-          <span className="text-[10px] font-mono text-slate-500 uppercase tracking-wider">Billed To (Client):</span>
+          <span className="text-[10px] font-mono text-neutral-500 uppercase tracking-wider">Billed To (Client):</span>
           <div className="font-bold text-white mt-0.5">Acme Corp</div>
-          <div className="text-[11px] text-slate-400">Tax ID: US-99201 · Client ID: CLI-8821</div>
-          <div className="text-[10.5px] text-slate-500">500 Market St, San Francisco, CA 94103</div>
+          <div className="text-[11px] text-neutral-400">Tax ID: US-99201 · Client ID: CLI-8821</div>
+          <div className="text-[10.5px] text-neutral-500">500 Market St, San Francisco, CA 94103</div>
         </div>
         <div>
-          <span className="text-[10px] font-mono text-slate-500 uppercase tracking-wider">Payment Details:</span>
+          <span className="text-[10px] font-mono text-neutral-500 uppercase tracking-wider">Payment Details:</span>
           <div className="font-bold text-emerald-400 mt-0.5">Direct Wire / ACH Transfer</div>
-          <div className="text-[11px] text-slate-400 font-mono">Routing: 121000358 · Acct: 8829-4401</div>
-          <div className="text-[10.5px] text-slate-500">Currency: United States Dollars (USD)</div>
+          <div className="text-[11px] text-neutral-400 font-mono">Routing: 121000358 · Acct: 8829-4401</div>
+          <div className="text-[10.5px] text-neutral-500">Currency: United States Dollars (USD)</div>
         </div>
       </div>
 
       <div className="overflow-x-auto">
         <table className="w-full text-left text-xs">
           <thead>
-            <tr className="border-b border-slate-800 text-slate-400 font-mono text-[10px] uppercase tracking-wider">
+            <tr className="border-b border-white/10 text-neutral-400 font-mono text-[10px] uppercase tracking-wider">
               <th className="py-2 pr-2">#</th>
               <th className="py-2 pr-4">Description of Deliverable</th>
               <th className="py-2 px-2 text-center">Period</th>
@@ -802,31 +802,31 @@ function InvoiceCard({
           </thead>
           <tbody className="divide-y divide-slate-800/60">
             <tr>
-              <td className="py-2.5 pr-2 font-mono text-slate-500">01</td>
+              <td className="py-2.5 pr-2 font-mono text-neutral-500">01</td>
               <td className="py-2.5 pr-4 text-white font-medium">
                 Professional Voice AI Integration &amp; Calibration
-                <div className="text-[10.5px] text-slate-400 font-normal">Custom acoustic lexicon tuning and sub-850ms streaming bridge</div>
+                <div className="text-[10.5px] text-neutral-400 font-normal">Custom acoustic lexicon tuning and sub-850ms streaming bridge</div>
               </td>
-              <td className="py-2.5 px-2 text-center font-mono text-slate-300">Phase 1</td>
+              <td className="py-2.5 px-2 text-center font-mono text-neutral-300">Phase 1</td>
               <td className="py-2.5 pl-2 text-right font-mono text-white font-semibold">$4,200.00</td>
             </tr>
             <tr>
-              <td className="py-2.5 pr-2 font-mono text-slate-500">02</td>
+              <td className="py-2.5 pr-2 font-mono text-neutral-500">02</td>
               <td className="py-2.5 pr-4 text-white font-medium">
                 Dedicated Inference Cluster (Monthly Allocation)
-                <div className="text-[10.5px] text-slate-400 font-normal">Isolated Groq LPU + Kokoro-82M processing unit</div>
+                <div className="text-[10.5px] text-neutral-400 font-normal">Isolated Groq LPU + Kokoro-82M processing unit</div>
               </td>
-              <td className="py-2.5 px-2 text-center font-mono text-slate-300">30 Days</td>
+              <td className="py-2.5 px-2 text-center font-mono text-neutral-300">30 Days</td>
               <td className="py-2.5 pl-2 text-right font-mono text-white font-semibold">$850.00</td>
             </tr>
             {maintenanceFee > 0 && (
               <tr>
-                <td className="py-2.5 pr-2 font-mono text-slate-500">03</td>
+                <td className="py-2.5 pr-2 font-mono text-neutral-500">03</td>
                 <td className="py-2.5 pr-4 text-white font-medium">
                   24/7 SLA Priority Maintenance &amp; High-Availability Monitoring
                   <div className="text-[10.5px] text-emerald-400 font-normal">Added via Voice Revision Directive</div>
                 </td>
-                <td className="py-2.5 px-2 text-center font-mono text-slate-300">Monthly</td>
+                <td className="py-2.5 px-2 text-center font-mono text-neutral-300">Monthly</td>
                 <td className="py-2.5 pl-2 text-right font-mono text-emerald-400 font-semibold">${maintenanceFee.toFixed(2)}</td>
               </tr>
             )}
@@ -834,16 +834,16 @@ function InvoiceCard({
         </table>
       </div>
 
-      <div className="bg-slate-950/70 rounded-xl p-3.5 border border-slate-800 space-y-1.5 text-xs">
-        <div className="flex justify-between text-slate-400">
+      <div className="bg-neutral-950/70 rounded-xl p-3.5 border border-white/10 space-y-1.5 text-xs">
+        <div className="flex justify-between text-neutral-400">
           <span>Subtotal</span>
           <span className="font-mono text-white">${totalDue.toFixed(2)}</span>
         </div>
-        <div className="flex justify-between text-slate-400">
+        <div className="flex justify-between text-neutral-400">
           <span>Applicable Sales Tax (0.0% B2B Reverse Charge)</span>
-          <span className="font-mono text-slate-400">$0.00</span>
+          <span className="font-mono text-neutral-400">$0.00</span>
         </div>
-        <div className="border-t border-slate-800 pt-2 flex justify-between font-bold text-white text-sm">
+        <div className="border-t border-white/10 pt-2 flex justify-between font-bold text-white text-sm">
           <span>Total Balance Due (USD)</span>
           <span className="font-mono text-emerald-400 text-base">${totalDue.toFixed(2)}</span>
         </div>
@@ -857,7 +857,7 @@ function InvoiceCard({
         qrPayload={qrPayload}
       />
 
-      <div className="no-print text-[11px] text-slate-400 bg-emerald-950/20 border border-emerald-500/20 rounded-lg p-2.5 flex items-start gap-2">
+      <div className="no-print text-[11px] text-neutral-400 bg-emerald-950/20 border border-emerald-500/20 rounded-lg p-2.5 flex items-start gap-2">
         <Sparkles className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
         <span className="line-clamp-2">{text || "Verified matching record from Enterprise DB: Acme Corp."}</span>
       </div>
@@ -886,32 +886,32 @@ function FinancialCard({
       <div className="grid grid-cols-3 gap-2.5">
         {[
           { label: "Q1 Gross Revenue", val: "$142,000", delta: "+18.2% YoY", color: "text-emerald-400" },
-          { label: "Q1 Expenses", val: "$85,000", delta: "On Budget", color: "text-slate-400" },
+          { label: "Q1 Expenses", val: "$85,000", delta: "On Budget", color: "text-neutral-400" },
           { label: "Net Operating Profit", val: "$57,000", delta: "40.1% Net Margin", color: "text-cyan-400" },
         ].map((m) => (
-          <div key={m.label} className="bg-slate-950/70 rounded-xl p-3 border border-slate-800 text-center">
-            <div className="text-[10px] font-mono text-slate-500 uppercase tracking-wider">{m.label}</div>
+          <div key={m.label} className="bg-neutral-950/70 rounded-xl p-3 border border-white/10 text-center">
+            <div className="text-[10px] font-mono text-neutral-500 uppercase tracking-wider">{m.label}</div>
             <div className="text-base font-bold text-white font-mono mt-0.5">{m.val}</div>
             <div className={`text-[10px] font-semibold ${m.color}`}>{m.delta}</div>
           </div>
         ))}
       </div>
 
-      <div className="bg-slate-950/70 rounded-xl p-3.5 border border-slate-800 space-y-2 text-xs">
-        <div className="text-[10px] font-mono text-slate-500 uppercase tracking-wider pb-1 border-b border-slate-800">
+      <div className="bg-neutral-950/70 rounded-xl p-3.5 border border-white/10 space-y-2 text-xs">
+        <div className="text-[10px] font-mono text-neutral-500 uppercase tracking-wider pb-1 border-b border-white/10">
           Executive Financial Ratios &amp; Projections
         </div>
-        <div className="flex justify-between items-center text-slate-300">
+        <div className="flex justify-between items-center text-neutral-300">
           <span>EBITDA Operational Margin</span>
           <span className="text-cyan-400 font-bold font-mono text-sm">28.5%</span>
         </div>
-        <div className="flex justify-between items-center text-slate-300">
+        <div className="flex justify-between items-center text-neutral-300">
           <span>Q2 Projected Growth Revenue</span>
           <span className="text-emerald-400 font-bold font-mono">$185,000.00 USD</span>
         </div>
-        <div className="flex justify-between items-center text-slate-300">
+        <div className="flex justify-between items-center text-neutral-300">
           <span>Estimated Corporate Income Tax Provision</span>
-          <span className="text-slate-300 font-mono">$11,400.00 USD</span>
+          <span className="text-neutral-300 font-mono">$11,400.00 USD</span>
         </div>
       </div>
 
@@ -923,7 +923,7 @@ function FinancialCard({
         qrPayload={qrPayload}
       />
 
-      <div className="no-print text-[11px] text-slate-400 bg-cyan-950/20 border border-cyan-500/20 rounded-lg p-2.5 flex items-start gap-2">
+      <div className="no-print text-[11px] text-neutral-400 bg-cyan-950/20 border border-cyan-500/20 rounded-lg p-2.5 flex items-start gap-2">
         <Sparkles className="w-3.5 h-3.5 text-cyan-400 shrink-0 mt-0.5" />
         <span className="line-clamp-2">{text || "Audited financial dataset retrieved from Konthora mock enterprise ledger."}</span>
       </div>
@@ -953,30 +953,30 @@ function HRLetterCard({
         badgeText="Confidential · Executive Cleared"
       />
 
-      <div className="bg-slate-950/70 rounded-xl p-4 border border-slate-800 space-y-3 text-xs">
+      <div className="bg-neutral-950/70 rounded-xl p-4 border border-white/10 space-y-3 text-xs">
         <div className="font-semibold text-white text-sm">Dear Rafiqul Islam,</div>
-        <div className="text-slate-300 leading-relaxed text-[11.5px]">
+        <div className="text-neutral-300 leading-relaxed text-[11.5px]">
           On behalf of <strong className="text-white">Konthora Enterprise AI Global Ltd.</strong>, we are pleased to confirm your appointment for the position of{" "}
           <span className="text-purple-300 font-semibold">Senior Full-Stack Engineer</span> within the
           Engineering &amp; Systems Architecture division, effective{" "}
           <span className="text-white font-semibold">1st October 2026</span>.
         </div>
 
-        <div className="grid grid-cols-2 gap-3 pt-2 border-t border-slate-800 text-xs">
+        <div className="grid grid-cols-2 gap-3 pt-2 border-t border-white/10 text-xs">
           <div>
-            <span className="text-slate-500">Gross Monthly Remuneration:</span>
+            <span className="text-neutral-500">Gross Monthly Remuneration:</span>
             <div className="text-white font-bold font-mono text-sm mt-0.5">{salary}</div>
           </div>
           <div>
-            <span className="text-slate-500">Reporting Executive:</span>
+            <span className="text-neutral-500">Reporting Executive:</span>
             <div className="text-white font-bold mt-0.5">Sarah Jenkins (Lead Architect)</div>
           </div>
           <div>
-            <span className="text-slate-500">Designated Department:</span>
-            <div className="text-slate-300 mt-0.5">Engineering &amp; Cloud Infrastructure</div>
+            <span className="text-neutral-500">Designated Department:</span>
+            <div className="text-neutral-300 mt-0.5">Engineering &amp; Cloud Infrastructure</div>
           </div>
           <div>
-            <span className="text-slate-500">Employment Status:</span>
+            <span className="text-neutral-500">Employment Status:</span>
             <div className="text-emerald-400 font-semibold mt-0.5 flex items-center gap-1">
               <CheckCircle2 className="w-3.5 h-3.5" /> Full-Time Permanent
             </div>
@@ -992,7 +992,7 @@ function HRLetterCard({
         qrPayload={qrPayload}
       />
 
-      <div className="no-print text-[11px] text-slate-400 bg-purple-950/20 border border-purple-500/20 rounded-lg p-2.5 flex items-start gap-2">
+      <div className="no-print text-[11px] text-neutral-400 bg-purple-950/20 border border-purple-500/20 rounded-lg p-2.5 flex items-start gap-2">
         <Sparkles className="w-3.5 h-3.5 text-purple-400 shrink-0 mt-0.5" />
         <span className="line-clamp-2">{text || "Human resources profile loaded directly from employee database registry."}</span>
       </div>
@@ -1027,7 +1027,7 @@ function InventoryCard({
       <div className="overflow-x-auto">
         <table className="w-full text-left text-xs">
           <thead>
-            <tr className="border-b border-slate-800 text-slate-400 font-mono text-[10px] uppercase tracking-wider">
+            <tr className="border-b border-white/10 text-neutral-400 font-mono text-[10px] uppercase tracking-wider">
               <th className="py-2 pr-2">SKU</th>
               <th className="py-2 pr-4">Hardware Component</th>
               <th className="py-2 px-2">Warehouse</th>
@@ -1039,11 +1039,11 @@ function InventoryCard({
           <tbody className="divide-y divide-slate-800/60">
             {items.map((item) => (
               <tr key={item.sku}>
-                <td className="py-2.5 pr-2 font-mono text-slate-500">{item.sku}</td>
+                <td className="py-2.5 pr-2 font-mono text-neutral-500">{item.sku}</td>
                 <td className="py-2.5 pr-4 text-white font-medium">{item.name}</td>
-                <td className="py-2.5 px-2 text-slate-400">{item.warehouse}</td>
+                <td className="py-2.5 px-2 text-neutral-400">{item.warehouse}</td>
                 <td className="py-2.5 px-2 text-center font-mono text-amber-400 font-bold">{item.stock}</td>
-                <td className="py-2.5 px-2 text-right font-mono text-slate-300">${item.price}</td>
+                <td className="py-2.5 px-2 text-right font-mono text-neutral-300">${item.price}</td>
                 <td className="py-2.5 pl-2 text-right font-mono text-white font-semibold">${item.total.toLocaleString()}</td>
               </tr>
             ))}
@@ -1051,7 +1051,7 @@ function InventoryCard({
         </table>
       </div>
 
-      <div className="bg-slate-950/70 rounded-xl p-3.5 border border-slate-800 flex justify-between items-center text-xs">
+      <div className="bg-neutral-950/70 rounded-xl p-3.5 border border-white/10 flex justify-between items-center text-xs">
         <span className="font-semibold text-white">Consolidated Hardware Valuation (USD)</span>
         <span className="font-mono text-amber-400 font-bold text-base">$62,900.00</span>
       </div>
@@ -1064,7 +1064,7 @@ function InventoryCard({
         qrPayload={qrPayload}
       />
 
-      <div className="no-print text-[11px] text-slate-400 bg-amber-950/20 border border-amber-500/20 rounded-lg p-2.5 flex items-start gap-2">
+      <div className="no-print text-[11px] text-neutral-400 bg-amber-950/20 border border-amber-500/20 rounded-lg p-2.5 flex items-start gap-2">
         <Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
         <span className="line-clamp-2">{text || "Hardware supply chain telemetry matched against enterprise warehouse hubs."}</span>
       </div>
@@ -1085,33 +1085,33 @@ function MeetingMinutesCard({ text, verificationHash }: { text: string; verifica
         </div>
         <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">MIN-2026-09</span>
       </div>
-      <div className="text-xs text-slate-300 font-semibold">Product Strategy Sync — 20 Sep 2026, 10:00 AM BST</div>
+      <div className="text-xs text-neutral-300 font-semibold">Product Strategy Sync — 20 Sep 2026, 10:00 AM BST</div>
       <div className="space-y-2">
-        <div className="text-[10px] font-mono text-slate-500 uppercase tracking-wider">Attendees</div>
+        <div className="text-[10px] font-mono text-neutral-500 uppercase tracking-wider">Attendees</div>
         <div className="flex gap-1.5">
           <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Rafiqul Islam</span>
           <span className="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">Sarah Jenkins</span>
         </div>
       </div>
       <div className="space-y-1.5">
-        <div className="text-[10px] font-mono text-slate-500 uppercase tracking-wider">Decisions</div>
+        <div className="text-[10px] font-mono text-neutral-500 uppercase tracking-wider">Decisions</div>
         <ul className="space-y-1">
-          <li className="text-xs text-slate-300 flex items-start gap-1.5"><CheckCircle2 className="w-3 h-3 text-emerald-400 shrink-0 mt-0.5" />Migrate Kokoro to Edge Cluster</li>
-          <li className="text-xs text-slate-300 flex items-start gap-1.5"><CheckCircle2 className="w-3 h-3 text-emerald-400 shrink-0 mt-0.5" />Approve FY26 Q4 Budget</li>
+          <li className="text-xs text-neutral-300 flex items-start gap-1.5"><CheckCircle2 className="w-3 h-3 text-emerald-400 shrink-0 mt-0.5" />Migrate Kokoro to Edge Cluster</li>
+          <li className="text-xs text-neutral-300 flex items-start gap-1.5"><CheckCircle2 className="w-3 h-3 text-emerald-400 shrink-0 mt-0.5" />Approve FY26 Q4 Budget</li>
         </ul>
       </div>
       <div className="space-y-1.5">
-        <div className="text-[10px] font-mono text-slate-500 uppercase tracking-wider">Action Items</div>
-        <div className="bg-slate-950/60 rounded-lg border border-slate-800 divide-y divide-slate-800/50">
+        <div className="text-[10px] font-mono text-neutral-500 uppercase tracking-wider">Action Items</div>
+        <div className="bg-neutral-950/60 rounded-lg border border-white/10 divide-y divide-slate-800/50">
           <div className="px-3 py-2 flex items-center justify-between text-[11px]">
-            <span className="text-slate-300">Deploy PII Redaction</span>
+            <span className="text-neutral-300">Deploy PII Redaction</span>
             <div className="flex items-center gap-2">
               <span className="text-emerald-400 font-mono">Rafiqul</span>
               <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">2026-10-05</span>
             </div>
           </div>
           <div className="px-3 py-2 flex items-center justify-between text-[11px]">
-            <span className="text-slate-300">Prepare Q4 Budget Report</span>
+            <span className="text-neutral-300">Prepare Q4 Budget Report</span>
             <div className="flex items-center gap-2">
               <span className="text-cyan-400 font-mono">Sarah</span>
               <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">2026-10-10</span>
@@ -1119,7 +1119,7 @@ function MeetingMinutesCard({ text, verificationHash }: { text: string; verifica
           </div>
         </div>
       </div>
-      <div className="no-print text-[11px] text-slate-400 bg-blue-950/20 border border-blue-500/20 rounded-lg p-2.5 flex items-start gap-2">
+      <div className="no-print text-[11px] text-neutral-400 bg-blue-950/20 border border-blue-500/20 rounded-lg p-2.5 flex items-start gap-2">
         <Sparkles className="w-3.5 h-3.5 text-blue-400 shrink-0 mt-0.5" />
         <span className="line-clamp-2">{text || "Product strategy sync meeting completed with decisions on infrastructure migration and budget approval."}</span>
       </div>
@@ -1143,22 +1143,22 @@ function LegalContractCard({ text, verificationHash }: { text: string; verificat
       <div className="border border-purple-500/30 rounded-xl p-4 space-y-3 bg-purple-950/10">
         <div className="text-center text-xs font-bold text-purple-300 uppercase tracking-widest">Mutual Non-Disclosure Agreement</div>
         <div className="grid grid-cols-2 gap-3 text-[11px]">
-          <div><span className="text-slate-500">Effective:</span> <span className="text-slate-300">2026-10-01</span></div>
-          <div><span className="text-slate-500">Duration:</span> <span className="text-slate-300">2 Years</span></div>
-          <div><span className="text-slate-500">IP Protection:</span> <span className="text-purple-400 font-semibold">Strict</span></div>
-          <div><span className="text-slate-500">Status:</span> <span className="text-amber-400">Draft — Pending Signature</span></div>
+          <div><span className="text-neutral-500">Effective:</span> <span className="text-neutral-300">2026-10-01</span></div>
+          <div><span className="text-neutral-500">Duration:</span> <span className="text-neutral-300">2 Years</span></div>
+          <div><span className="text-neutral-500">IP Protection:</span> <span className="text-purple-400 font-semibold">Strict</span></div>
+          <div><span className="text-neutral-500">Status:</span> <span className="text-amber-400">Draft — Pending Signature</span></div>
         </div>
-        <div className="text-[10px] text-slate-400 border-t border-purple-500/20 pt-2">
-          <span className="text-slate-500">Parties:</span> Konthora AI Global Ltd. &amp; InnoTech GmbH
+        <div className="text-[10px] text-neutral-400 border-t border-purple-500/20 pt-2">
+          <span className="text-neutral-500">Parties:</span> Konthora AI Global Ltd. &amp; InnoTech GmbH
         </div>
-        <div className="text-[10px] text-slate-400">
-          <span className="text-slate-500">Governing Law:</span> Bangladesh Arbitration Act 2001
+        <div className="text-[10px] text-neutral-400">
+          <span className="text-neutral-500">Governing Law:</span> Bangladesh Arbitration Act 2001
         </div>
-        <div className="text-[10px] text-slate-500 italic border-t border-purple-500/20 pt-2">
+        <div className="text-[10px] text-neutral-500 italic border-t border-purple-500/20 pt-2">
           Section 4.2 — All proprietary information shared between parties shall remain strictly confidential for the duration of this agreement and 3 years thereafter.
         </div>
       </div>
-      <div className="no-print flex items-center justify-between text-[10px] text-slate-500">
+      <div className="no-print flex items-center justify-between text-[10px] text-neutral-500">
         <span>Digital Signature: <span className="text-amber-400">Pending</span></span>
         <span className="font-mono">SHA-256 Sealed</span>
       </div>
@@ -1180,25 +1180,25 @@ function ExpenseVoucherCard({ text, verificationHash }: { text: string; verifica
         <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">EXP-9902</span>
       </div>
       <div className="grid grid-cols-2 gap-3 text-[11px]">
-        <div><span className="text-slate-500">Claimant:</span> <span className="text-slate-300">Sarah Jenkins</span></div>
-        <div><span className="text-slate-500">Employee ID:</span> <span className="text-slate-300 font-mono">EMP-0021</span></div>
-        <div><span className="text-slate-500">Category:</span> <span className="text-amber-400">Hardware &amp; Client Travel</span></div>
-        <div><span className="text-slate-500">Receipt:</span> <span className="text-slate-300 font-mono">REC-4410</span></div>
+        <div><span className="text-neutral-500">Claimant:</span> <span className="text-neutral-300">Sarah Jenkins</span></div>
+        <div><span className="text-neutral-500">Employee ID:</span> <span className="text-neutral-300 font-mono">EMP-0021</span></div>
+        <div><span className="text-neutral-500">Category:</span> <span className="text-amber-400">Hardware &amp; Client Travel</span></div>
+        <div><span className="text-neutral-500">Receipt:</span> <span className="text-neutral-300 font-mono">REC-4410</span></div>
       </div>
-      <div className="border border-slate-700 rounded-xl overflow-hidden">
-        <div className="bg-slate-900/80 px-3 py-1.5 text-[10px] font-mono text-slate-500 uppercase">Line Items</div>
+      <div className="border border-white/10 rounded-xl overflow-hidden">
+        <div className="bg-neutral-900/80 px-3 py-1.5 text-[10px] font-mono text-neutral-500 uppercase">Line Items</div>
         <div className="divide-y divide-slate-800/50">
           <div className="px-3 py-2 flex items-center justify-between text-[11px]">
-            <span className="text-slate-300">Client site visit — Acme Corp SF</span>
-            <span className="text-slate-400 font-mono">$280.00</span>
+            <span className="text-neutral-300">Client site visit — Acme Corp SF</span>
+            <span className="text-neutral-400 font-mono">$280.00</span>
           </div>
           <div className="px-3 py-2 flex items-center justify-between text-[11px]">
-            <span className="text-slate-300">Hardware procurement</span>
-            <span className="text-slate-400 font-mono">$170.00</span>
+            <span className="text-neutral-300">Hardware procurement</span>
+            <span className="text-neutral-400 font-mono">$170.00</span>
           </div>
         </div>
-        <div className="px-3 py-2 bg-slate-900/60 flex items-center justify-between text-[11px] font-bold">
-          <span className="text-slate-300">Total Reimbursement</span>
+        <div className="px-3 py-2 bg-neutral-900/60 flex items-center justify-between text-[11px] font-bold">
+          <span className="text-neutral-300">Total Reimbursement</span>
           <span className="text-emerald-400 font-mono">$450.00 USD</span>
         </div>
       </div>
@@ -1207,7 +1207,7 @@ function ExpenseVoucherCard({ text, verificationHash }: { text: string; verifica
           <span className="text-4xl font-black text-emerald-400 -rotate-12 select-none">APPROVED</span>
         </div>
         <div className="relative text-xs text-emerald-400 font-semibold">APPROVED by CFO</div>
-        <div className="relative text-[10px] text-slate-500 mt-0.5">Submitted 2026-09-18 · Processed</div>
+        <div className="relative text-[10px] text-neutral-500 mt-0.5">Submitted 2026-09-18 · Processed</div>
       </div>
     </div>
   );
@@ -1235,7 +1235,7 @@ function AnalyticsChartCard({ text }: { text: string }) {
         </div>
         <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">Q1 vs Q2</span>
       </div>
-      <div className="bg-slate-950/60 rounded-xl border border-slate-800 p-4">
+      <div className="bg-neutral-950/60 rounded-xl border border-white/10 p-4">
         <svg viewBox={`0 0 400 ${chartH + 40}`} className="w-full">
           {data.map((d, i) => {
             const barW = 70;
@@ -1259,16 +1259,16 @@ function AnalyticsChartCard({ text }: { text: string }) {
         </svg>
       </div>
       <div className="grid grid-cols-2 gap-2 text-[10px]">
-        <div className="bg-slate-900/60 rounded-lg p-2 border border-slate-800">
-          <span className="text-slate-500">Q1→Q2 Growth</span>
+        <div className="bg-neutral-900/60 rounded-lg p-2 border border-white/10">
+          <span className="text-neutral-500">Q1→Q2 Growth</span>
           <div className="text-emerald-400 font-bold font-mono">+30.3%</div>
         </div>
-        <div className="bg-slate-900/60 rounded-lg p-2 border border-slate-800">
-          <span className="text-slate-500">EBITDA Margin</span>
+        <div className="bg-neutral-900/60 rounded-lg p-2 border border-white/10">
+          <span className="text-neutral-500">EBITDA Margin</span>
           <div className="text-purple-400 font-bold font-mono">28.5% → 31%</div>
         </div>
       </div>
-      <div className="no-print text-[11px] text-slate-400 bg-cyan-950/20 border border-cyan-500/20 rounded-lg p-2.5 flex items-start gap-2">
+      <div className="no-print text-[11px] text-neutral-400 bg-cyan-950/20 border border-cyan-500/20 rounded-lg p-2.5 flex items-start gap-2">
         <Sparkles className="w-3.5 h-3.5 text-cyan-400 shrink-0 mt-0.5" />
         <span className="line-clamp-2">{text || "Q1 to Q2 revenue comparison showing strong growth trajectory with EBITDA margin expansion."}</span>
       </div>
@@ -1294,17 +1294,17 @@ function DispatchNotificationCard({ text }: { text: string }) {
           <CheckCircle2 className="w-5 h-5" />
           <span className="text-xs font-bold uppercase tracking-wider">Official Dispatch Confirmed</span>
         </div>
-        <div className="text-[11px] text-slate-300 space-y-1.5">
-          <div><span className="text-slate-500">Document:</span> <span className="text-white font-semibold">PHOENIX-2026 Quotation</span></div>
-          <div><span className="text-slate-500">Recipient:</span> <span className="text-emerald-400 font-mono">billing@acme.com</span></div>
-          <div><span className="text-slate-500">Method:</span> <span className="text-slate-300">Enterprise SMTP Relay</span></div>
-          <div><span className="text-slate-500">Status:</span> <span className="text-emerald-400 font-semibold">DELIVERED</span></div>
+        <div className="text-[11px] text-neutral-300 space-y-1.5">
+          <div><span className="text-neutral-500">Document:</span> <span className="text-white font-semibold">PHOENIX-2026 Quotation</span></div>
+          <div><span className="text-neutral-500">Recipient:</span> <span className="text-emerald-400 font-mono">billing@acme.com</span></div>
+          <div><span className="text-neutral-500">Method:</span> <span className="text-neutral-300">Enterprise SMTP Relay</span></div>
+          <div><span className="text-neutral-500">Status:</span> <span className="text-emerald-400 font-semibold">DELIVERED</span></div>
         </div>
-        <div className="text-[10px] text-slate-500 border-t border-emerald-500/20 pt-2 font-mono">
+        <div className="text-[10px] text-neutral-500 border-t border-emerald-500/20 pt-2 font-mono">
           Delivery Receipt: DR-2026-09-001 · Timestamp: {new Date().toLocaleTimeString()}
         </div>
       </div>
-      <div className="no-print text-[11px] text-slate-400 bg-emerald-950/20 border border-emerald-500/20 rounded-lg p-2.5 flex items-start gap-2">
+      <div className="no-print text-[11px] text-neutral-400 bg-emerald-950/20 border border-emerald-500/20 rounded-lg p-2.5 flex items-start gap-2">
         <Sparkles className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
         <span className="line-clamp-2">{text || "Enterprise document dispatched via secure SMTP with delivery receipt logged."}</span>
       </div>
@@ -1332,21 +1332,21 @@ function CurrencyConversionCard({ text, docCard }: { text: string; docCard: { pa
         </div>
         <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">LIVE RATE</span>
       </div>
-      <div className="bg-slate-950/60 rounded-xl border border-slate-800 p-4 space-y-3">
+      <div className="bg-neutral-950/60 rounded-xl border border-white/10 p-4 space-y-3">
         <div className="flex items-center justify-between text-xs">
-          <span className="text-slate-500">Original (USD)</span>
-          <span className="text-slate-300 font-mono font-bold">${usdAmount.toLocaleString()}</span>
+          <span className="text-neutral-500">Original (USD)</span>
+          <span className="text-neutral-300 font-mono font-bold">${usdAmount.toLocaleString()}</span>
         </div>
         <div className="flex items-center justify-center">
           <ChevronRight className="w-4 h-4 text-blue-400 rotate-90" />
         </div>
         <div className="flex items-center justify-between text-xs">
-          <span className="text-slate-500">Converted ({target})</span>
+          <span className="text-neutral-500">Converted ({target})</span>
           <span className="text-blue-400 font-mono font-bold text-lg">{symbol}{converted.toLocaleString()}</span>
         </div>
-        <div className="text-[10px] text-slate-500 text-center font-mono">Rate: 1 USD = {rate} {target}</div>
+        <div className="text-[10px] text-neutral-500 text-center font-mono">Rate: 1 USD = {rate} {target}</div>
       </div>
-      <div className="no-print text-[11px] text-slate-400 bg-blue-950/20 border border-blue-500/20 rounded-lg p-2.5 flex items-start gap-2">
+      <div className="no-print text-[11px] text-neutral-400 bg-blue-950/20 border border-blue-500/20 rounded-lg p-2.5 flex items-start gap-2">
         <Sparkles className="w-3.5 h-3.5 text-blue-400 shrink-0 mt-0.5" />
         <span className="line-clamp-2">{text || `Converted $${usdAmount.toLocaleString()} USD to ${target} at live exchange rate.`}</span>
       </div>
@@ -1379,10 +1379,10 @@ function ApprovalGuardCard({ text, approvalStatus }: { text: string; approvalSta
         <div className={`relative text-xs font-bold uppercase tracking-widest ${isApproved ? "text-emerald-400" : "text-amber-400"}`}>
           {isApproved ? "OFFICIAL CFO APPROVED" : "PENDING CFO APPROVAL"}
         </div>
-        <div className="relative text-[11px] text-slate-400">
+        <div className="relative text-[11px] text-neutral-400">
           {isApproved ? "Signed by Sarah Jenkins · Authorization timestamp logged" : "Passkey Required · Say 'Authorize with KNT-2026 passkey'"}
         </div>
-        <div className="relative text-[10px] text-slate-500 font-mono">
+        <div className="relative text-[10px] text-neutral-500 font-mono">
           {isApproved ? `Approved at ${new Date().toLocaleTimeString()}` : "High-value transaction requires CFO authorization"}
         </div>
       </div>
@@ -1410,8 +1410,8 @@ function DocumentDiffCard({ text, docCard }: { text: string; docCard: { payload:
         </div>
         <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-purple-500/10 text-purple-400 border border-purple-500/20">VERSION COMPARE</span>
       </div>
-      <div className="bg-slate-950/60 rounded-xl border border-slate-800 overflow-hidden">
-        <div className="grid grid-cols-[1fr_1px_1fr] bg-slate-900/80 px-3 py-1.5 text-[10px] font-mono text-slate-500 uppercase">
+      <div className="bg-neutral-950/60 rounded-xl border border-white/10 overflow-hidden">
+        <div className="grid grid-cols-[1fr_1px_1fr] bg-neutral-900/80 px-3 py-1.5 text-[10px] font-mono text-neutral-500 uppercase">
           <span>Original</span>
           <span />
           <span>Revised</span>
@@ -1422,11 +1422,11 @@ function DocumentDiffCard({ text, docCard }: { text: string; docCard: { payload:
             const isRemoved = d.new !== d.old && String(d.old).length > 0;
             return (
               <div key={i} className="grid grid-cols-[1fr_1px_1fr] px-3 py-2 text-[11px] items-center">
-                <span className={`font-mono ${isRemoved ? "bg-rose-500/10 text-rose-400 px-1.5 py-0.5 rounded" : "text-slate-400"}`}>
+                <span className={`font-mono ${isRemoved ? "bg-rose-500/10 text-rose-400 px-1.5 py-0.5 rounded" : "text-neutral-400"}`}>
                   {String(d.old)}
                 </span>
                 <span className="w-px h-4 bg-slate-700 mx-1" />
-                <span className={`font-mono ${isAdded ? "bg-emerald-500/10 text-emerald-400 px-1.5 py-0.5 rounded font-semibold" : "text-slate-400"}`}>
+                <span className={`font-mono ${isAdded ? "bg-emerald-500/10 text-emerald-400 px-1.5 py-0.5 rounded font-semibold" : "text-neutral-400"}`}>
                   {String(d.new)}
                 </span>
               </div>
@@ -1434,7 +1434,7 @@ function DocumentDiffCard({ text, docCard }: { text: string; docCard: { payload:
           })}
         </div>
       </div>
-      <div className="text-[10px] text-slate-500 font-mono text-center">
+      <div className="text-[10px] text-neutral-500 font-mono text-center">
         Field: {diffs.map((d) => d.field).join(", ")} · {diffs.length} delta(s) detected
       </div>
     </div>
@@ -1460,12 +1460,12 @@ function SlackDispatchCard({ text, docCard }: { text: string; docCard: { payload
           <CheckCircle2 className="w-5 h-5" />
           <span className="text-xs font-bold uppercase tracking-wider">Dispatch Successful</span>
         </div>
-        <div className="text-[11px] text-slate-300 space-y-1.5">
-          <div><span className="text-slate-500">Channel:</span> <span className="text-purple-400 font-mono font-semibold">{channel}</span></div>
-          <div><span className="text-slate-500">Target:</span> <span className="text-slate-300">SLACK_WEBHOOK</span></div>
-          <div><span className="text-slate-500">Status:</span> <span className="text-emerald-400 font-semibold">DELIVERED</span></div>
+        <div className="text-[11px] text-neutral-300 space-y-1.5">
+          <div><span className="text-neutral-500">Channel:</span> <span className="text-purple-400 font-mono font-semibold">{channel}</span></div>
+          <div><span className="text-neutral-500">Target:</span> <span className="text-neutral-300">SLACK_WEBHOOK</span></div>
+          <div><span className="text-neutral-500">Status:</span> <span className="text-emerald-400 font-semibold">DELIVERED</span></div>
         </div>
-        <div className="text-[10px] text-slate-500 border-t border-purple-500/20 pt-2 font-mono">
+        <div className="text-[10px] text-neutral-500 border-t border-purple-500/20 pt-2 font-mono">
           Webhook ID: WH-2026-{channel.replace("#", "").toUpperCase()} · {new Date().toLocaleTimeString()}
         </div>
       </div>
@@ -1491,14 +1491,14 @@ function AudioUploadCard({ text }: { text: string }) {
           <CheckCircle2 className="w-5 h-5" />
           <span className="text-xs font-bold uppercase tracking-wider">Batch Transcription Complete</span>
         </div>
-        <div className="text-[11px] text-slate-300 space-y-1.5">
-          <div><span className="text-slate-500">Source:</span> <span className="text-slate-300">meeting-recording.wav</span></div>
-          <div><span className="text-slate-500">Duration:</span> <span className="text-slate-300 font-mono">4:32</span></div>
-          <div><span className="text-slate-500">Language:</span> <span className="text-slate-300">English (locked)</span></div>
-          <div><span className="text-slate-500">Confidence:</span> <span className="text-emerald-400 font-semibold">98.7%</span></div>
+        <div className="text-[11px] text-neutral-300 space-y-1.5">
+          <div><span className="text-neutral-500">Source:</span> <span className="text-neutral-300">meeting-recording.wav</span></div>
+          <div><span className="text-neutral-500">Duration:</span> <span className="text-neutral-300 font-mono">4:32</span></div>
+          <div><span className="text-neutral-500">Language:</span> <span className="text-neutral-300">English (locked)</span></div>
+          <div><span className="text-neutral-500">Confidence:</span> <span className="text-emerald-400 font-semibold">98.7%</span></div>
         </div>
       </div>
-      <div className="no-print text-[11px] text-slate-400 bg-cyan-950/20 border border-cyan-500/20 rounded-lg p-2.5 flex items-start gap-2">
+      <div className="no-print text-[11px] text-neutral-400 bg-cyan-950/20 border border-cyan-500/20 rounded-lg p-2.5 flex items-start gap-2">
         <Sparkles className="w-3.5 h-3.5 text-cyan-400 shrink-0 mt-0.5" />
         <span className="line-clamp-2">{text || "Pre-recorded audio processed via AssemblyAI Batch API. Intent extracted and document synthesized."}</span>
       </div>
@@ -1547,24 +1547,24 @@ function DocPanelIdle({ onSelectDemo }: { onSelectDemo: (query: string) => void 
       {/* Tab Navigation Header */}
       <div className="px-5 pt-5 pb-3 shrink-0">
         <div className="flex items-center gap-2 mb-4">
-          <div className="inline-flex p-2 rounded-xl bg-slate-900 border border-slate-800 text-lg shadow-lg">
+          <div className="inline-flex p-2 rounded-xl bg-neutral-900 border border-white/10 text-lg shadow-lg">
             📄⚡
           </div>
           <div>
             <h3 className="text-sm font-bold text-white tracking-tight">Enterprise Operations Deck</h3>
-            <p className="text-[11px] text-slate-500">Speak naturally or select a workflow template</p>
+            <p className="text-[11px] text-neutral-500">Speak naturally or select a workflow template</p>
           </div>
         </div>
 
-        <div className="flex gap-1 bg-slate-900/60 border border-slate-800/70 rounded-xl p-1">
+        <div className="flex gap-1 bg-neutral-900/90 border border-white/10 rounded-xl p-1.5">
           {tabs.map((tab) => (
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
               className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all cursor-pointer ${
                 activeTab === tab.key
-                  ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 shadow-[0_0_12px_rgba(16,185,129,0.1)]"
-                  : "text-slate-500 hover:text-slate-300 hover:bg-slate-800/50 border border-transparent"
+                  ? "bg-white text-black font-semibold shadow-[0_0_15px_rgba(255,255,255,0.2)]"
+                  : "text-neutral-400 hover:text-white hover:bg-neutral-800/80 border border-transparent"
               }`}
             >
               <span>{tab.icon}</span>
@@ -1581,20 +1581,20 @@ function DocPanelIdle({ onSelectDemo }: { onSelectDemo: (query: string) => void 
             <button
               key={item.label}
               onClick={() => onSelectDemo(item.prompt)}
-              className="bg-[#0c1017]/80 backdrop-blur-md border border-slate-800/70 hover:border-emerald-500/50 hover:bg-[#111622] rounded-xl p-3.5 transition-all duration-200 cursor-pointer group shadow-lg shadow-black/40 text-left"
+              className="bg-neutral-900/60 backdrop-blur-md border border-white/10 hover:border-emerald-500/40 hover:bg-neutral-900 rounded-xl p-3.5 transition-all duration-200 cursor-pointer group shadow-lg shadow-black/40 text-left"
             >
               <div className="flex items-center justify-between mb-1.5">
                 <div className="flex items-center gap-2">
                   <span className="text-sm">{item.icon}</span>
-                  <span className="text-xs font-semibold text-slate-200 group-hover:text-emerald-400 transition-colors">
+                  <span className="text-xs font-semibold text-neutral-200 group-hover:text-emerald-400 transition-colors">
                     {item.label}
                   </span>
                 </div>
-                <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-slate-900/80 border border-slate-700/50 text-slate-500 group-hover:text-slate-400 transition-colors">
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-neutral-800/80 border border-white/10 text-neutral-400 group-hover:text-neutral-300 transition-colors">
                   {item.tag}
                 </span>
               </div>
-              <div className="text-[10px] text-slate-500 font-mono mt-0.5 line-clamp-1 group-hover:text-slate-400 transition-colors">
+              <div className="text-[10px] text-neutral-500 font-mono mt-0.5 line-clamp-1 group-hover:text-neutral-400 transition-colors">
                 &ldquo;{item.prompt}&rdquo;
               </div>
             </button>
@@ -2051,15 +2051,16 @@ export default function VoiceAgentPage() {
   const lastAssistantMsg = [...messages].reverse().find((m) => m.role === "assistant" && m.final);
 
   return (
-    <div className="h-auto xl:h-[calc(100vh-90px)] overflow-y-auto xl:overflow-hidden bg-[#080b10] flex flex-col xl:grid xl:grid-cols-2 gap-4 p-4 pb-32 font-sans select-none">
+    <div className="h-auto xl:h-[calc(100vh-90px)] overflow-y-auto xl:overflow-hidden bg-black text-white min-h-screen overflow-x-hidden relative font-sans selection:bg-emerald-500 selection:text-black flex flex-col xl:grid xl:grid-cols-2 gap-4 p-4 pb-32 select-none">
+      <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-neutral-900/50 via-black to-black pointer-events-none z-0" />
       {/* ── 2-Panel Split-Screen Command Dashboard ── */}
 
         {/* ════════════════════════════════════════
             LEFT PANEL: Cyberpunk Glow Audio Agent Deck
         ════════════════════════════════════════ */}
-        <div className="no-print w-full h-full min-h-[420px] bg-[#0c1017]/90 border border-slate-800/80 rounded-2xl flex flex-col overflow-hidden shadow-xl">
+        <div className="no-print w-full h-full min-h-[420px] bg-neutral-950/80 backdrop-blur-xl border border-white/10 rounded-2xl flex flex-col overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.8)]">
           {/* Deck Header */}
-          <div className="px-5 py-2.5 border-b border-slate-800/60 flex items-center justify-between shrink-0 bg-slate-950/50 backdrop-blur-sm">
+          <div className="px-5 py-2.5 border-b border-white/10 flex items-center justify-between shrink-0 bg-neutral-950/50 backdrop-blur-sm">
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.9)]" />
               <span className="text-[11px] font-mono font-bold text-emerald-400 uppercase tracking-widest">Audio Agent Deck</span>
@@ -2076,24 +2077,24 @@ export default function VoiceAgentPage() {
                   </span>
                 )}
               </div>
-              <span className="w-px h-3 bg-slate-800" />
-              <div className="flex items-center gap-1.5 text-[10px] font-mono text-slate-500">
+              <span className="w-px h-3 bg-neutral-800" />
+              <div className="flex items-center gap-1.5 text-[10px] font-mono text-neutral-500">
                 <Cpu className={`w-3 h-3 ${groqStatus === "processing" ? "text-cyan-400 animate-spin" : "text-slate-600"}`} />
                 <span className={groqStatus === "processing" ? "text-cyan-400" : ""}>
                   {groqStatus === "processing" ? "Inferencing..." : "Groq 70B"}
                 </span>
               </div>
-              <span className="w-px h-3 bg-slate-800" />
-              <span className="hidden sm:flex items-center gap-1 text-[10px] font-mono text-slate-500">
+              <span className="w-px h-3 bg-neutral-800" />
+              <span className="hidden sm:flex items-center gap-1 text-[10px] font-mono text-neutral-500">
                 <Zap className="w-3 h-3 text-emerald-500" /> v3
               </span>
             </div>
           </div>
 
           {/* Live Audio Visualizer Deck */}
-          <div className="px-5 py-2.5 border-b border-slate-800/50 bg-slate-900/30 shrink-0">
+          <div className="px-5 py-2.5 border-b border-white/10/50 bg-neutral-900/30 shrink-0">
             <div className="space-y-1">
-              <div className="flex items-center justify-between text-[10px] font-mono text-slate-500">
+              <div className="flex items-center justify-between text-[10px] font-mono text-neutral-500">
                 <span className="flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-full bg-emerald-500" />
                   PCM SPECTRAL FEED (16kHz / 16-BIT)
@@ -2107,7 +2108,7 @@ export default function VoiceAgentPage() {
           </div>
 
           {/* Audio File Upload Zone */}
-          <div className="px-4 py-2 border-b border-slate-800/50 shrink-0">
+          <div className="px-4 py-2 border-b border-white/10/50 shrink-0">
             <input
               ref={fileInputRef}
               type="file"
@@ -2119,7 +2120,7 @@ export default function VoiceAgentPage() {
               type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={isUploading}
-              className="w-full flex items-center justify-center gap-2 py-2 rounded-lg border border-dashed border-slate-700 hover:border-cyan-500/50 bg-slate-900/30 hover:bg-cyan-950/20 text-[11px] font-mono text-slate-500 hover:text-cyan-400 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full flex items-center justify-center gap-2 py-2 rounded-lg border border-dashed border-neutral-700 hover:border-cyan-500/50 bg-neutral-900/30 hover:bg-cyan-950/20 text-[11px] font-mono text-neutral-500 hover:text-cyan-400 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isUploading ? (
                 <>
@@ -2137,7 +2138,7 @@ export default function VoiceAgentPage() {
 
           {/* Transcript Stream Box with internal scroll constraint */}
           <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
-            <div className="text-[10px] font-mono text-slate-500 uppercase tracking-wider sticky top-0 bg-slate-950/90 py-0.5 backdrop-blur-sm z-10">
+            <div className="text-[10px] font-mono text-neutral-500 uppercase tracking-wider sticky top-0 bg-neutral-950/90 py-0.5 backdrop-blur-sm z-10">
               Real-Time Acoustic &amp; Intent Stream
             </div>
 
@@ -2151,28 +2152,28 @@ export default function VoiceAgentPage() {
                   <button
                     type="button"
                     onClick={isListening ? stopMicrophone : startMicrophone}
-                    className="relative z-10 h-20 w-20 rounded-full bg-slate-900/90 border border-emerald-500/40 flex items-center justify-center text-emerald-400 hover:scale-105 hover:border-emerald-400 transition-all shadow-[0_0_40px_rgba(16,185,129,0.25)] cursor-pointer"
+                    className="relative z-10 h-20 w-20 rounded-full bg-neutral-900/90 border border-emerald-500/40 flex items-center justify-center text-emerald-400 hover:scale-105 hover:border-emerald-400 transition-all shadow-[0_0_40px_rgba(16,185,129,0.25)] cursor-pointer"
                   >
                     {isListening ? <Square className="w-8 h-8" /> : <Mic className="w-8 h-8" />}
                   </button>
                 </div>
 
-                <div className="text-xs font-semibold text-slate-300">
+                <div className="text-xs font-semibold text-neutral-300">
                   {isListening ? "Listening — Speak Now" : "Tap to Start Voice Operations Engine"}
                 </div>
 
                 {/* Hardware Status Chips */}
                 <div className="flex items-center gap-2 flex-wrap justify-center">
-                  <span className="text-[10px] font-mono tracking-wider uppercase px-2.5 py-1 rounded-md bg-slate-900 border border-slate-800 text-slate-400">
+                  <span className="text-[10px] font-mono tracking-wider uppercase px-2.5 py-1 rounded-md bg-neutral-900 border border-white/10 text-neutral-400">
                     {isConnected ? "🟢 Connected" : "🔴 Offline"}
                   </span>
-                  <span className="text-[10px] font-mono tracking-wider uppercase px-2.5 py-1 rounded-md bg-slate-900 border border-slate-800 text-slate-400">
+                  <span className="text-[10px] font-mono tracking-wider uppercase px-2.5 py-1 rounded-md bg-neutral-900 border border-white/10 text-neutral-400">
                     AssemblyAI v3
                   </span>
-                  <span className="text-[10px] font-mono tracking-wider uppercase px-2.5 py-1 rounded-md bg-slate-900 border border-slate-800 text-slate-400">
+                  <span className="text-[10px] font-mono tracking-wider uppercase px-2.5 py-1 rounded-md bg-neutral-900 border border-white/10 text-neutral-400">
                     16kHz PCM
                   </span>
-                  <span className="text-[10px] font-mono tracking-wider uppercase px-2.5 py-1 rounded-md bg-slate-900 border border-slate-800 text-slate-400">
+                  <span className="text-[10px] font-mono tracking-wider uppercase px-2.5 py-1 rounded-md bg-neutral-900 border border-white/10 text-neutral-400">
                     Full Duplex
                   </span>
                 </div>
@@ -2193,11 +2194,11 @@ export default function VoiceAgentPage() {
                     className={`max-w-[82%] px-3.5 py-2.5 rounded-2xl text-xs leading-relaxed ${
                       m.role === "user"
                         ? "bg-emerald-600/20 border border-emerald-500/30 text-emerald-100 rounded-tr-none shadow-[0_0_15px_rgba(16,185,129,0.1)]"
-                        : "bg-slate-900/90 border border-slate-700/60 text-slate-200 rounded-tl-none"
+                        : "bg-neutral-900/90 border border-white/10 text-neutral-200 rounded-tl-none"
                     } ${!m.final ? "opacity-75 italic animate-pulse border-dashed" : ""}`}
                   >
                     <div className="flex items-center justify-between gap-2 mb-1">
-                      <span className="text-[9.5px] font-mono text-slate-500 uppercase tracking-wider">
+                      <span className="text-[9.5px] font-mono text-neutral-500 uppercase tracking-wider">
                         {m.role === "user" ? "Spoken Input" : "Konthora Voice"}
                       </span>
                       <span className="text-[9.5px] font-mono text-slate-600">
@@ -2211,8 +2212,8 @@ export default function VoiceAgentPage() {
                   </div>
 
                   {m.role === "user" && (
-                    <div className="w-7 h-7 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center shrink-0 mt-0.5">
-                      <Mic className="w-3.5 h-3.5 text-slate-300" />
+                    <div className="w-7 h-7 rounded-lg bg-neutral-800 border border-white/10 flex items-center justify-center shrink-0 mt-0.5">
+                      <Mic className="w-3.5 h-3.5 text-neutral-300" />
                     </div>
                   )}
                 </div>
@@ -2222,7 +2223,7 @@ export default function VoiceAgentPage() {
           </div>
 
           {/* Unified Input Dock — Floating Glass Bar */}
-          <div className="p-3 border-t border-slate-800/80 bg-slate-950/95 shrink-0">
+          <div className="p-3 border-t border-white/10 bg-neutral-950/95 shrink-0">
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -2246,11 +2247,11 @@ export default function VoiceAgentPage() {
                 value={textInput}
                 onChange={(e) => setTextInput(e.target.value)}
                 placeholder="Issue operational voice command or revision (e.g. 'Generate quotation for Acme', 'Authorize transaction')..."
-                className="flex-1 bg-slate-950/60 border border-slate-800/80 rounded-xl px-4 py-2.5 text-xs text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-emerald-500/50 font-mono transition-colors"
+                className="flex-1 bg-black/80 border border-neutral-800 rounded-xl px-4 py-2.5 text-xs text-neutral-200 placeholder:text-neutral-500 focus:outline-none focus:border-emerald-500/50 font-mono transition-colors"
               />
               <button
                 type="submit"
-                className="shrink-0 px-5 py-2.5 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 text-xs font-semibold rounded-xl transition-all cursor-pointer"
+                className="shrink-0 px-5 py-2.5 bg-emerald-400 hover:bg-emerald-300 text-black font-semibold text-xs rounded-xl transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] cursor-pointer"
               >
                 Send
               </button>
@@ -2261,9 +2262,9 @@ export default function VoiceAgentPage() {
         {/* ════════════════════════════════════════
             RIGHT PANEL: Dynamic Enterprise Document Deck & Actions
         ════════════════════════════════════════ */}
-        <div className="w-full h-full min-h-[500px] bg-[#0c1017]/90 border border-slate-800/80 rounded-2xl flex flex-col overflow-hidden shadow-xl">
+        <div className="w-full h-full min-h-[500px] bg-neutral-950/80 backdrop-blur-xl border border-white/10 rounded-2xl flex flex-col overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.8)]">
           {/* Deck Header & Action Bar */}
-          <div className="no-print px-5 py-2.5 border-b border-slate-800/60 flex items-center justify-between shrink-0 bg-slate-950/50 backdrop-blur-sm">
+          <div className="no-print px-5 py-2.5 border-b border-white/10 flex items-center justify-between shrink-0 bg-neutral-950/50 backdrop-blur-sm">
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.9)]" />
               <span className="text-[11px] font-mono font-bold text-cyan-400 uppercase tracking-widest">
@@ -2276,7 +2277,7 @@ export default function VoiceAgentPage() {
               <div className="flex items-center gap-2">
                 <button
                   onClick={handleCopyJSON}
-                  className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-mono border border-slate-700 transition-colors cursor-pointer"
+                  className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-[11px] font-mono border border-white/10 transition-colors cursor-pointer"
                   title="Copy Document JSON Payload"
                 >
                   {jsonCopied ? (
@@ -2286,7 +2287,7 @@ export default function VoiceAgentPage() {
                     </>
                   ) : (
                     <>
-                      <Copy className="w-3 h-3 text-slate-400" />
+                      <Copy className="w-3 h-3 text-neutral-400" />
                       <span>JSON</span>
                     </>
                   )}
@@ -2303,7 +2304,7 @@ export default function VoiceAgentPage() {
 
                 <button
                   onClick={() => setDocCard(null)}
-                  className="p-1 text-slate-500 hover:text-slate-300 transition-colors cursor-pointer"
+                  className="p-1 text-neutral-500 hover:text-neutral-300 transition-colors cursor-pointer"
                   title="Reset Deck"
                 >
                   <RefreshCw className="w-3 h-3" />
@@ -2311,8 +2312,8 @@ export default function VoiceAgentPage() {
               </div>
             ) : (
               <div className="flex items-center gap-1.5">
-                <span className="text-[10px] font-mono text-slate-500">Live Mock Enterprise DB</span>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-emerald-400">
+                <span className="text-[10px] font-mono text-neutral-500">Live Mock Enterprise DB</span>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-neutral-900 border border-white/10 text-emerald-400">
                   Ready
                 </span>
               </div>
@@ -2321,8 +2322,8 @@ export default function VoiceAgentPage() {
 
           {/* Groq Tool Execution Visualizer */}
           {groqStatus === "processing" && (
-            <div className="no-print px-5 py-2.5 border-b border-slate-800/60 bg-cyan-950/20 shrink-0">
-              <div className="rounded-xl border border-cyan-500/30 bg-slate-900/80 p-2.5 space-y-1.5">
+            <div className="no-print px-5 py-2.5 border-b border-white/10 bg-cyan-950/20 shrink-0">
+              <div className="rounded-xl border border-cyan-500/30 bg-neutral-900/80 p-2.5 space-y-1.5">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Cpu className="w-3.5 h-3.5 text-cyan-400 animate-spin" />
@@ -2330,12 +2331,12 @@ export default function VoiceAgentPage() {
                   </div>
                   <span className="text-[10px] font-mono text-cyan-300">~220ms</span>
                 </div>
-                <div className="flex items-center gap-2 text-[10px] font-mono text-slate-400">
+                <div className="flex items-center gap-2 text-[10px] font-mono text-neutral-400">
                   <span className="text-emerald-400 font-semibold">1. Audio Utterance</span>
                   <ChevronRight className="w-3 h-3 text-slate-600" />
                   <span className="text-cyan-400 animate-pulse font-semibold">2. Querying Mock DB</span>
                   <ChevronRight className="w-3 h-3 text-slate-600" />
-                  <span className="text-slate-500">3. Synthesizing Document</span>
+                  <span className="text-neutral-500">3. Synthesizing Document</span>
                 </div>
               </div>
             </div>
@@ -2361,14 +2362,14 @@ export default function VoiceAgentPage() {
                       </span>
                     )}
                   </div>
-                  <span className="text-[10px] font-mono text-slate-500">
+                  <span className="text-[10px] font-mono text-neutral-500">
                     {new Date(docCard.timestamp).toLocaleTimeString()}
                   </span>
                 </div>
 
                 {/* Quick Voice Revision Controls Toolbar (no-print) */}
-                <div className="no-print flex items-center gap-2 p-2 bg-slate-900/80 rounded-xl border border-slate-800 text-[11px] overflow-x-auto">
-                  <span className="text-slate-500 font-mono text-[10px] uppercase shrink-0 flex items-center gap-1">
+                <div className="no-print flex items-center gap-2 p-2 bg-neutral-900/80 rounded-xl border border-white/10 text-[11px] overflow-x-auto">
+                  <span className="text-neutral-500 font-mono text-[10px] uppercase shrink-0 flex items-center gap-1">
                     <Sliders className="w-3 h-3 text-emerald-400" />
                     Quick Voice Revisions:
                   </span>
@@ -2376,13 +2377,13 @@ export default function VoiceAgentPage() {
                     <>
                       <button
                         onClick={() => sendTextCommand("Change discount from 5% to 10%")}
-                        className="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/80 shrink-0 cursor-pointer"
+                        className="px-2.5 py-1 rounded bg-neutral-800 hover:bg-neutral-700 text-neutral-300 hover:text-white border border-white/10 shrink-0 cursor-pointer"
                       >
                         ⚡ &ldquo;Change discount to 10%&rdquo;
                       </button>
                       <button
                         onClick={() => sendTextCommand("Add maintenance fee of $200")}
-                        className="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/80 shrink-0 cursor-pointer"
+                        className="px-2.5 py-1 rounded bg-neutral-800 hover:bg-neutral-700 text-neutral-300 hover:text-white border border-white/10 shrink-0 cursor-pointer"
                       >
                         ⚡ &ldquo;Add $200 maintenance fee&rdquo;
                       </button>
@@ -2392,13 +2393,13 @@ export default function VoiceAgentPage() {
                     <>
                       <button
                         onClick={() => sendTextCommand("Add maintenance fee of $200")}
-                        className="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/80 shrink-0 cursor-pointer"
+                        className="px-2.5 py-1 rounded bg-neutral-800 hover:bg-neutral-700 text-neutral-300 hover:text-white border border-white/10 shrink-0 cursor-pointer"
                       >
                         ⚡ &ldquo;Add $200 maintenance fee&rdquo;
                       </button>
                       <button
                         onClick={() => sendTextCommand("Update payment terms to NET-60")}
-                        className="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/80 shrink-0 cursor-pointer"
+                        className="px-2.5 py-1 rounded bg-neutral-800 hover:bg-neutral-700 text-neutral-300 hover:text-white border border-white/10 shrink-0 cursor-pointer"
                       >
                         ⚡ &ldquo;Update terms to NET-60&rdquo;
                       </button>
@@ -2407,7 +2408,7 @@ export default function VoiceAgentPage() {
                   {docCard.type === "hr_letter" && (
                     <button
                       onClick={() => sendTextCommand("Change salary to 140000 BDT")}
-                      className="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/80 shrink-0 cursor-pointer"
+                      className="px-2.5 py-1 rounded bg-neutral-800 hover:bg-neutral-700 text-neutral-300 hover:text-white border border-white/10 shrink-0 cursor-pointer"
                     >
                       ⚡ &ldquo;Change salary to 140,000 BDT&rdquo;
                     </button>
@@ -2416,10 +2417,10 @@ export default function VoiceAgentPage() {
 
                 {/* Target Container Box with Revision Glow Pulse */}
                 <div
-                  className={`print-card-target rounded-2xl border transition-all duration-500 bg-slate-900/90 p-6 space-y-4 relative overflow-hidden backdrop-blur-md ${
+                  className={`print-card-target rounded-2xl border transition-all duration-500 bg-neutral-900/90 p-6 space-y-4 relative overflow-hidden backdrop-blur-md ${
                     isRevisedPulse
                       ? "border-emerald-400 ring-2 ring-emerald-500/60 shadow-[0_0_35px_rgba(16,185,129,0.5)]"
-                      : "border-slate-700/80 shadow-[0_0_30px_rgba(16,185,129,0.12)]"
+                      : "border-white/10 shadow-[0_0_30px_rgba(16,185,129,0.12)]"
                   }`}
                 >
                   {/* Revision Notice Banner */}
@@ -2548,21 +2549,21 @@ export default function VoiceAgentPage() {
                 </div>
 
                 {/* Database Trace Verification Box (no-print) */}
-                <div className="no-print rounded-xl border border-slate-800 bg-slate-900/60 p-3 space-y-1.5">
-                  <div className="flex items-center justify-between text-[10.5px] font-mono text-slate-400">
+                <div className="no-print rounded-xl border border-white/10 bg-neutral-900/60 p-3 space-y-1.5">
+                  <div className="flex items-center justify-between text-[10.5px] font-mono text-neutral-400">
                     <span className="uppercase tracking-wider">Enterprise Cryptographic Audit</span>
                     <span className="text-emerald-400 font-semibold flex items-center gap-1">
                       <CheckCircle2 className="w-3 h-3" />
                       Trust Seal Active
                     </span>
                   </div>
-                  <div className="text-[10.5px] font-mono text-slate-300 bg-slate-950/80 p-2 rounded border border-slate-800/80 overflow-x-auto space-y-1">
+                  <div className="text-[10.5px] font-mono text-neutral-300 bg-neutral-950/80 p-2 rounded border border-white/10/80 overflow-x-auto space-y-1">
                     <div>
-                      <span className="text-slate-500">Hash: </span>
+                      <span className="text-neutral-500">Hash: </span>
                       <span className="text-emerald-400">{docCard.verification_hash || "SHA256-KNT-2026-X98A2"}</span>
                     </div>
                     <div>
-                      <span className="text-slate-500">Audit QR: </span>
+                      <span className="text-neutral-500">Audit QR: </span>
                       <span className="text-cyan-400">{docCard.qr_payload || "https://konthora.ai/verify?ref=DOC-2026"}</span>
                     </div>
                   </div>
@@ -2573,7 +2574,7 @@ export default function VoiceAgentPage() {
         </div>
 
       {/* Fixed Global Status Bar */}
-      <div className="no-print fixed bottom-0 left-0 right-0 z-50 bg-[#0a0d14]/90 backdrop-blur-xl border-t border-slate-800/60 px-4 py-1.5 text-[10px] flex items-center justify-between text-slate-400">
+      <div className="no-print fixed bottom-0 left-0 right-0 z-50 bg-neutral-950/90 backdrop-blur-2xl border-t border-white/10 px-4 py-1.5 text-[10px] flex items-center justify-between text-neutral-400">
         <div className="flex items-center gap-3">
           <span className="font-mono tracking-wider uppercase text-emerald-500/80">AssemblyAI v3</span>
           <span className="text-slate-800">·</span>
