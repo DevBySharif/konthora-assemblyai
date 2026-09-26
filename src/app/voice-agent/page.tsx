@@ -2034,7 +2034,9 @@ export default function VoiceAgentPage() {
             case "transcript.user":
               if (m.text) {
                 setMessages((prev) => {
-                  const filtered = prev.filter((msg) => msg.final !== false);
+                  // Only remove non-final messages of the SAME role to avoid
+                  // wiping out a streaming agent reply when a new user message arrives
+                  const filtered = prev.filter((msg) => msg.final !== false || msg.role === "assistant");
                   if (m.type === "transcript.user") {
                     const last = filtered[filtered.length - 1];
                     if (last && last.role === "user" && last.text.trim() === m.text.trim() && last.final) {
@@ -2058,6 +2060,7 @@ export default function VoiceAgentPage() {
               break;
 
             // ── Agent text transcript ──
+            case "transcript.agent.delta":
             case "transcript.agent":
               if (m.text) {
                 setMessages((prev) => {
