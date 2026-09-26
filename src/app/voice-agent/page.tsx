@@ -2079,16 +2079,16 @@ export default function VoiceAgentPage() {
                   </span>
                 )}
               </div>
-              <span className="w-px h-3 bg-neutral-800" />
-              <div className="flex items-center gap-1.5 text-[10px] font-mono text-neutral-500">
-                <Cpu className={`w-3 h-3 ${groqStatus === "processing" ? "text-cyan-400 animate-spin" : "text-neutral-500"}`} />
-                <span className={groqStatus === "processing" ? "text-cyan-400" : ""}>
+              <span className="w-px h-3 bg-white/10" />
+              <div className="flex items-center gap-1.5 text-[10px] font-mono">
+                <Cpu className={`w-3 h-3 ${groqStatus === "processing" ? "text-cyan-400 animate-spin" : "text-neutral-400"}`} />
+                <span className={groqStatus === "processing" ? "text-cyan-400" : "text-neutral-400"}>
                   {groqStatus === "processing" ? "Inferencing..." : "Groq 70B"}
                 </span>
               </div>
-              <span className="w-px h-3 bg-neutral-800" />
-              <span className="hidden sm:flex items-center gap-1 text-[10px] font-mono text-neutral-500">
-                <Zap className="w-3 h-3 text-neutral-500" /> v3
+              <span className="w-px h-3 bg-white/10" />
+              <span className="hidden sm:flex items-center gap-1 text-[10px] font-mono text-neutral-400">
+                <Zap className="w-3 h-3 text-amber-400" /> v3
               </span>
             </div>
           </div>
@@ -2096,12 +2096,12 @@ export default function VoiceAgentPage() {
           {/* Live Audio Visualizer Deck */}
           <div className="px-5 py-2.5 border-b border-white/10/50 bg-neutral-900/30 shrink-0">
             <div className="space-y-1">
-              <div className="flex items-center justify-between text-[10px] font-mono text-neutral-500">
+              <div className="flex items-center justify-between text-[10px] font-mono text-neutral-400">
                 <span className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-neutral-900" />
+                  <span className="w-2 h-2 rounded-full bg-white/20" />
                   PCM SPECTRAL FEED (16kHz / 16-BIT)
                 </span>
-                <span className={isListening ? "text-neutral-300 font-bold" : "text-neutral-500"}>
+                <span className={isListening ? "text-neutral-300 font-bold" : "text-neutral-400"}>
                   {isListening ? "● STREAMING" : "○ STANDBY"}
                 </span>
               </div>
@@ -2268,8 +2268,8 @@ export default function VoiceAgentPage() {
           {/* Deck Header & Action Bar */}
           <div className="no-print px-5 py-2.5 border-b border-white/10 flex items-center justify-between shrink-0 bg-neutral-950/50 backdrop-blur-sm">
             <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.9)]" />
-              <span className="text-[11px] font-mono font-bold text-cyan-400 uppercase tracking-widest">
+              <span className="w-2 h-2 rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.6)]" />
+              <span className="text-[11px] font-mono font-bold text-neutral-300 uppercase tracking-widest">
                 Enterprise Operations Deck
               </span>
             </div>
