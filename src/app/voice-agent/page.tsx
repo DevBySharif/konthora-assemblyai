@@ -2059,8 +2059,23 @@ export default function VoiceAgentPage() {
               }
               break;
 
-            // ── Agent text transcript ──
-            case "transcript.agent.delta":
+            // ── Agent text transcript (streaming deltas aligned with audio) ──
+            case "transcript.agent.delta": {
+              // delta field = next word/token of agent speech, accumulate into message
+              const word = m.delta || "";
+              if (word) {
+                setMessages((prev) => {
+                  const last = prev[prev.length - 1];
+                  if (last && last.role === "assistant" && !last.final) {
+                    return [...prev.slice(0, -1), { role: "assistant", text: last.text + word, final: false, timestamp: last.timestamp }];
+                  }
+                  return [...prev, { role: "assistant", text: word, final: false, timestamp: Date.now() }];
+                });
+              }
+              break;
+            }
+
+            // ── Agent text transcript (final, after all audio delivered) ──
             case "transcript.agent":
               if (m.text) {
                 setMessages((prev) => {
