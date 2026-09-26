@@ -2223,6 +2223,7 @@ export default function VoiceAgentPage() {
             type: "session.update",
             session: {
               system_prompt: config.system_prompt,
+              greeting: config.greeting,
               output: { voice: config.voice || "anna" },
               input: {
                 format: { encoding: "audio/pcm" },
@@ -2446,6 +2447,10 @@ export default function VoiceAgentPage() {
       if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
         showToast("WebSocket not connected. Please wait for connection.", "error");
         return;
+      }
+      // If WS is already connected, re-enable session so worklet can send audio
+      if (sessionReadyRef.current === false && wsRef.current.readyState === WebSocket.OPEN) {
+        sessionReadyRef.current = true;
       }
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },

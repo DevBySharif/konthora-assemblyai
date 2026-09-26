@@ -743,8 +743,10 @@ async def get_voice_agent_config():
             "- Always respond in English.\n"
             "- Quote specific names, IDs, currencies, numbers.\n"
             "- Use the appropriate tool for each action.\n"
-            "- Be professional, concise, and proactive."
+            "- Be professional, concise, and proactive.\n"
+            "- When user says goodbye/thanks/nothing, respond briefly and do NOT ask further questions."
         ),
+        "greeting": "Welcome to Konthora. I am your enterprise voice operations engine. You can create documents, manage inventory, check finances, schedule meetings, and more — all by voice. How can I help you today?",
         "voice": "anna",
         "tools": VOICE_AGENT_TOOLS,
     }
