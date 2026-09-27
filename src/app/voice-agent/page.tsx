@@ -2328,7 +2328,9 @@ export default function VoiceAgentPage() {
                 setMessages((prev) => {
                   const last = prev[prev.length - 1];
                   if (last && last.role === "assistant" && !last.final) {
-                    return [...prev.slice(0, -1), { role: "assistant", text: last.text + word, final: false, timestamp: last.timestamp }];
+                    // Add space before word if last char isn't space/punctuation and word isn't punctuation
+                    const needsSpace = last.text.length > 0 && !last.text.endsWith(" ") && !last.text.endsWith("\n") && !word.match(/^[.,!?;:)]/);
+                    return [...prev.slice(0, -1), { role: "assistant", text: last.text + (needsSpace ? " " : "") + word, final: false, timestamp: last.timestamp }];
                   }
                   return [...prev, { role: "assistant", text: word, final: false, timestamp: Date.now() }];
                 });
