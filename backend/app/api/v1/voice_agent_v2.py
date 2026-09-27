@@ -74,7 +74,7 @@ VOICE_AGENT_TOOLS = [
     {
         "type": "function",
         "name": "create_document",
-        "description": "Create an enterprise document: quotation, purchase order, invoice, proforma invoice, tax report, financial report, HR offer letter, meeting minutes, NDA, expense voucher, analytics chart, dispatch notification, delivery challan, work order, credit note, debit note, receipt, bank statement, memo, official notice, agreement, bid, tender, or insurance claim.",
+        "description": "Create an enterprise document. You MUST pass ALL details the user specified — line items with quantities and unit prices, payment terms, discounts, notes. Do NOT summarize or omit any detail the user provided.",
         "parameters": {
             "type": "object",
             "properties": {
@@ -84,7 +84,25 @@ VOICE_AGENT_TOOLS = [
                     "description": "Type of document to create"
                 },
                 "client_name": {"type": "string", "description": "Client or company name"},
-                "amount": {"type": "number", "description": "Document amount in USD"},
+                "amount": {"type": "number", "description": "Total document amount in USD (computed from line items)"},
+                "line_items": {
+                    "type": "array",
+                    "description": "Itemized list of all line items. Include EVERY item the user mentioned with exact quantities and unit prices.",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "description": {"type": "string", "description": "Item description"},
+                            "quantity": {"type": "number", "description": "Quantity"},
+                            "unit_price": {"type": "number", "description": "Unit price in USD"},
+                            "subtotal": {"type": "number", "description": "quantity * unit_price"},
+                        },
+                        "required": ["description", "quantity", "unit_price"]
+                    }
+                },
+                "payment_terms": {"type": "string", "description": "Payment terms (e.g. 'Net 30', 'Net 15', 'Due on Receipt')"},
+                "discount_pct": {"type": "number", "description": "Discount percentage if any (e.g. 5 for 5%)"},
+                "discount_amount": {"type": "number", "description": "Discount amount in USD after percentage applied"},
+                "notes": {"type": "string", "description": "Any additional notes, terms, or special instructions"},
             },
             "required": ["doc_type"]
         }
@@ -307,6 +325,11 @@ def _handle_create_document(args: dict) -> dict:
     doc_type = args.get("doc_type", "quotation")
     client = args.get("client_name", "Acme Corp")
     amount = args.get("amount", 0)
+    line_items = args.get("line_items", [])
+    payment_terms = args.get("payment_terms", "")
+    discount_pct = args.get("discount_pct", 0)
+    discount_amount = args.get("discount_amount", 0)
+    notes = args.get("notes", "")
 
     doc_refs = {
         "quotation": "PHOENIX-2026", "purchase_order": "PO-88301", "invoice": "INV-8821",
@@ -321,16 +344,17 @@ def _handle_create_document(args: dict) -> dict:
         "agreement": "AGR-2026-33", "bid": "BID-2026-12",
         "tender": "TDR-2026-07", "insurance_claim": "INS-2026-41",
     }
-    default_amounts = {
-        "quotation": 27075, "purchase_order": 15050, "invoice": 5050,
-        "proforma_invoice": 8200, "tax_compliance": 11400, "financial": 142000, "expense_voucher": 450,
-        "delivery_challan": 15050, "work_order": 32000, "credit_note": 3500, "debit_note": 2100,
-        "receipt": 5050, "bank_statement": 0, "agreement": 0, "bid": 45000, "tender": 120000, "insurance_claim": 8500,
-    }
 
     doc_ref = doc_refs.get(doc_type, "DOC-2026")
-    if not amount:
-        amount = default_amounts.get(doc_type, 0)
+
+    # Compute amount from line_items if provided, else use passed amount, else fallback
+    if line_items:
+        computed = sum(item.get("subtotal", item.get("quantity", 0) * item.get("unit_price", 0)) for item in line_items)
+        if discount_pct and not discount_amount:
+            discount_amount = round(computed * discount_pct / 100, 2)
+        amount = computed - discount_amount if discount_amount else computed
+    elif not amount:
+        amount = 0
 
     verif = _generate_verification(doc_type, doc_ref, amount)
     approval = "AUTO-APPROVED" if amount <= 10000 else "PENDING CFO APPROVAL"
@@ -340,14 +364,21 @@ def _handle_create_document(args: dict) -> dict:
         "doc_type": doc_type, "doc_ref": doc_ref, "amount": amount,
         "client": client, "approval_status": approval,
         "verification_hash": verif["verification_hash"], "qr_payload": verif["qr_payload"],
+        "line_items": line_items, "payment_terms": payment_terms,
+        "discount_pct": discount_pct, "discount_amount": discount_amount,
+        "notes": notes,
     }
 
     return {
         "result": f"Document {doc_type} ({doc_ref}) created for {client}. Amount: ${amount:,.2f}. Status: {approval}. Verification: {verif['verification_hash']}",
         "success": True,
         "doc_type": doc_type, "doc_ref": doc_ref, "amount": amount,
-        "approval_status": approval, "verification_hash": verif["verification_hash"],
+        "client": client, "approval_status": approval,
+        "verification_hash": verif["verification_hash"],
         "qr_payload": verif["qr_payload"],
+        "line_items": line_items, "payment_terms": payment_terms,
+        "discount_pct": discount_pct, "discount_amount": discount_amount,
+        "notes": notes,
     }
 
 

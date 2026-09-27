@@ -581,91 +581,110 @@ function QuotationCard({
 
 function PurchaseOrderCard({
   text,
+  customData,
   verificationHash,
   qrPayload,
 }: {
   text: string;
+  customData?: Record<string, unknown>;
   verificationHash?: string;
   qrPayload?: string;
 }) {
+  const docRef = (customData?.doc_ref as string) || "PO-88301";
+  const clientName = (customData?.client as string) || (customData?.client_name as string) || "Acme Corp";
+  const totalAmount = (customData?.amount as number) || 0;
+  const paymentTerms = (customData?.payment_terms as string) || "Net 30";
+  const discountPct = (customData?.discount_pct as number) || 0;
+  const discountAmount = (customData?.discount_amount as number) || 0;
+  const notes = (customData?.notes as string) || "";
+  const lineItems = (customData?.line_items as Array<{description: string; quantity: number; unit_price: number; subtotal: number}>) || [];
+  const subtotal = lineItems.reduce((sum, item) => sum + (item.subtotal || item.quantity * item.unit_price), 0);
+
   return (
     <div className="space-y-4">
       <FormalDocHeader
         docCategory="Authorized Purchase Order"
-        docNumber="PO-88301"
-        issueDate="15 September 2026"
-        badgeText="Approved &amp; Processing"
+        docNumber={docRef}
+        issueDate={new Date().toLocaleDateString("en-GB")}
+        badgeText={paymentTerms ? `Terms: ${paymentTerms}` : "Approved & Processing"}
       />
 
       <div className="grid grid-cols-2 gap-3 text-xs bg-neutral-950/60 p-3 rounded-xl border border-white/10">
         <div>
-          <span className="text-[10px] font-mono text-neutral-500 uppercase tracking-wider">Authorized Vendor:</span>
-          <div className="font-bold text-white mt-0.5">Apex Hardware International Ltd.</div>
-          <div className="text-[11px] text-neutral-400">Hong Kong &amp; Singapore Global Logistics Centre</div>
+          <span className="text-[10px] font-mono text-neutral-500 uppercase tracking-wider">Vendor / Client:</span>
+          <div className="font-bold text-white mt-0.5">{clientName}</div>
         </div>
         <div>
-          <span className="text-[10px] font-mono text-neutral-500 uppercase tracking-wider">Delivery Destination:</span>
-          <div className="font-bold text-cyan-400 mt-0.5">Singapore Hub Data Center (Tier-4)</div>
-          <div className="text-[11px] text-neutral-400">Attn: Enterprise Logistics &amp; Rack Deployment</div>
+          <span className="text-[10px] font-mono text-neutral-500 uppercase tracking-wider">Payment Terms:</span>
+          <div className="font-bold text-cyan-400 mt-0.5">{paymentTerms}</div>
         </div>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="w-full text-left text-xs">
-          <thead>
-            <tr className="border-b border-white/10 text-neutral-400 font-mono text-[10px] uppercase tracking-wider">
-              <th className="py-2 pr-2">SKU</th>
-              <th className="py-2 pr-4">Hardware Component</th>
-              <th className="py-2 px-2 text-center">Qty</th>
-              <th className="py-2 px-2 text-right">Unit Cost</th>
-              <th className="py-2 pl-2 text-right">Subtotal</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-800/60">
-            <tr>
-              <td className="py-2.5 pr-2 font-mono text-neutral-500">HW-M3P-001</td>
-              <td className="py-2.5 pr-4 text-white font-medium">Apple M3 Pro Chip (OEM Architecture Grade)</td>
-              <td className="py-2.5 px-2 text-center font-mono text-neutral-300">20</td>
-              <td className="py-2.5 px-2 text-right font-mono text-neutral-300">$450.00</td>
-              <td className="py-2.5 pl-2 text-right font-mono text-white font-semibold">$9,000.00</td>
-            </tr>
-            <tr>
-              <td className="py-2.5 pr-2 font-mono text-neutral-500">HW-SRV-42U</td>
-              <td className="py-2.5 pr-4 text-white font-medium">Enterprise Server Rack 42U Heavy Duty Enclosure</td>
-              <td className="py-2.5 px-2 text-center font-mono text-neutral-300">2</td>
-              <td className="py-2.5 px-2 text-right font-mono text-neutral-300">$2,800.00</td>
-              <td className="py-2.5 pl-2 text-right font-mono text-white font-semibold">$5,600.00</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      {lineItems.length > 0 ? (
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs">
+            <thead>
+              <tr className="border-b border-white/10 text-neutral-400 font-mono text-[10px] uppercase tracking-wider">
+                <th className="py-2 pr-2">#</th>
+                <th className="py-2 pr-4">Description</th>
+                <th className="py-2 px-2 text-center">Qty</th>
+                <th className="py-2 px-2 text-right">Unit Price</th>
+                <th className="py-2 pl-2 text-right">Subtotal</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-800/60">
+              {lineItems.map((item, i) => (
+                <tr key={i}>
+                  <td className="py-2.5 pr-2 font-mono text-neutral-500">{String(i + 1).padStart(2, "0")}</td>
+                  <td className="py-2.5 pr-4 text-white font-medium">{item.description}</td>
+                  <td className="py-2.5 px-2 text-center font-mono text-neutral-300">{item.quantity}</td>
+                  <td className="py-2.5 px-2 text-right font-mono text-neutral-300">${item.unit_price.toLocaleString()}.00</td>
+                  <td className="py-2.5 pl-2 text-right font-mono text-white font-semibold">${(item.subtotal || item.quantity * item.unit_price).toLocaleString()}.00</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <div className="text-xs text-neutral-400 italic p-3">No line items available</div>
+      )}
 
       <div className="bg-neutral-950/70 rounded-xl p-3.5 border border-white/10 space-y-1.5 text-xs">
         <div className="flex justify-between text-neutral-400">
-          <span>Equipment Subtotal</span>
-          <span className="font-mono text-white">$14,600.00</span>
+          <span>Subtotal</span>
+          <span className="font-mono text-white">${subtotal.toLocaleString()}.00</span>
         </div>
-        <div className="flex justify-between text-neutral-400">
-          <span>Secured Air Freight &amp; Handling</span>
-          <span className="font-mono text-white">$450.00</span>
-        </div>
+        {discountPct > 0 && (
+          <>
+            <div className="flex justify-between text-neutral-400">
+              <span>Corporate Discount ({discountPct}%)</span>
+              <span className="font-mono text-emerald-400">-${discountAmount.toLocaleString()}.00</span>
+            </div>
+          </>
+        )}
         <div className="border-t border-white/10 pt-2 flex justify-between font-bold text-white text-sm">
-          <span>Authorized Purchase Order Grand Total</span>
-          <span className="font-mono text-cyan-400 text-base">$15,050.00 USD</span>
+          <span>Grand Total</span>
+          <span className="font-mono text-cyan-400 text-base">${totalAmount.toLocaleString()}.00 USD</span>
         </div>
       </div>
 
+      {notes && (
+        <div className="text-[11px] text-neutral-400 bg-neutral-950/40 border border-white/5 rounded-lg p-2.5">
+          <span className="font-mono text-neutral-500">Notes:</span> {notes}
+        </div>
+      )}
+
       <FormalDocFooter
-        signatory="Sarah Jenkins, Solutions Lead"
-        department="Infrastructure Procurement Board"
-        notes="NET-30 upon hardware QA pass at Singapore Hub. Delivery tracking ref: DHL-SG-99201."
+        signatory="Enterprise Procurement"
+        department="Procurement Board"
+        notes={paymentTerms ? `${paymentTerms} payment terms` : "Standard procurement terms"}
         verificationHash={verificationHash}
         qrPayload={qrPayload}
       />
 
       <div className="no-print text-[11px] text-neutral-400 bg-cyan-950/20 border border-cyan-500/20 rounded-lg p-2.5 flex items-start gap-2">
         <Sparkles className="w-3.5 h-3.5 text-cyan-400 shrink-0 mt-0.5" />
-        <span className="line-clamp-2">{text || "Hardware procurement PO cross-referenced against warehouse replenishment limits."}</span>
+        <span className="line-clamp-2">{text || `Verified purchase order for ${clientName} generated from voice command.`}</span>
       </div>
     </div>
   );
@@ -762,18 +781,22 @@ function InvoiceCard({
 }) {
   const docRef = (customData?.doc_ref as string) || `INV-${String(ts).slice(-5)}`;
   const clientName = (customData?.client as string) || (customData?.client_name as string) || "Acme Corp";
-  const totalAmount = (customData?.amount as number) || 5050;
-  const paymentTerms = (customData?.payment_terms as string) ?? "NET-30";
-  const maintenanceFee = (customData?.maintenance_fee as number) ?? 0;
-  const baseService = totalAmount - maintenanceFee - 850 > 0 ? totalAmount - maintenanceFee - 850 : 4200;
-  const clusterAlloc = 850;
+  const totalAmount = (customData?.amount as number) || 0;
+  const paymentTerms = (customData?.payment_terms as string) || "NET-30";
+  const discountPct = (customData?.discount_pct as number) || 0;
+  const discountAmount = (customData?.discount_amount as number) || 0;
+  const notes = (customData?.notes as string) || "";
+  const lineItems = (customData?.line_items as Array<{description: string; quantity: number; unit_price: number; subtotal: number}>) || [];
+  const subtotal = lineItems.length > 0
+    ? lineItems.reduce((sum, item) => sum + (item.subtotal || item.quantity * item.unit_price), 0)
+    : totalAmount;
 
   return (
     <div className="space-y-4">
       <FormalDocHeader
         docCategory="Commercial Tax Invoice"
         docNumber={docRef}
-        issueDate={new Date(ts).toLocaleDateString("en-GB")}
+        issueDate={new Date(ts || Date.now()).toLocaleDateString("en-GB")}
         badgeText={`Payment Terms: ${paymentTerms}`}
       />
 
@@ -781,70 +804,53 @@ function InvoiceCard({
         <div>
           <span className="text-[10px] font-mono text-neutral-500 uppercase tracking-wider">Billed To (Client):</span>
           <div className="font-bold text-white mt-0.5">{clientName}</div>
-          <div className="text-[11px] text-neutral-400">Tax ID: US-99201 · Client ID: CLI-8821</div>
-          <div className="text-[11px] text-neutral-500">500 Market St, San Francisco, CA 94103</div>
         </div>
         <div>
-          <span className="text-[10px] font-mono text-neutral-500 uppercase tracking-wider">Payment Details:</span>
-          <div className="font-bold text-neutral-300 mt-0.5">Direct Wire / ACH Transfer</div>
-          <div className="text-[11px] text-neutral-400 font-mono">Routing: 121000358 · Acct: 8829-4401</div>
-          <div className="text-[11px] text-neutral-500">Currency: United States Dollars (USD)</div>
+          <span className="text-[10px] font-mono text-neutral-500 uppercase tracking-wider">Payment Terms:</span>
+          <div className="font-bold text-neutral-300 mt-0.5">{paymentTerms}</div>
         </div>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="w-full text-left text-xs">
-          <thead>
-            <tr className="border-b border-white/10 text-neutral-400 font-mono text-[10px] uppercase tracking-wider">
-              <th className="py-2 pr-2">#</th>
-              <th className="py-2 pr-4">Description of Deliverable</th>
-              <th className="py-2 px-2 text-center">Period</th>
-              <th className="py-2 pl-2 text-right">Amount</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-800/60">
-            <tr>
-              <td className="py-2.5 pr-2 font-mono text-neutral-500">01</td>
-              <td className="py-2.5 pr-4 text-white font-medium">
-                Professional Voice AI Integration &amp; Calibration
-                <div className="text-[11px] text-neutral-400 font-normal">Custom acoustic lexicon tuning and sub-850ms streaming bridge</div>
-              </td>
-              <td className="py-2.5 px-2 text-center font-mono text-neutral-300">Phase 1</td>
-              <td className="py-2.5 pl-2 text-right font-mono text-white font-semibold">${baseService.toLocaleString()}.00</td>
-            </tr>
-            <tr>
-              <td className="py-2.5 pr-2 font-mono text-neutral-500">02</td>
-              <td className="py-2.5 pr-4 text-white font-medium">
-                Dedicated Inference Cluster (Monthly Allocation)
-                <div className="text-[11px] text-neutral-400 font-normal">Isolated Voice Agent processing unit</div>
-              </td>
-              <td className="py-2.5 px-2 text-center font-mono text-neutral-300">30 Days</td>
-              <td className="py-2.5 pl-2 text-right font-mono text-white font-semibold">${clusterAlloc.toLocaleString()}.00</td>
-            </tr>
-            {maintenanceFee > 0 && (
-              <tr>
-                <td className="py-2.5 pr-2 font-mono text-neutral-500">03</td>
-                <td className="py-2.5 pr-4 text-white font-medium">
-                  24/7 SLA Priority Maintenance &amp; High-Availability Monitoring
-                  <div className="text-[11px] text-neutral-300 font-normal">Added via Voice Revision Directive</div>
-                </td>
-                <td className="py-2.5 px-2 text-center font-mono text-neutral-300">Monthly</td>
-                <td className="py-2.5 pl-2 text-right font-mono text-neutral-300 font-semibold">${maintenanceFee.toFixed(2)}</td>
+      {lineItems.length > 0 ? (
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs">
+            <thead>
+              <tr className="border-b border-white/10 text-neutral-400 font-mono text-[10px] uppercase tracking-wider">
+                <th className="py-2 pr-2">#</th>
+                <th className="py-2 pr-4">Description</th>
+                <th className="py-2 px-2 text-center">Qty</th>
+                <th className="py-2 px-2 text-right">Unit Price</th>
+                <th className="py-2 pl-2 text-right">Subtotal</th>
               </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody className="divide-y divide-slate-800/60">
+              {lineItems.map((item, i) => (
+                <tr key={i}>
+                  <td className="py-2.5 pr-2 font-mono text-neutral-500">{String(i + 1).padStart(2, "0")}</td>
+                  <td className="py-2.5 pr-4 text-white font-medium">{item.description}</td>
+                  <td className="py-2.5 px-2 text-center font-mono text-neutral-300">{item.quantity}</td>
+                  <td className="py-2.5 px-2 text-right font-mono text-neutral-300">${item.unit_price.toLocaleString()}.00</td>
+                  <td className="py-2.5 pl-2 text-right font-mono text-white font-semibold">${(item.subtotal || item.quantity * item.unit_price).toLocaleString()}.00</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <div className="text-xs text-neutral-400 italic p-3">No line items available</div>
+      )}
 
       <div className="bg-neutral-950/70 rounded-xl p-3.5 border border-white/10 space-y-1.5 text-xs">
         <div className="flex justify-between text-neutral-400">
           <span>Subtotal</span>
-          <span className="font-mono text-white">${totalAmount.toLocaleString()}.00</span>
+          <span className="font-mono text-white">${subtotal.toLocaleString()}.00</span>
         </div>
-        <div className="flex justify-between text-neutral-400">
-          <span>Applicable Sales Tax (0.0% B2B Reverse Charge)</span>
-          <span className="font-mono text-neutral-400">$0.00</span>
-        </div>
+        {discountPct > 0 && (
+          <div className="flex justify-between text-neutral-400">
+            <span>Discount ({discountPct}%)</span>
+            <span className="font-mono text-emerald-400">-${discountAmount.toLocaleString()}.00</span>
+          </div>
+        )}
         <div className="border-t border-white/10 pt-2 flex justify-between font-bold text-white text-sm">
           <span>Total Balance Due (USD)</span>
           <span className="font-mono text-neutral-300 text-base">${totalAmount.toLocaleString()}.00</span>
@@ -2101,6 +2107,7 @@ export default function VoiceAgentPage() {
   const workletNodeRef = useRef<AudioWorkletNode | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const sessionReadyRef = useRef(false);
+  const toolCallCounterRef = useRef(0);
 
   // AssemblyAI Voice Agent AudioWorklet — converts Float32 mic → PCM16 base64
   const WORKLET_URL = typeof window !== "undefined"
@@ -2231,11 +2238,13 @@ export default function VoiceAgentPage() {
               output: { voice: config.voice || "anna" },
               input: {
                 format: { encoding: "audio/pcm" },
+                transcription_mode: "max_accuracy",
                 turn_detection: {
                   vad_threshold: 0.5,
-                  min_silence: 200,
-                  max_silence: 1000,
+                  min_silence: 1500,
+                  max_silence: 4000,
                   interrupt_response: true,
+                  interruption_delay: 300,
                 },
               },
               tools: config.tools || [],
@@ -2309,6 +2318,8 @@ export default function VoiceAgentPage() {
                 if (m.type === "transcript.user") {
                   setAiStatus("processing");
                   setIsAgentThinking(true);
+                  // Clear stale card when user starts new turn — shows spinner until tool result arrives
+                  setDocCard(null);
                 }
               }
               break;
@@ -2375,6 +2386,8 @@ export default function VoiceAgentPage() {
             // ── Tool calling from AssemblyAI LLM ──
             case "tool.call": {
               const { call_id, name, arguments: args } = m;
+              // Track latest tool call to discard stale results from rapid commands
+              const toolCallId = ++toolCallCounterRef.current;
               try {
                 const resp = await fetch(`${AARI_BACKEND}/voice-agent/tool`, {
                   method: "POST",
@@ -2382,7 +2395,9 @@ export default function VoiceAgentPage() {
                   body: JSON.stringify({ call_id, name, arguments: args }),
                 });
                 const result = await resp.json();
-                // Send tool.result back to AssemblyAI (AFTER reply.done)
+                // Discard if a newer tool call started while we were fetching
+                if (toolCallId !== toolCallCounterRef.current) break;
+                // Send tool.result back to AssemblyAI
                 if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
                   wsRef.current.send(JSON.stringify({
                     type: "tool.result",
@@ -2390,7 +2405,7 @@ export default function VoiceAgentPage() {
                     result: JSON.stringify(result),
                   }));
                 }
-                // Also update the document card on the right panel
+                // New document created — replace card entirely
                 if (result.success && result.doc_type) {
                   const now = Date.now();
                   setDocCard({
@@ -2404,19 +2419,28 @@ export default function VoiceAgentPage() {
                     qr_payload: result.qr_payload,
                     revised: false,
                   });
-                }
-                // Update card on successful revision
-                if (result.success && result.field && result.new_value !== undefined) {
-                  setDocCard((prev) => prev ? {
-                    ...prev,
-                    revised: true,
-                    verification_hash: result.verification_hash || prev.verification_hash,
-                    payload: { ...prev.payload, [result.field]: result.new_value },
-                  } : prev);
+                // Revision — update existing card in-place
+                } else if (result.success && result.field && result.new_value !== undefined) {
+                  setDocCard((prev) => {
+                    if (!prev) {
+                      showToast("No active document to revise. Create one first.", "error");
+                      return prev;
+                    }
+                    return {
+                      ...prev,
+                      revised: true,
+                      verification_hash: result.verification_hash || prev.verification_hash,
+                      payload: { ...prev.payload, [result.field]: result.new_value },
+                    };
+                  });
                   triggerRevisionPulse();
+                // Non-document tool result — clear stale card
+                } else if (result.success) {
+                  setDocCard(null);
                 }
               } catch (err) {
                 console.error("Tool call error:", err);
+                showToast("Tool execution failed. Please try again.", "error");
                 if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
                   wsRef.current.send(JSON.stringify({
                     type: "tool.result",
@@ -2515,6 +2539,7 @@ export default function VoiceAgentPage() {
 
     appendMessage({ role: "user", text, final: true, timestamp: Date.now() });
     setAiStatus("processing");
+    setDocCard(null);
     setTextInput("");
 
     try {
@@ -2541,6 +2566,9 @@ export default function VoiceAgentPage() {
           revised: data.action_card.revised ?? false,
         });
         if (data.action_card.revised) triggerRevisionPulse();
+      } else {
+        // No document produced — clear any stale card
+        setDocCard(null);
       }
 
       setAiStatus("done");
@@ -2900,7 +2928,12 @@ export default function VoiceAgentPage() {
 
           {/* Document Render Area with internal scroll constraint */}
           <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
-            {!docCard ? (
+            {!docCard && aiStatus === "processing" ? (
+              <div className="flex flex-col items-center justify-center h-full gap-3 text-neutral-400">
+                <Cpu className="w-6 h-6 text-cyan-400 animate-spin" />
+                <span className="text-xs font-mono">Generating document...</span>
+              </div>
+            ) : !docCard ? (
               <DocPanelIdle onSelectDemo={(prompt) => sendTextCommand(prompt)} />
             ) : (
               <div className="space-y-4">
@@ -3003,6 +3036,7 @@ export default function VoiceAgentPage() {
                   {docCard.type === "purchase_order" && (
                     <PurchaseOrderCard
                       text={lastAssistantMsg?.text ?? ""}
+                      customData={docCard.payload}
                       verificationHash={docCard.verification_hash}
                       qrPayload={docCard.qr_payload}
                     />
