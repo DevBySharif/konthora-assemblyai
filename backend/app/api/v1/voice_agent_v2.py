@@ -830,7 +830,7 @@ async def upload_audio(file: UploadFile = File(...)):
     allowed_types = {
         "audio/mpeg", "audio/mp3", "audio/wav", "audio/wave", "audio/x-wav",
         "audio/mp4", "audio/m4a", "audio/x-m4a", "audio/flac", "audio/x-flac",
-        "audio/webm", "audio/ogg", "audio/aac",
+        "audio/webm", "audio/ogg", "audio/aac", "application/octet-stream",
     }
     if file.content_type and file.content_type not in allowed_types:
         raise HTTPException(status_code=400, detail=f"Unsupported audio format: {file.content_type}")
