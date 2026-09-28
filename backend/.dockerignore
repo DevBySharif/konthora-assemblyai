@@ -11,5 +11,10 @@ model_cache/*
 tests/
 .env
 .env.local
+.env.production
 Dockerfile
 .dockerignore
+app.py
+README.md
+requirements-dev.txt
+requirements-lock.txt
