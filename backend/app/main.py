@@ -1,81 +1,26 @@
 import os
 from dotenv import load_dotenv
 
-# Explicitly load .env from the backend root directory
 load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
 
-import asyncio
 import contextlib
 from fastapi import FastAPI, Request, status
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
 from starlette.middleware.gzip import GZipMiddleware
-from starlette.middleware.trustedhost import TrustedHostMiddleware
 from loguru import logger
 
 from app.core.config import settings
 from app.core.exceptions import TtsException
-from app.core.queue import TtsQueueManager
-from app.core.transcription_queue import TranscriptionQueueManager
-from app.services.cleanup_service import CleanupService
-from app.services.kokoro_service import KokoroService
-from app.services.transcription_service import TranscriptionService
 from app.api.v1.health import router as health_router
-from app.api.v1.tts import router as tts_router
-from app.api.v1.transcription import router as transcription_router
-from app.api.v1.voice_agent import router as voice_agent_router
 from app.api.v1.voice_agent_v2 import router as voice_agent_v2_router
 
 @contextlib.asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup
-    logger.info("Initializing Konthora API services...")
-    is_testing = settings.APP_ENV == "testing"
-
-    cleanup_service = CleanupService()
-
-    if not is_testing:
-        # 1. Run startup stale storage clean
-        await cleanup_service.run_startup_cleanup()
-
-        # 2. Start queue worker background tasks
-        queue_manager = TtsQueueManager()
-        queue_manager.start()
-
-        trans_queue = TranscriptionQueueManager()
-        trans_queue.start()
-
-        # 3. Start background file/metadata cleanup loop
-        cleanup_service.start()
-
-        # 4. Trigger model warm-up in background (non-blocking for healthcheck)
-        async def _warmup_models():
-            logger.info("Pre-warming model singletons for Kokoro TTS and Faster-Whisper...")
-            try:
-                loop = asyncio.get_running_loop()
-                kokoro_service = KokoroService()
-                transcription_service = TranscriptionService()
-                await loop.run_in_executor(None, kokoro_service.load_pipeline, "a")
-                await loop.run_in_executor(None, transcription_service.load_model)
-                logger.info("Model warm-up completed successfully.")
-            except Exception as e:
-                logger.warning(f"Initial model preloading deferred or failed: {e}")
-        asyncio.create_task(_warmup_models())
-
+    logger.info("Starting Konthora API...")
     yield
-
-    # Shutdown
-    if not is_testing:
-        logger.info("Shutting down Konthora API services...")
-        # 1. Cancel periodic cleanup loop
-        cleanup_service.stop()
-        # 2. Stop queue and thread executors gracefully
-        queue_manager = TtsQueueManager()
-        await queue_manager.stop()
-
-        trans_queue = TranscriptionQueueManager()
-        await trans_queue.stop()
+    logger.info("Shutting down Konthora API.")
 
 app = FastAPI(
     title="Konthora API",
@@ -109,9 +54,6 @@ async def add_robots_header(request: Request, call_next):
 
 # Register routes
 app.include_router(health_router, prefix="/api/v1")
-app.include_router(tts_router, prefix="/api/v1")
-app.include_router(transcription_router, prefix="/api/v1")
-app.include_router(voice_agent_router, prefix="/api/v1")
 app.include_router(voice_agent_v2_router, prefix="/api/v1")
 
 # Railway healthcheck — zero dependency, always returns 200
