@@ -820,7 +820,9 @@ async def text_command(req: TextCommandRequest):
 
 @router.post("/voice-agent/upload")
 async def upload_audio(file: UploadFile = File(...)):
-    """Upload audio file → AssemblyAI Batch API → transcription + document intent."""
+    """Upload audio file → AssemblyAI HTTP API → transcription + document intent."""
+    import asyncio
+
     api_key = os.getenv("ASSEMBLYAI_API_KEY", "").strip()
     if not api_key:
         raise HTTPException(status_code=500, detail="ASSEMBLYAI_API_KEY not configured")
@@ -833,48 +835,77 @@ async def upload_audio(file: UploadFile = File(...)):
     if file.content_type and file.content_type not in allowed_types:
         raise HTTPException(status_code=400, detail=f"Unsupported audio format: {file.content_type}")
 
-    suffix = os.path.splitext(file.filename or "audio.mp3")[1] or ".mp3"
-    tmp = tempfile.NamedTemporaryFile(delete=False, suffix=suffix)
+    content = await file.read()
+    if len(content) > 50 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="File too large (max 50MB)")
+
+    logger.info(f"Transcribing uploaded file: {file.filename} ({len(content)} bytes)")
+
+    # Step 1: Upload file to AssemblyAI, Step 2: Submit transcription, Step 3: Poll for result
+    async def _transcribe_async():
+        async with httpx.AsyncClient(timeout=120.0) as client:
+            # Upload audio bytes
+            upload_resp = await client.post(
+                "https://api.assemblyai.com/v2/upload",
+                content=content,
+                headers={"Authorization": api_key, "Content-Type": "application/octet-stream"},
+            )
+            if upload_resp.status_code != 200:
+                raise Exception(f"Upload failed ({upload_resp.status_code}): {upload_resp.text}")
+            audio_url = upload_resp.json()["upload_url"]
+
+            # Submit transcription
+            transcribe_resp = await client.post(
+                "https://api.assemblyai.com/v2/transcript",
+                json={
+                    "audio_url": audio_url,
+                    "speaker_labels": True,
+                    "auto_chapters": True,
+                    "summarization": True,
+                    "summary_model": "informative",
+                },
+                headers={"Authorization": api_key, "Content-Type": "application/json"},
+            )
+            if transcribe_resp.status_code != 200:
+                raise Exception(f"Transcription submit failed ({transcribe_resp.status_code}): {transcribe_resp.text}")
+            transcript_id = transcribe_resp.json()["id"]
+
+            # Poll for completion
+            while True:
+                poll_resp = await client.get(
+                    f"https://api.assemblyai.com/v2/transcript/{transcript_id}",
+                    headers={"Authorization": api_key},
+                )
+                if poll_resp.status_code != 200:
+                    raise Exception(f"Poll failed ({poll_resp.status_code}): {poll_resp.text}")
+                status = poll_resp.json()["status"]
+                if status == "completed":
+                    return poll_resp.json()
+                elif status == "error":
+                    raise Exception(f"Transcription error: {poll_resp.json().get('error', 'unknown')}")
+                await asyncio.sleep(1.0)
+
     try:
-        content = await file.read()
-        if len(content) > 50 * 1024 * 1024:
-            raise HTTPException(status_code=400, detail="File too large (max 50MB)")
-        tmp.write(content)
-        tmp.flush()
+        result = await _transcribe_async()
+    except Exception as e:
+        logger.error(f"AssemblyAI transcription failed: {e}")
+        raise HTTPException(status_code=502, detail=f"Transcription failed: {str(e)}")
 
-        logger.info(f"Transcribing uploaded file: {file.filename} ({len(content)} bytes)")
+    full_text = result.get("text", "") or ""
+    summary = result.get("summary", "") or ""
+    speakers = result.get("speaker_labels", []) if isinstance(result.get("speaker_labels"), list) else []
+    duration = result.get("audio_duration", 0)
 
-        import assemblyai as aai
-        config = aai.TranscriptionConfig(
-            audio_url=None,
-            speaker_labels=True,
-            auto_chapters=True,
-            summarization=True,
-            summary_model=aai.SummarizationModel.informative,
-        )
-        transcriber = aai.Transcriber(config=config)
-        transcript = transcriber.transcribe(tmp.name)
+    from app.services.voice_agent_service import VoiceAgentService
+    svc = VoiceAgentService()
+    response_text = svc._fast_fallback(full_text)
+    action = svc.resolve_document_action(response_text, full_text)
 
-        if transcript.status == aai.TranscriptStatus.error:
-            logger.error(f"AssemblyAI transcription failed: {transcript.error}")
-            raise HTTPException(status_code=502, detail=f"Transcription failed: {transcript.error}")
-
-        from app.services.voice_agent_service import VoiceAgentService
-        svc = VoiceAgentService()
-        full_text = transcript.text or ""
-        response_text = svc._fast_fallback(full_text)
-        action = svc.resolve_document_action(response_text, full_text)
-
-        return {
-            "transcription": full_text,
-            "summary": transcript.summary or "",
-            "speakers": transcript.json_response.get("speaker_labels", []) if transcript.json_response else [],
-            "duration_seconds": transcript.json_response.get("audio_duration", 0) if transcript.json_response else 0,
-            "response": response_text,
-            "action_card": action,
-        }
-    finally:
-        try:
-            os.unlink(tmp.name)
-        except OSError:
-            pass
+    return {
+        "transcription": full_text,
+        "summary": summary,
+        "speakers": speakers,
+        "duration_seconds": duration,
+        "response": response_text,
+        "action_card": action,
+    }
