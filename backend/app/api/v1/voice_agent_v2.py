@@ -277,7 +277,8 @@ PASSKEY = "KNT-2026"
 
 
 def _get_db():
-    from app.core.database import SessionLocal
+    from app.core.database import SessionLocal, ensure_seeded
+    ensure_seeded()
     return SessionLocal()
 
 

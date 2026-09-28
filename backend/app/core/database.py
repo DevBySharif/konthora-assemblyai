@@ -22,6 +22,8 @@ else:
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
+_seeded = False
+
 
 def get_db():
     """FastAPI dependency — yields a DB session, closes after request."""
@@ -36,3 +38,21 @@ def init_db():
     """Create all tables."""
     from app.models import client, document, inventory, task, financial, calendar_event, staff  # noqa
     Base.metadata.create_all(bind=engine)
+
+
+def ensure_seeded():
+    """Seed database if empty. Called lazily on first DB access."""
+    global _seeded
+    if _seeded:
+        return
+    from app.models.client import Client
+    db = SessionLocal()
+    try:
+        if db.query(Client).count() == 0:
+            from scripts.seed import seed_database
+            seed_database()
+        _seeded = True
+    except Exception:
+        pass
+    finally:
+        db.close()
