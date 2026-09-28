@@ -843,7 +843,7 @@ async def upload_audio(file: UploadFile = File(...)):
 
     # Step 1: Upload file to AssemblyAI, Step 2: Submit transcription, Step 3: Poll for result
     async def _transcribe_async():
-        async with httpx.AsyncClient(timeout=120.0) as client:
+        async with httpx.AsyncClient(timeout=60.0) as client:
             # Upload audio bytes
             upload_resp = await client.post(
                 "https://api.assemblyai.com/v2/upload",
@@ -851,8 +851,9 @@ async def upload_audio(file: UploadFile = File(...)):
                 headers={"Authorization": api_key, "Content-Type": "application/octet-stream"},
             )
             if upload_resp.status_code != 200:
-                raise Exception(f"Upload failed ({upload_resp.status_code}): {upload_resp.text}")
+                raise Exception(f"Upload failed ({upload_resp.status_code}): {upload_resp.text[:200]}")
             audio_url = upload_resp.json()["upload_url"]
+            logger.info(f"Uploaded to AssemblyAI: {audio_url[:80]}...")
 
             # Submit transcription
             transcribe_resp = await client.post(
@@ -867,23 +868,26 @@ async def upload_audio(file: UploadFile = File(...)):
                 headers={"Authorization": api_key, "Content-Type": "application/json"},
             )
             if transcribe_resp.status_code != 200:
-                raise Exception(f"Transcription submit failed ({transcribe_resp.status_code}): {transcribe_resp.text}")
+                raise Exception(f"Transcription submit failed ({transcribe_resp.status_code}): {transcribe_resp.text[:200]}")
             transcript_id = transcribe_resp.json()["id"]
+            logger.info(f"Transcription submitted: {transcript_id}")
 
-            # Poll for completion
-            while True:
+            # Poll for completion (max 60s)
+            for _ in range(60):
                 poll_resp = await client.get(
                     f"https://api.assemblyai.com/v2/transcript/{transcript_id}",
                     headers={"Authorization": api_key},
                 )
                 if poll_resp.status_code != 200:
-                    raise Exception(f"Poll failed ({poll_resp.status_code}): {poll_resp.text}")
+                    raise Exception(f"Poll failed ({poll_resp.status_code}): {poll_resp.text[:200]}")
                 status = poll_resp.json()["status"]
                 if status == "completed":
+                    logger.info(f"Transcription completed: {transcript_id}")
                     return poll_resp.json()
                 elif status == "error":
                     raise Exception(f"Transcription error: {poll_resp.json().get('error', 'unknown')}")
                 await asyncio.sleep(1.0)
+            raise Exception("Transcription timed out after 60s")
 
     try:
         result = await _transcribe_async()
