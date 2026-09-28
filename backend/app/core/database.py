@@ -45,14 +45,18 @@ def ensure_seeded():
     global _seeded
     if _seeded:
         return
-    from app.models.client import Client
-    db = SessionLocal()
     try:
-        if db.query(Client).count() == 0:
-            from scripts.seed import seed_database
-            seed_database()
+        from app.models.client import Client
+        db = SessionLocal()
+        try:
+            count = db.query(Client).count()
+            if count == 0:
+                from scripts.seed import seed_database
+                seed_database()
+            _seeded = True
+        finally:
+            db.close()
+    except Exception as e:
+        from loguru import logger
+        logger.error(f"ensure_seeded error: {e}")
         _seeded = True
-    except Exception:
-        pass
-    finally:
-        db.close()
