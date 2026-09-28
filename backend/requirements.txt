@@ -19,7 +19,6 @@ kokoro==0.7.16
 # Whisper
 faster-whisper
 
-# Voice Agent Hackathon (AssemblyAI & Gemini)
+# Voice Agent
 assemblyai>=0.33.0
 websockets>=12.0
-google-genai>=0.1.0
