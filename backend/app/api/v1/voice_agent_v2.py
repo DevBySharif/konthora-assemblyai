@@ -861,7 +861,6 @@ async def upload_audio(file: UploadFile = File(...)):
                 json={
                     "audio_url": audio_url,
                     "speaker_labels": True,
-                    "auto_chapters": True,
                     "summarization": True,
                     "summary_model": "informative",
                 },
