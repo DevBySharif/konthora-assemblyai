@@ -8,14 +8,16 @@ Architecture:
 Backend responsibilities:
   1. Mint temporary tokens for browser → AssemblyAI WebSocket
   2. Execute tool calls from AssemblyAI's LLM (document actions)
+  3. Audio file upload → AssemblyAI Batch API transcription
 """
 import os
 import json
 import time
 import hashlib
+import tempfile
 from dotenv import load_dotenv
 import httpx
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, UploadFile, File
 from pydantic import BaseModel
 from loguru import logger
 
@@ -812,3 +814,67 @@ async def text_command(req: TextCommandRequest):
         "response": response,
         "action_card": action,
     }
+
+
+# ── Audio Upload → AssemblyAI Batch Transcription ──
+
+@router.post("/voice-agent/upload")
+async def upload_audio(file: UploadFile = File(...)):
+    """Upload audio file → AssemblyAI Batch API → transcription + document intent."""
+    api_key = os.getenv("ASSEMBLYAI_API_KEY", "").strip()
+    if not api_key:
+        raise HTTPException(status_code=500, detail="ASSEMBLYAI_API_KEY not configured")
+
+    allowed_types = {
+        "audio/mpeg", "audio/mp3", "audio/wav", "audio/wave", "audio/x-wav",
+        "audio/mp4", "audio/m4a", "audio/x-m4a", "audio/flac", "audio/x-flac",
+        "audio/webm", "audio/ogg", "audio/aac",
+    }
+    if file.content_type and file.content_type not in allowed_types:
+        raise HTTPException(status_code=400, detail=f"Unsupported audio format: {file.content_type}")
+
+    suffix = os.path.splitext(file.filename or "audio.mp3")[1] or ".mp3"
+    tmp = tempfile.NamedTemporaryFile(delete=False, suffix=suffix)
+    try:
+        content = await file.read()
+        if len(content) > 50 * 1024 * 1024:
+            raise HTTPException(status_code=400, detail="File too large (max 50MB)")
+        tmp.write(content)
+        tmp.flush()
+
+        logger.info(f"Transcribing uploaded file: {file.filename} ({len(content)} bytes)")
+
+        import assemblyai as aai
+        config = aai.TranscriptionConfig(
+            audio_url=None,
+            speaker_labels=True,
+            auto_chapters=True,
+            summarization=True,
+            summary_model=aai.SummarizationModel.informative,
+        )
+        transcriber = aai.Transcriber(config=config)
+        transcript = transcriber.transcribe(tmp.name)
+
+        if transcript.status == aai.TranscriptStatus.error:
+            logger.error(f"AssemblyAI transcription failed: {transcript.error}")
+            raise HTTPException(status_code=502, detail=f"Transcription failed: {transcript.error}")
+
+        from app.services.voice_agent_service import VoiceAgentService
+        svc = VoiceAgentService()
+        full_text = transcript.text or ""
+        response_text = svc._fast_fallback(full_text)
+        action = svc.resolve_document_action(response_text, full_text)
+
+        return {
+            "transcription": full_text,
+            "summary": transcript.summary or "",
+            "speakers": transcript.json_response.get("speaker_labels", []) if transcript.json_response else [],
+            "duration_seconds": transcript.json_response.get("audio_duration", 0) if transcript.json_response else 0,
+            "response": response_text,
+            "action_card": action,
+        }
+    finally:
+        try:
+            os.unlink(tmp.name)
+        except OSError:
+            pass

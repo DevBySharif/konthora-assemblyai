@@ -28,6 +28,7 @@ import {
   GitCompare,
   Truck,
   Wrench,
+  Upload,
 } from "lucide-react";
 
 // ─────────────────────────────────────────────────────
@@ -1926,9 +1927,46 @@ function SlackDispatchCard({ text, docCard }: { text: string; docCard: { payload
 }
 
 // ─────────────────────────────────────────────────────
-// Audio Upload Card
+// Audio Upload Card — Real file upload via AssemblyAI Batch API
 // ─────────────────────────────────────────────────────
-function AudioUploadCard({ text }: { text: string }) {
+function AudioUploadCard({ onFileUpload }: { onFileUpload: (file: File) => void }) {
+  const [dragOver, setDragOver] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFile = (file: File) => {
+    if (file.size > 50 * 1024 * 1024) { console.error("File too large"); return; }
+    onFileUpload(file);
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Volume2 className="w-4 h-4 text-cyan-400" />
+          <span className="text-sm font-bold text-white">Audio Upload</span>
+        </div>
+        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">ASSEMBLYAI BATCH</span>
+      </div>
+      <div
+        className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all ${
+          dragOver ? "border-cyan-400 bg-cyan-950/30" : "border-neutral-700 hover:border-neutral-500 bg-neutral-900/30"
+        }`}
+        onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+        onDragLeave={() => setDragOver(false)}
+        onDrop={(e) => { e.preventDefault(); setDragOver(false); if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); }}
+        onClick={() => fileInputRef.current?.click()}
+      >
+        <input ref={fileInputRef} type="file" accept="audio/*" className="hidden"
+          onChange={(e) => { if (e.target.files?.[0]) handleFile(e.target.files[0]); }} />
+        <Upload className="w-8 h-8 text-neutral-500 mx-auto mb-2" />
+        <p className="text-xs text-neutral-400">Drop audio file or click to browse</p>
+        <p className="text-[10px] text-neutral-600 mt-1">MP3, WAV, M4A, FLAC, WebM — max 50MB</p>
+      </div>
+    </div>
+  );
+}
+
+function AudioUploadResultCard({ data }: { data: Record<string, unknown> }) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -1936,24 +1974,25 @@ function AudioUploadCard({ text }: { text: string }) {
           <Volume2 className="w-4 h-4 text-cyan-400" />
           <span className="text-sm font-bold text-white">Audio Batch Processing</span>
         </div>
-        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">ASSEMBLYAI v3</span>
+        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">ASSEMBLYAI BATCH</span>
       </div>
-      <div className="border border-cyan-500/30 rounded-xl bg-cyan-950/20 p-4 space-y-3">
-        <div className="flex items-center gap-2 text-cyan-400">
-          <CheckCircle2 className="w-5 h-5" />
-          <span className="text-xs font-bold uppercase tracking-wider">Batch Transcription Complete</span>
+      {typeof data.summary === "string" && data.summary && (
+        <div className="border border-cyan-500/30 rounded-xl bg-cyan-950/20 p-4 space-y-2">
+          <div className="flex items-center gap-2 text-cyan-400">
+            <CheckCircle2 className="w-5 h-5" />
+            <span className="text-xs font-bold uppercase tracking-wider">Transcription Complete</span>
+          </div>
+          <div className="text-[11px] text-neutral-300">
+            <span className="text-neutral-500">Summary:</span> {data.summary}
+          </div>
         </div>
-        <div className="text-[11px] text-neutral-300 space-y-1.5">
-          <div><span className="text-neutral-500">Source:</span> <span className="text-neutral-300">meeting-recording.wav</span></div>
-          <div><span className="text-neutral-500">Duration:</span> <span className="text-neutral-300 font-mono">4:32</span></div>
-          <div><span className="text-neutral-500">Language:</span> <span className="text-neutral-300">English (locked)</span></div>
-          <div><span className="text-neutral-500">Confidence:</span> <span className="text-neutral-300 font-semibold">98.7%</span></div>
+      )}
+      {typeof data.transcription === "string" && data.transcription && (
+        <div className="no-print text-[11px] text-neutral-400 bg-cyan-950/20 border border-cyan-500/20 rounded-lg p-2.5">
+          <span className="text-neutral-500 font-bold">Transcript:</span>
+          <p className="mt-1 line-clamp-4">{data.transcription}</p>
         </div>
-      </div>
-      <div className="no-print text-[11px] text-neutral-400 bg-cyan-950/20 border border-cyan-500/20 rounded-lg p-2.5 flex items-start gap-2">
-        <Sparkles className="w-3.5 h-3.5 text-cyan-400 shrink-0 mt-0.5" />
-        <span className="line-clamp-2">{text || "Pre-recorded audio processed via AssemblyAI Batch API. Intent extracted and document synthesized."}</span>
-      </div>
+      )}
     </div>
   );
 }
@@ -2580,24 +2619,38 @@ export default function VoiceAgentPage() {
     }
   };
 
-  // Audio file upload handler
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  // Audio file upload handler — real AssemblyAI Batch API
+  const handleAudioUpload = async (file: File) => {
     setIsUploading(true);
     appendMessage({ role: "user", text: `[Audio Upload] ${file.name} (${(file.size / 1024).toFixed(1)}KB)`, final: true, timestamp: Date.now() });
-    setTimeout(() => {
-      setIsUploading(false);
-      appendMessage({ role: "assistant", text: `Audio file "${file.name}" processed via AssemblyAI Batch API. Transcript extracted and document intent classified. Enterprise document card is ready.`, final: true, timestamp: Date.now() });
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const resp = await fetch(`${AARI_BACKEND}/voice-agent/upload`, { method: "POST", body: formData });
+      const data = await resp.json();
+
+      if (!resp.ok) {
+        throw new Error(data.detail || "Upload failed");
+      }
+
+      appendMessage({ role: "assistant", text: data.response || "Audio processed via AssemblyAI Batch API.", final: true, timestamp: Date.now() });
       setDocCard({
         type: "audio_upload",
         title: file.name,
-        payload: { filename: file.name, size: file.size, status: "processed" },
+        payload: { filename: file.name, size: file.size, status: "processed", ...data },
+        amount: data.action_card?.amount,
         timestamp: Date.now(),
         verification_hash: "SHA256-KNT-" + file.name.slice(0, 4).toUpperCase(),
       });
-    }, 2000);
-    if (fileInputRef.current) fileInputRef.current.value = "";
+      setAiStatus("done");
+      setTimeout(() => setAiStatus("idle"), 2000);
+    } catch (err) {
+      console.error("Upload error:", err);
+      appendMessage({ role: "assistant", text: `Upload failed: ${err instanceof Error ? err.message : "Unknown error"}`, final: true, timestamp: Date.now() });
+      setAiStatus("idle");
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   // PDF & Print Actions
@@ -2680,7 +2733,7 @@ export default function VoiceAgentPage() {
               ref={fileInputRef}
               type="file"
               accept="audio/*,.mp3,.wav,.ogg,.m4a"
-              onChange={handleFileUpload}
+              onChange={(e) => { const f = e.target.files?.[0]; if (f) handleAudioUpload(f); if (fileInputRef.current) fileInputRef.current.value = ""; }}
               className="hidden"
             />
             <button
@@ -3132,8 +3185,8 @@ export default function VoiceAgentPage() {
                     />
                   )}
                   {docCard.type === "audio_upload" && (
-                    <AudioUploadCard
-                      text={lastAssistantMsg?.text ?? ""}
+                    <AudioUploadResultCard
+                      data={docCard.payload}
                     />
                   )}
                   {docCard.type === "delivery_challan" && (
