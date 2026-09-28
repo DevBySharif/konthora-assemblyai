@@ -15,6 +15,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     espeak-ng \
     ffmpeg \
     libsndfile1 \
+    git \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy dependency files first for layer caching
