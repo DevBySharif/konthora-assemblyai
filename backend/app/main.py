@@ -49,17 +49,19 @@ async def lifespan(app: FastAPI):
         # 3. Start background file/metadata cleanup loop
         cleanup_service.start()
 
-        # 4. Trigger initial singleton instantiation and model loading during startup (cold-start optimization)
-        logger.info("Pre-warming model singletons for Kokoro TTS and Faster-Whisper...")
-        try:
-            loop = asyncio.get_running_loop()
-            kokoro_service = KokoroService()
-            transcription_service = TranscriptionService()
-            await loop.run_in_executor(None, kokoro_service.load_pipeline, "a")
-            await loop.run_in_executor(None, transcription_service.load_model)
-            logger.info("Model warm-up completed successfully.")
-        except Exception as e:
-            logger.warning(f"Initial model preloading deferred or failed: {e}")
+        # 4. Trigger model warm-up in background (non-blocking for healthcheck)
+        async def _warmup_models():
+            logger.info("Pre-warming model singletons for Kokoro TTS and Faster-Whisper...")
+            try:
+                loop = asyncio.get_running_loop()
+                kokoro_service = KokoroService()
+                transcription_service = TranscriptionService()
+                await loop.run_in_executor(None, kokoro_service.load_pipeline, "a")
+                await loop.run_in_executor(None, transcription_service.load_model)
+                logger.info("Model warm-up completed successfully.")
+            except Exception as e:
+                logger.warning(f"Initial model preloading deferred or failed: {e}")
+        asyncio.create_task(_warmup_models())
 
     yield
 
