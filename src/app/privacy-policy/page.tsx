@@ -91,7 +91,7 @@ export default function Page() {
                 3. Analytics & Cookies
               </h2>
               <p className="leading-8 text-muted-foreground max-w-[75ch]">
-                We use local storage within your browser to store user preferences such as your visual theme choice (Light or Dark mode). We do not use third-party analytics trackers or cross-site cookies.
+                We use local storage within your browser to store user preferences such as your visual theme choice (Light or Dark mode). We use Google Analytics and Microsoft Clarity to understand how visitors interact with our application, which helps us improve the user experience. These services may use cookies and similar tracking technologies.
               </p>
             </div>
             <div className="rounded-2xl border border-border/60 bg-card/40 p-6 sm:p-8">

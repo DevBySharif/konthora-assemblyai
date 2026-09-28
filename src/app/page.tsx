@@ -103,10 +103,10 @@ export default function LandingPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
           {[
-            { num: "01", title: "Voice-to-Invoice & Quotations", desc: "Itemized billing, tax rules, and instant multi-currency computation" },
-            { num: "02", title: "Instant Financial & Revenue Reports", desc: "Quarterly variance, EBITDA margins, and executive summaries" },
-            { num: "03", title: "HR Offer Letters & Contracts", desc: "Employment terms, vesting schedules, and non-disclosure clauses" },
-            { num: "04", title: "Sub-Second Latency & Acoustic Echo Guard", desc: "Zero audio echo loop, full-duplex conversational streaming" },
+            { num: "01", title: "24 Enterprise Document Types", desc: "Invoices, quotations, contracts, NDAs, financial reports, HR letters, purchase orders, and 16 more" },
+            { num: "02", title: "Audio Upload & Analysis", desc: "Upload meeting recordings, interviews, or calls — Konthora transcribes, summarizes, and creates documents from audio" },
+            { num: "03", title: "Persistent SQLite Database", desc: "All generated documents, clients, inventory, tasks, and financials stored in a relational database with full CRUD" },
+            { num: "04", title: "Email & Notification Service", desc: "Send generated documents via email with formatted HTML templates, ready for real SMTP integration" },
           ].map((item, i) => (
             <div key={i} className="vesper-glass-card animate-vesper-in p-6 rounded-2xl hover:border-white/30 transition-all group">
               <div className="text-xs font-mono text-neutral-300 mb-4">{item.num}</div>
@@ -332,8 +332,10 @@ export default function LandingPage() {
             { q: "What makes Konthora different from generic transcription or TTS tools?", a: "Konthora is a full-duplex enterprise voice production engine powered by AssemblyAI's managed Voice Agent API — handling STT, LLM reasoning, and natural voice synthesis in a single connection with built-in tool calling." },
             { q: "How is sub-second latency achieved?", a: "AssemblyAI's Voice Agent API manages the entire pipeline in one WebSocket: real-time speech capture, LLM inference, and neural voice synthesis — eliminating network hops between separate services." },
             { q: "Does Konthora support Bangla and Banglish code-switching?", a: "Yes. The system parses mixed-mode English, Banglish, and native Bangla queries, extracting parameters and converting currencies seamlessly." },
-            { q: "What enterprise documents can Konthora generate?", a: "Commercial invoices, quotations, financial summaries, EBITDA reports, HR offer letters, employment contracts, and salary revision memos — all with SHA-256 cryptographic seals." },
-            { q: "Is my voice data secure?", a: "Audio is processed by AssemblyAI's Voice Agent API with enterprise-grade security. Document generation happens on our backend. Voice data is never stored beyond the active session." },
+            { q: "What enterprise documents can Konthora generate?", a: "24 document types across 6 categories: Financial (invoices, quotations, receipts, sales orders, credit notes, purchase orders), HR (offer letters, employment contracts, salary revisions, experience certificates), Reporting (financial summaries, budget reports, expense reports, tax summaries), Client Ops (onboarding packs, proposals, meeting minutes, NDAs), Inventory (reports, alerts, transfer orders, purchase requisitions), and Project Management (plans, status reports, milestone reviews, task assignments) — all with SHA-256 cryptographic seals." },
+            { q: "Can I upload audio files instead of using voice?", a: "Yes. Upload meeting recordings, interviews, or calls in MP3, WAV, WebM, or M4A format. Konthora transcribes via AssemblyAI, generates a summary, and lets you create documents from the transcription using natural language follow-up commands." },
+            { q: "How does the database work?", a: "Konthora uses SQLite with SQLAlchemy ORM, storing all generated documents, clients, inventory items, tasks, financials, calendar events, and staff records. Seeded with realistic sample data on every cold start. Upgrade to PostgreSQL by setting the DATABASE_URL environment variable." },
+            { q: "Is my voice data secure?", a: "Audio is processed by AssemblyAI's Voice Agent API with enterprise-grade security. Document generation happens on our backend. Voice data is never stored beyond the active session. All documents are persisted locally in the SQLite database." },
             { q: "How does echo cancellation work?", a: "Browser-native AEC (echo cancellation) handles speaker-to-mic feedback automatically. Additionally, the mic worklet mutes audio during agent speech to prevent any residual echo." },
           ].map((faq, index) => (
             <div key={index} className="vesper-glass-card rounded-xl overflow-hidden">

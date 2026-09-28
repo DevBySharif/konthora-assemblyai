@@ -310,7 +310,6 @@ def _get_next_doc_ref(db, doc_type: str) -> str:
 @router.post("/voice-agent/tool")
 async def execute_tool(req: ToolCallRequest):
     """Execute a tool call from AssemblyAI Voice Agent and return the result."""
-    global _active_doc_state, _previous_doc_state
     logger.info(f"Tool call: {req.name}({json.dumps(req.arguments)[:200]})")
 
     try:
