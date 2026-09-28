@@ -96,15 +96,9 @@ if settings.COMPRESSION_ENABLED:
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins_list,
-    allow_credentials=False,  # Bearer auth does not require credentials/cookies
+    allow_credentials=False,
     allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["Content-Type", "Authorization"],
-)
-
-# Host header validation (deny unknown Hosts to prevent DNS rebinding / host spoofing)
-app.add_middleware(
-    TrustedHostMiddleware,
-    allowed_hosts=settings.trusted_hosts_list,
 )
 
 @app.middleware("http")
