@@ -19,6 +19,15 @@ from app.api.v1.voice_agent_v2 import router as voice_agent_v2_router
 @contextlib.asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Starting Konthora API...")
+    # Init database + seed
+    try:
+        from app.core.database import init_db
+        init_db()
+        logger.info("Database initialized.")
+        from scripts.seed import seed_database
+        seed_database()
+    except Exception as e:
+        logger.error(f"Database init error: {e}")
     yield
     logger.info("Shutting down Konthora API.")
 

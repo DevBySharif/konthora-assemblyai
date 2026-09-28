@@ -268,14 +268,17 @@ class TextCommandRequest(BaseModel):
     text: str
 
 
-# In-memory state (per-session, good enough for hackathon)
-_active_doc_state = {}
-_previous_doc_state = {}
+# In-memory state (per-session)
 _last_transcription = {}
 
-EXCHANGE_RATES = {"USD": 1.0, "BDT": 120.0, "EUR": 0.92}
-CURRENCY_SYMBOLS = {"USD": "$", "BDT": "৳", "EUR": "€"}
+EXCHANGE_RATES = {"USD": 1.0, "BDT": 120.0, "EUR": 0.92, "GBP": 0.79, "INR": 83.5, "JPY": 150.0}
+CURRENCY_SYMBOLS = {"USD": "$", "BDT": "৳", "EUR": "€", "GBP": "£", "INR": "₹", "JPY": "¥"}
 PASSKEY = "KNT-2026"
+
+
+def _get_db():
+    from app.core.database import SessionLocal
+    return SessionLocal()
 
 
 def _generate_verification(doc_type: str, doc_ref: str, amount: float) -> dict:
@@ -283,6 +286,24 @@ def _generate_verification(doc_type: str, doc_ref: str, amount: float) -> dict:
     digest = hashlib.sha256(seed.encode()).hexdigest()[:16].upper()
     vhash = f"SHA256-KNT-{digest[:4]}-{digest[4:8]}-{digest[8:12]}"
     return {"verification_hash": vhash, "qr_payload": f"https://konthora.ai/verify?ref={doc_ref}&hash={vhash}", "verified_at": int(time.time())}
+
+
+def _get_next_doc_ref(db, doc_type: str) -> str:
+    """Generate next document reference number from DB."""
+    prefix_map = {
+        "quotation": "Q", "purchase_order": "PO", "invoice": "INV",
+        "proforma_invoice": "PI", "tax_compliance": "TAX", "financial": "FIN",
+        "hr_letter": "HR", "meeting_minutes": "MIN", "legal_contract": "NDA",
+        "expense_voucher": "EXP", "analytics_chart": "CHART", "dispatch_notification": "DISP",
+        "delivery_challan": "DC", "work_order": "WO", "credit_note": "CN",
+        "debit_note": "DN", "receipt": "RCT", "bank_statement": "BST",
+        "memo": "MEMO", "official_notice": "NOTICE", "agreement": "AGR",
+        "bid": "BID", "tender": "TDR", "insurance_claim": "INS",
+    }
+    prefix = prefix_map.get(doc_type, "DOC")
+    from app.models.document import Document
+    count = db.query(Document).filter(Document.doc_type == doc_type).count()
+    return f"{prefix}-{2026}-{count + 1:03d}"
 
 
 @router.post("/voice-agent/tool")
@@ -324,118 +345,129 @@ async def execute_tool(req: ToolCallRequest):
 
 
 def _handle_create_document(args: dict) -> dict:
-    global _active_doc_state
-    doc_type = args.get("doc_type", "quotation")
-    client = args.get("client_name", "Acme Corp")
-    amount = args.get("amount", 0)
-    line_items = args.get("line_items", [])
-    payment_terms = args.get("payment_terms", "")
-    discount_pct = args.get("discount_pct", 0)
-    discount_amount = args.get("discount_amount", 0)
-    notes = args.get("notes", "")
+    from app.models.document import Document
+    from app.models.client import Client
+    import json as _json
 
-    doc_refs = {
-        "quotation": "PHOENIX-2026", "purchase_order": "PO-88301", "invoice": "INV-8821",
-        "proforma_invoice": "PI-2026-441", "tax_compliance": "FY2026-TAX-01", "financial": "FY2026-Q1-REP",
-        "hr_letter": "EMP-1041-OFFER", "meeting_minutes": "MIN-2026-09",
-        "legal_contract": "NDA-2026-88", "expense_voucher": "EXP-9902",
-        "analytics_chart": "CHART-2026-Q1Q2", "dispatch_notification": "DISP-2026",
-        "delivery_challan": "DC-2026-301", "work_order": "WO-2026-77",
-        "credit_note": "CN-2026-102", "debit_note": "DN-2026-055",
-        "receipt": "RCT-2026-205", "bank_statement": "BST-2026-Q1",
-        "memo": "MEMO-2026-15", "official_notice": "NOTICE-2026-08",
-        "agreement": "AGR-2026-33", "bid": "BID-2026-12",
-        "tender": "TDR-2026-07", "insurance_claim": "INS-2026-41",
-    }
+    db = _get_db()
+    try:
+        doc_type = args.get("doc_type", "quotation")
+        client_name = args.get("client_name", "Acme Corp")
+        amount = args.get("amount", 0)
+        line_items = args.get("line_items", [])
+        payment_terms = args.get("payment_terms", "")
+        discount_pct = args.get("discount_pct", 0)
+        discount_amount = args.get("discount_amount", 0)
+        notes = args.get("notes", "")
 
-    doc_ref = doc_refs.get(doc_type, "DOC-2026")
+        # Find or create client
+        client = db.query(Client).filter(Client.name.ilike(f"%{client_name}%")).first()
+        if not client:
+            client = Client(name=client_name, currency="USD", payment_terms=payment_terms or "NET-30")
+            db.add(client)
+            db.flush()
 
-    # Compute amount from line_items if provided, else use passed amount, else fallback
-    if line_items:
-        computed = sum(item.get("subtotal", item.get("quantity", 0) * item.get("unit_price", 0)) for item in line_items)
-        if discount_pct and not discount_amount:
-            discount_amount = round(computed * discount_pct / 100, 2)
-        amount = computed - discount_amount if discount_amount else computed
-    elif not amount:
-        amount = 0
+        # Compute amount from line_items
+        if line_items:
+            computed = sum(item.get("subtotal", item.get("quantity", 0) * item.get("unit_price", 0)) for item in line_items)
+            if discount_pct and not discount_amount:
+                discount_amount = round(computed * discount_pct / 100, 2)
+            amount = computed - discount_amount if discount_amount else computed
 
-    verif = _generate_verification(doc_type, doc_ref, amount)
-    approval = "AUTO-APPROVED" if amount <= 10000 else "PENDING CFO APPROVAL"
+        doc_ref = _get_next_doc_ref(db, doc_type)
+        verif = _generate_verification(doc_type, doc_ref, amount)
+        approval = "AUTO-APPROVED" if amount <= 10000 else "PENDING CFO APPROVAL"
 
-    _previous_doc_state = dict(_active_doc_state) if _active_doc_state else {}
-    _active_doc_state = {
-        "doc_type": doc_type, "doc_ref": doc_ref, "amount": amount,
-        "client": client, "approval_status": approval,
-        "verification_hash": verif["verification_hash"], "qr_payload": verif["qr_payload"],
-        "line_items": line_items, "payment_terms": payment_terms,
-        "discount_pct": discount_pct, "discount_amount": discount_amount,
-        "notes": notes,
-    }
+        doc = Document(
+            doc_type=doc_type, doc_ref=doc_ref, client_id=client.id,
+            amount=amount, line_items=_json.dumps(line_items),
+            payment_terms=payment_terms, discount_pct=discount_pct,
+            discount_amount=discount_amount, notes=notes,
+            status="DRAFT", approval_status=approval,
+            verification_hash=verif["verification_hash"], qr_payload=verif["qr_payload"],
+        )
+        db.add(doc)
+        db.commit()
 
-    return {
-        "result": f"Document {doc_type} ({doc_ref}) created for {client}. Amount: ${amount:,.2f}. Status: {approval}. Verification: {verif['verification_hash']}",
-        "success": True,
-        "doc_type": doc_type, "doc_ref": doc_ref, "amount": amount,
-        "client": client, "approval_status": approval,
-        "verification_hash": verif["verification_hash"],
-        "qr_payload": verif["qr_payload"],
-        "line_items": line_items, "payment_terms": payment_terms,
-        "discount_pct": discount_pct, "discount_amount": discount_amount,
-        "notes": notes,
-    }
+        return {
+            "result": f"Document {doc_type} ({doc_ref}) created for {client_name}. Amount: ${amount:,.2f}. Status: {approval}. Verification: {verif['verification_hash']}",
+            "success": True,
+            "doc_type": doc_type, "doc_ref": doc_ref, "amount": amount,
+            "client": client_name, "approval_status": approval,
+            "verification_hash": verif["verification_hash"],
+            "qr_payload": verif["qr_payload"],
+            "line_items": line_items, "payment_terms": payment_terms,
+            "discount_pct": discount_pct, "discount_amount": discount_amount,
+            "notes": notes,
+        }
+    finally:
+        db.close()
 
 
 def _handle_revise_document(args: dict) -> dict:
-    global _active_doc_state
-    if not _active_doc_state:
-        return {"result": "No active document to revise. Please create a document first using create_document.", "success": False}
+    from app.models.document import Document
+    import json as _json
 
-    field = args.get("field", "")
-    new_value = args.get("new_value", "")
-    if not field:
-        return {"result": "Please specify which field to change (e.g. 'amount', 'client', 'terms').", "success": False}
+    db = _get_db()
+    try:
+        last_doc = db.query(Document).order_by(Document.id.desc()).first()
+        if not last_doc:
+            return {"result": "No active document to revise. Please create a document first.", "success": False}
 
-    _active_doc_state["revised"] = True
-    _active_doc_state[field] = new_value
+        field = args.get("field", "")
+        new_value = args.get("new_value", "")
+        if not field:
+            return {"result": "Please specify which field to change.", "success": False}
 
-    verif = _generate_verification(_active_doc_state["doc_type"], _active_doc_state["doc_ref"], _active_doc_state.get("amount", 0))
-    _active_doc_state["verification_hash"] = verif["verification_hash"]
+        if field in ("amount", "discount_pct", "discount_amount"):
+            setattr(last_doc, field, float(new_value))
+        else:
+            setattr(last_doc, field, new_value)
 
-    doc_type = _active_doc_state["doc_type"]
-    doc_ref = _active_doc_state["doc_ref"]
+        last_doc.revised = 1
+        verif = _generate_verification(last_doc.doc_type, last_doc.doc_ref, last_doc.amount)
+        last_doc.verification_hash = verif["verification_hash"]
+        db.commit()
 
-    return {
-        "result": f"Document {doc_ref} ({doc_type}) revised: {field} changed to {new_value}. New verification hash: {verif['verification_hash']}",
-        "success": True, "field": field, "new_value": new_value,
-        "doc_type": doc_type, "doc_ref": doc_ref,
-        "verification_hash": verif["verification_hash"],
-        "qr_payload": verif["qr_payload"],
-    }
+        return {
+            "result": f"Document {last_doc.doc_ref} ({last_doc.doc_type}) revised: {field} changed to {new_value}. New hash: {verif['verification_hash']}",
+            "success": True, "field": field, "new_value": new_value,
+            "doc_type": last_doc.doc_type, "doc_ref": last_doc.doc_ref,
+            "verification_hash": verif["verification_hash"],
+            "qr_payload": verif["qr_payload"],
+        }
+    finally:
+        db.close()
 
 
 def _handle_approve_document(args: dict) -> dict:
-    global _active_doc_state
-    if not _active_doc_state:
-        return {"result": "No active document to approve.", "success": False}
+    from app.models.document import Document
 
-    passkey = args.get("passkey", "")
-    amount = _active_doc_state.get("amount", 0)
+    db = _get_db()
+    try:
+        last_doc = db.query(Document).order_by(Document.id.desc()).first()
+        if not last_doc:
+            return {"result": "No active document to approve.", "success": False}
 
-    if amount > 10000 and passkey != PASSKEY:
-        return {"result": "Approval requires CFO passkey. Please provide the passkey.", "success": False, "needs_passkey": True}
+        passkey = args.get("passkey", "")
+        if last_doc.amount > 10000 and passkey != PASSKEY:
+            return {"result": "Approval requires CFO passkey KNT-2026. Please provide the passkey.", "success": False, "needs_passkey": True}
 
-    _active_doc_state["approval_status"] = "OFFICIAL CFO APPROVED"
-    _active_doc_state["approved_by"] = "Sarah Jenkins (CFO)"
-    _active_doc_state["approved_at"] = int(time.time())
+        last_doc.approval_status = "OFFICIAL CFO APPROVED"
+        last_doc.status = "APPROVED"
+        last_doc.approved_by = "Sarah Jenkins (CFO)"
+        db.commit()
 
-    return {
-        "result": f"Document {_active_doc_state['doc_ref']} approved by CFO. Authorization logged at {_active_doc_state['approved_at']}.",
-        "success": True, "approval_status": "OFFICIAL CFO APPROVED",
-    }
+        return {
+            "result": f"Document {last_doc.doc_ref} approved by CFO. Authorization logged.",
+            "success": True, "approval_status": "OFFICIAL CFO APPROVED",
+        }
+    finally:
+        db.close()
 
 
 def _handle_convert_currency(args: dict) -> dict:
-    amount_usd = args.get("amount_usd", _active_doc_state.get("amount", 27075))
+    amount_usd = args.get("amount_usd", 27075)
     target = args.get("target_currency", "BDT")
     rate = EXCHANGE_RATES.get(target, 1.0)
     symbol = CURRENCY_SYMBOLS.get(target, "")
@@ -449,345 +481,374 @@ def _handle_convert_currency(args: dict) -> dict:
 
 
 def _handle_compare_documents() -> dict:
-    if not _active_doc_state or not _previous_doc_state:
-        return {"result": "No documents to compare. Create and revise a document first.", "success": False}
+    from app.models.document import Document
 
-    diffs = []
-    for key in ["amount", "doc_type", "doc_ref", "approval_status"]:
-        old = _previous_doc_state.get(key)
-        new = _active_doc_state.get(key)
-        if old != new:
-            diffs.append({"field": key, "old": old, "new": new})
+    db = _get_db()
+    try:
+        docs = db.query(Document).order_by(Document.id.desc()).limit(2).all()
+        if len(docs) < 2:
+            return {"result": "No documents to compare. Create and revise a document first.", "success": False}
 
-    if not diffs:
-        return {"result": "No differences found between versions.", "success": True, "diffs": []}
+        old, new = docs[1], docs[0]
+        diffs = []
+        for field in ["amount", "doc_type", "approval_status"]:
+            old_val = getattr(old, field)
+            new_val = getattr(new, field)
+            if old_val != new_val:
+                diffs.append({"field": field, "old": str(old_val), "new": str(new_val)})
 
-    summary = "; ".join(f"{d['field']}: {d['old']} → {d['new']}" for d in diffs)
-    return {"result": f"Document differences: {summary}", "success": True, "diffs": diffs}
+        if not diffs:
+            return {"result": "No differences found between the two most recent documents.", "success": True, "diffs": []}
+
+        summary = "; ".join(f"{d['field']}: {d['old']} → {d['new']}" for d in diffs)
+        return {"result": f"Document differences ({old.doc_ref} → {new.doc_ref}): {summary}", "success": True, "diffs": diffs}
+    finally:
+        db.close()
 
 
 def _handle_dispatch_slack(args: dict) -> dict:
+    from app.models.document import Document
+    from app.services.email_service import send_slack
+
     channel = args.get("channel", "#finance")
-    doc_ref = _active_doc_state.get("doc_ref", "N/A")
-    return {
-        "result": f"Document summary for {doc_ref} dispatched to {channel} via Slack webhook. Delivery receipt logged.",
-        "success": True, "channel": channel, "dispatched": True,
-    }
+    db = _get_db()
+    try:
+        last_doc = db.query(Document).order_by(Document.id.desc()).first()
+        doc_ref = last_doc.doc_ref if last_doc else "N/A"
+        msg = f"Document {doc_ref} summary dispatched to {channel}"
+        result = send_slack(channel, msg)
+        return {"result": f"Document summary for {doc_ref} dispatched to {channel}. {result['message']}", "success": True, "channel": channel, "dispatched": True}
+    finally:
+        db.close()
 
-
-# ── Search Documents ──
-MOCK_DOCUMENTS = [
-    {"doc_type": "quotation", "doc_ref": "PHOENIX-2026", "client": "Acme Corp", "amount": 27075, "date": "2026-01-15", "status": "APPROVED"},
-    {"doc_type": "purchase_order", "doc_ref": "PO-88301", "client": "Apex Hardware", "amount": 15050, "date": "2026-02-10", "status": "APPROVED"},
-    {"doc_type": "invoice", "doc_ref": "INV-8821", "client": "Acme Corp", "amount": 5050, "date": "2026-03-01", "status": "SENT"},
-    {"doc_type": "tax_compliance", "doc_ref": "FY2026-TAX-01", "client": "Internal", "amount": 11400, "date": "2026-03-15", "status": "FILED"},
-    {"doc_type": "financial", "doc_ref": "FY2026-Q1-REP", "client": "Internal", "amount": 142000, "date": "2026-04-01", "status": "FINAL"},
-    {"doc_type": "hr_letter", "doc_ref": "EMP-1041-OFFER", "client": "Rafiqul Islam", "amount": 120000, "date": "2026-01-20", "status": "SENT"},
-    {"doc_type": "expense_voucher", "doc_ref": "EXP-9902", "client": "Sarah Jenkins", "amount": 450, "date": "2026-03-10", "status": "APPROVED"},
-    {"doc_type": "delivery_challan", "doc_ref": "DC-2026-301", "client": "SoftTech BD", "amount": 18900, "date": "2026-03-20", "status": "DELIVERED"},
-    {"doc_type": "work_order", "doc_ref": "WO-2026-77", "client": "InnoTech GmbH", "amount": 32000, "date": "2026-02-28", "status": "IN PROGRESS"},
-    {"doc_type": "credit_note", "doc_ref": "CN-2026-102", "client": "Acme Corp", "amount": 3500, "date": "2026-03-25", "status": "ISSUED"},
-    {"doc_type": "debit_note", "doc_ref": "DN-2026-055", "client": "SoftTech BD", "amount": 2100, "date": "2026-03-28", "status": "ISSUED"},
-    {"doc_type": "quotation", "doc_ref": "Q-2026-015", "client": "InnoTech GmbH", "amount": 45000, "date": "2026-04-05", "status": "PENDING"},
-    {"doc_type": "invoice", "doc_ref": "INV-8822", "client": "SoftTech BD", "amount": 12300, "date": "2026-04-10", "status": "PAID"},
-    {"doc_type": "memo", "doc_ref": "MEMO-2026-15", "client": "Internal", "amount": 0, "date": "2026-04-12", "status": "DISTRIBUTED"},
-    {"doc_type": "agreement", "doc_ref": "AGR-2026-33", "client": "InnoTech GmbH", "amount": 0, "date": "2026-03-01", "status": "SIGNED"},
-]
 
 def _handle_search_documents(args: dict) -> dict:
-    results = list(MOCK_DOCUMENTS)
-    if args.get("doc_type"):
-        results = [d for d in results if d["doc_type"] == args["doc_type"]]
-    if args.get("client_name"):
-        client = args["client_name"].lower()
-        results = [d for d in results if client in d["client"].lower()]
-    if args.get("date_from"):
-        results = [d for d in results if d["date"] >= args["date_from"]]
-    if args.get("date_to"):
-        results = [d for d in results if d["date"] <= args["date_to"]]
-    if args.get("min_amount"):
-        results = [d for d in results if d["amount"] >= args["min_amount"]]
-    if args.get("max_amount"):
-        results = [d for d in results if d["amount"] <= args["max_amount"]]
+    from app.models.document import Document
+    from app.models.client import Client
 
-    if not results:
-        return {"result": "No documents found matching your search criteria.", "success": True, "count": 0, "documents": []}
+    db = _get_db()
+    try:
+        query = db.query(Document)
+        if args.get("doc_type"):
+            query = query.filter(Document.doc_type == args["doc_type"])
+        if args.get("client_name"):
+            client = db.query(Client).filter(Client.name.ilike(f"%{args['client_name']}%")).first()
+            if client:
+                query = query.filter(Document.client_id == client.id)
+        if args.get("min_amount"):
+            query = query.filter(Document.amount >= args["min_amount"])
+        if args.get("max_amount"):
+            query = query.filter(Document.amount <= args["max_amount"])
 
-    summary = "; ".join(f"{d['doc_ref']} ({d['doc_type']}, ${d['amount']:,.0f})" for d in results[:5])
-    return {
-        "result": f"Found {len(results)} document(s): {summary}" + ("..." if len(results) > 5 else ""),
-        "success": True, "count": len(results), "documents": results[:10],
-    }
+        results = query.order_by(Document.id.desc()).limit(10).all()
+        if not results:
+            return {"result": "No documents found matching your search criteria.", "success": True, "count": 0, "documents": []}
+
+        doc_list = []
+        for d in results:
+            client_name = d.client.name if d.client else "Internal"
+            doc_list.append({"doc_type": d.doc_type, "doc_ref": d.doc_ref, "client": client_name, "amount": d.amount, "status": d.status})
+
+        summary = "; ".join(f"{d.doc_ref} ({d.doc_type}, ${d.amount:,.0f})" for d in results[:5])
+        return {
+            "result": f"Found {len(results)} document(s): {summary}" + ("..." if len(results) > 5 else ""),
+            "success": True, "count": len(results), "documents": doc_list,
+        }
+    finally:
+        db.close()
 
 
-# ── Send Notification ──
 def _handle_send_notification(args: dict) -> dict:
+    from app.models.document import Document
+    from app.services.email_service import send_email, send_slack
+
     channel = args.get("channel", "email")
     recipient = args.get("recipient", "")
     message = args.get("message", "")
-    doc_ref = _active_doc_state.get("doc_ref", "N/A")
 
     if not recipient:
         return {"result": "Please provide a recipient (email address or Slack channel).", "success": False}
 
-    full_msg = message or f"Document {doc_ref} summary for your review."
-    if channel == "email":
-        return {
-            "result": f"Email sent to {recipient}: '{full_msg[:80]}' — Delivery receipt DR-2026-{int(time.time()) % 10000} logged.",
-            "success": True, "channel": "email", "recipient": recipient,
-        }
-    elif channel == "slack":
-        return {
-            "result": f"Slack notification posted to {recipient}: '{full_msg[:80]}' — Delivery confirmed.",
-            "success": True, "channel": "slack", "recipient": recipient,
-        }
-    else:
-        return {"result": f"Notification sent via {channel} to {recipient}.", "success": True}
+    db = _get_db()
+    try:
+        last_doc = db.query(Document).order_by(Document.id.desc()).first()
+        doc_ref = last_doc.doc_ref if last_doc else "N/A"
+        full_msg = message or f"Document {doc_ref} summary for your review."
 
+        if channel == "email":
+            result = send_email(to=recipient, subject=f"Konthora: {doc_ref}", body=full_msg)
+        elif channel == "slack":
+            result = send_slack(channel=recipient, message=full_msg)
+        else:
+            result = {"success": True, "message": f"Notification sent via {channel}"}
 
-# ── Inventory Management ──
-MOCK_INVENTORY = [
-    {"item": "M3 Pro Chip", "sku": "CHIP-M3PRO", "qty": 42, "unit_price": 450, "warehouse": "WH-DHAKA"},
-    {"item": "Server Rack 42U", "sku": "RACK-42U", "qty": 8, "unit_price": 2800, "warehouse": "WH-DHAKA"},
-    {"item": "Fiber 100G Module", "sku": "FIBER-100G", "qty": 120, "unit_price": 180, "warehouse": "WH-CHITTAGONG"},
-    {"item": "Network Switch L3", "sku": "SW-L3-48P", "qty": 25, "unit_price": 950, "warehouse": "WH-DHAKA"},
-    {"item": "UPS 3KVA", "sku": "UPS-3KVA", "qty": 15, "unit_price": 620, "warehouse": "WH-DHAKA"},
-    {"item": "CAT6 Cable Roll", "sku": "CABLE-CAT6", "qty": 200, "unit_price": 45, "warehouse": "WH-CHITTAGONG"},
-]
+        return {"result": result["message"], "success": result["success"], "channel": channel, "recipient": recipient}
+    finally:
+        db.close()
+
 
 def _handle_manage_inventory(args: dict) -> dict:
-    action = args.get("action", "list_all")
+    from app.models.inventory import Inventory
 
-    if action == "list_all":
-        summary = "; ".join(f"{i['item']}: {i['qty']} units" for i in MOCK_INVENTORY)
-        return {"result": f"Inventory snapshot: {summary}", "success": True, "inventory": MOCK_INVENTORY}
+    db = _get_db()
+    try:
+        action = args.get("action", "list_all")
 
-    if action == "check":
-        item_name = args.get("item_name", "")
-        if not item_name:
-            return {"result": "Please specify an item name to check.", "success": False}
-        matches = [i for i in MOCK_INVENTORY if item_name.lower() in i["item"].lower()]
-        if not matches:
-            return {"result": f"Item '{item_name}' not found in inventory.", "success": False}
-        item = matches[0]
-        return {
-            "result": f"{item['item']} ({item['sku']}): {item['qty']} units in {item['warehouse']}, ${item['unit_price']}/unit.",
-            "success": True, "item": item,
-        }
+        if action == "list_all":
+            items = db.query(Inventory).all()
+            inv_list = [{"item": i.item_name, "sku": i.sku, "qty": i.qty, "unit_price": i.unit_price, "warehouse": i.warehouse} for i in items]
+            summary = "; ".join(f"{i.item_name}: {i.qty} units" for i in items)
+            return {"result": f"Inventory snapshot: {summary}", "success": True, "inventory": inv_list}
 
-    if action in ("add", "deduct"):
-        item_name = args.get("item_name", "")
-        qty = args.get("quantity", 0)
-        if not item_name or not qty:
-            return {"result": "Please specify item name and quantity.", "success": False}
-        matches = [i for i in MOCK_INVENTORY if item_name.lower() in i["item"].lower()]
-        if not matches:
-            return {"result": f"Item '{item_name}' not found.", "success": False}
-        item = matches[0]
-        if action == "add":
-            item["qty"] += int(qty)
-            return {"result": f"Added {qty} units of {item['item']}. New stock: {item['qty']} units.", "success": True}
-        else:
-            if item["qty"] < qty:
-                return {"result": f"Insufficient stock for {item['item']}. Available: {item['qty']}, requested: {qty}.", "success": False}
-            item["qty"] -= int(qty)
-            return {"result": f"Deducted {qty} units of {item['item']}. Remaining stock: {item['qty']} units.", "success": True}
+        if action == "check":
+            item_name = args.get("item_name", "")
+            if not item_name:
+                return {"result": "Please specify an item name to check.", "success": False}
+            item = db.query(Inventory).filter(Inventory.item_name.ilike(f"%{item_name}%")).first()
+            if not item:
+                return {"result": f"Item '{item_name}' not found in inventory.", "success": False}
+            return {"result": f"{item.item_name} ({item.sku}): {item.qty} units in {item.warehouse}, ${item.unit_price}/unit.", "success": True}
 
-    return {"result": f"Unknown inventory action: {action}", "success": False}
+        if action in ("add", "deduct"):
+            item_name = args.get("item_name", "")
+            qty = int(args.get("quantity", 0))
+            if not item_name or not qty:
+                return {"result": "Please specify item name and quantity.", "success": False}
+            item = db.query(Inventory).filter(Inventory.item_name.ilike(f"%{item_name}%")).first()
+            if not item:
+                return {"result": f"Item '{item_name}' not found.", "success": False}
+            if action == "add":
+                item.qty += qty
+                db.commit()
+                return {"result": f"Added {qty} units of {item.item_name}. New stock: {item.qty} units.", "success": True}
+            else:
+                if item.qty < qty:
+                    return {"result": f"Insufficient stock for {item.item_name}. Available: {item.qty}, requested: {qty}.", "success": False}
+                item.qty -= qty
+                db.commit()
+                return {"result": f"Deducted {qty} units of {item.item_name}. Remaining: {item.qty} units.", "success": True}
 
+        return {"result": f"Unknown inventory action: {action}", "success": False}
+    finally:
+        db.close()
 
-# ── Task Management ──
-MOCK_TASKS = [
-    {"id": "TASK-001", "title": "Finalize Q2 financial projections", "assignee": "Sarah Jenkins", "deadline": "2026-04-20", "priority": "high", "status": "pending"},
-    {"id": "TASK-002", "title": "Review NDA terms with InnoTech", "assignee": "Legal Team", "deadline": "2026-04-18", "priority": "medium", "status": "pending"},
-    {"id": "TASK-003", "title": "Deploy Fiber 100G at Site-B", "assignee": "Rafiqul Islam", "deadline": "2026-05-01", "priority": "high", "status": "in_progress"},
-    {"id": "TASK-004", "title": "Submit tax compliance documents", "assignee": "Finance Team", "deadline": "2026-04-15", "priority": "urgent", "status": "completed"},
-    {"id": "TASK-005", "title": "Prepare board meeting agenda", "assignee": "CEO Office", "deadline": "2026-04-25", "priority": "medium", "status": "pending"},
-]
-_task_counter = 6
 
 def _handle_manage_tasks(args: dict) -> dict:
-    global _task_counter
-    action = args.get("action", "list")
+    from app.models.task import Task
 
-    if action == "list" or action == "list_pending":
-        tasks = MOCK_TASKS if action == "list" else [t for t in MOCK_TASKS if t["status"] != "completed"]
-        summary = "; ".join(f"{t['id']}: {t['title']} ({t['status']})" for t in tasks[:5])
-        return {"result": f"Tasks: {summary}" + ("..." if len(tasks) > 5 else ""), "success": True, "tasks": tasks}
+    db = _get_db()
+    try:
+        action = args.get("action", "list")
 
-    if action == "create":
-        title = args.get("task_title", "Untitled Task")
-        assignee = args.get("assignee", "Unassigned")
-        deadline = args.get("deadline", "TBD")
-        priority = args.get("priority", "medium")
-        task_id = f"TASK-{_task_counter:03d}"
-        _task_counter += 1
-        new_task = {"id": task_id, "title": title, "assignee": assignee, "deadline": deadline, "priority": priority, "status": "pending"}
-        MOCK_TASKS.append(new_task)
-        return {
-            "result": f"Task {task_id} created: '{title}' assigned to {assignee}, deadline {deadline}, priority {priority}.",
-            "success": True, "task": new_task,
-        }
+        if action in ("list", "list_pending"):
+            query = db.query(Task)
+            if action == "list_pending":
+                query = query.filter(Task.status != "completed")
+            tasks = query.order_by(Task.id).all()
+            task_list = [{"id": t.task_id, "title": t.title, "assignee": t.assignee, "deadline": t.deadline, "priority": t.priority, "status": t.status} for t in tasks]
+            summary = "; ".join(f"{t.task_id}: {t.title} ({t.status})" for t in tasks[:5])
+            return {"result": f"Tasks: {summary}" + ("..." if len(tasks) > 5 else ""), "success": True, "tasks": task_list}
 
-    if action == "complete":
-        task_id = args.get("task_title", "")
-        matches = [t for t in MOCK_TASKS if t["id"].lower() == task_id.lower() or task_id.lower() in t["title"].lower()]
-        if not matches:
-            return {"result": f"Task not found: '{task_id}'.", "success": False}
-        matches[0]["status"] = "completed"
-        return {"result": f"Task {matches[0]['id']} marked as completed: '{matches[0]['title']}'.", "success": True}
+        if action == "create":
+            title = args.get("task_title", "Untitled Task")
+            assignee = args.get("assignee", "Unassigned")
+            deadline = args.get("deadline", "TBD")
+            priority = args.get("priority", "medium")
+            count = db.query(Task).count()
+            task_id = f"TASK-{count + 1:03d}"
+            new_task = Task(task_id=task_id, title=title, assignee=assignee, deadline=deadline, priority=priority, status="pending")
+            db.add(new_task)
+            db.commit()
+            return {"result": f"Task {task_id} created: '{title}' assigned to {assignee}, deadline {deadline}, priority {priority}.", "success": True}
 
-    if action == "update":
-        task_id = args.get("task_title", "")
-        matches = [t for t in MOCK_TASKS if t["id"].lower() == task_id.lower() or task_id.lower() in t["title"].lower()]
-        if not matches:
-            return {"result": f"Task not found: '{task_id}'.", "success": False}
-        if args.get("priority"):
-            matches[0]["priority"] = args["priority"]
-        if args.get("deadline"):
-            matches[0]["deadline"] = args["deadline"]
-        if args.get("assignee"):
-            matches[0]["assignee"] = args["assignee"]
-        return {"result": f"Task {matches[0]['id']} updated.", "success": True}
+        if action == "complete":
+            search = args.get("task_title", "")
+            task = db.query(Task).filter((Task.task_id.ilike(f"%{search}%")) | (Task.title.ilike(f"%{search}%"))).first()
+            if not task:
+                return {"result": f"Task not found: '{search}'.", "success": False}
+            task.status = "completed"
+            db.commit()
+            return {"result": f"Task {task.task_id} marked as completed: '{task.title}'.", "success": True}
 
-    return {"result": f"Unknown task action: {action}", "success": False}
+        if action == "update":
+            search = args.get("task_title", "")
+            task = db.query(Task).filter((Task.task_id.ilike(f"%{search}%")) | (Task.title.ilike(f"%{search}%"))).first()
+            if not task:
+                return {"result": f"Task not found: '{search}'.", "success": False}
+            if args.get("priority"):
+                task.priority = args["priority"]
+            if args.get("deadline"):
+                task.deadline = args["deadline"]
+            if args.get("assignee"):
+                task.assignee = args["assignee"]
+            db.commit()
+            return {"result": f"Task {task.task_id} updated.", "success": True}
 
+        return {"result": f"Unknown task action: {action}", "success": False}
+    finally:
+        db.close()
 
-# ── Financial Queries ──
-MOCK_FINANCIALS = {
-    "Q1 2026": {"revenue": 142000, "expenses": 85000, "profit": 57000, "ebitda": 40500, "ebitda_margin": 28.5, "tax": 11400, "cash_flow": 52000},
-    "Q2 2026": {"revenue": 185000, "expenses": 102000, "profit": 83000, "ebitda": 57500, "ebitda_margin": 31.0, "tax": 16600, "cash_flow": 71000},
-    "YTD 2026": {"revenue": 327000, "expenses": 187000, "profit": 140000, "ebitda": 98000, "ebitda_margin": 30.0, "tax": 28000, "cash_flow": 123000},
-}
 
 def _handle_query_financials(args: dict) -> dict:
-    metric = args.get("metric", "all")
-    period = args.get("period", "Q1 2026")
+    from app.models.financial import Financial
 
-    data = MOCK_FINANCIALS.get(period)
-    if not data:
-        available = ", ".join(MOCK_FINANCIALS.keys())
-        return {"result": f"Period '{period}' not found. Available: {available}.", "success": False}
+    db = _get_db()
+    try:
+        metric = args.get("metric", "all")
+        period = args.get("period", "Q1 2026")
 
-    if metric == "all":
-        return {
-            "result": f"{period} Financial Summary: Revenue ${data['revenue']:,.0f}, Expenses ${data['expenses']:,.0f}, Net Profit ${data['profit']:,.0f}, EBITDA {data['ebitda_margin']}%, Tax ${data['tax']:,.0f}.",
-            "success": True, "data": data,
-        }
+        fin = db.query(Financial).filter(Financial.period == period).first()
+        if not fin:
+            available = ", ".join(f.period for f in db.query(Financial).all())
+            return {"result": f"Period '{period}' not found. Available: {available}.", "success": False}
 
-    value = data.get(metric)
-    if value is None:
-        return {"result": f"Metric '{metric}' not available.", "success": False}
+        data = {"revenue": fin.revenue, "expenses": fin.expenses, "profit": fin.profit, "ebitda": fin.ebitda, "ebitda_margin": fin.ebitda_margin, "tax": fin.tax, "cash_flow": fin.cash_flow}
 
-    display = f"{value}%" if metric == "ebitda_margin" else f"${value:,.0f}"
-    return {
-        "result": f"{period} {metric.title()}: {display}",
-        "success": True, "metric": metric, "period": period, "value": value, "data": data,
-    }
+        if metric == "all":
+            return {"result": f"{period} Financial Summary: Revenue ${fin.revenue:,.0f}, Expenses ${fin.expenses:,.0f}, Net Profit ${fin.profit:,.0f}, EBITDA {fin.ebitda_margin}%, Tax ${fin.tax:,.0f}.", "success": True, "data": data}
 
+        value = data.get(metric)
+        if value is None:
+            return {"result": f"Metric '{metric}' not available.", "success": False}
 
-# ── Calendar Management ──
-MOCK_CALENDAR = [
-    {"id": "EVT-001", "title": "Q2 Strategy Review", "date": "2026-04-15", "time": "10:00", "attendees": "CEO, CFO, CTO", "status": "scheduled"},
-    {"id": "EVT-002", "title": "InnoTech Contract Signing", "date": "2026-04-18", "time": "14:00", "attendees": "Legal, InnoTech Team", "status": "scheduled"},
-    {"id": "EVT-003", "title": "Board Meeting", "date": "2026-04-25", "time": "09:00", "attendees": "Board Members", "status": "scheduled"},
-    {"id": "EVT-004", "title": "Fiber Deployment Kickoff", "date": "2026-04-20", "time": "11:00", "attendees": "Rafiqul, Infrastructure Team", "status": "scheduled"},
-]
-_event_counter = 5
+        display = f"{value}%" if metric == "ebitda_margin" else f"${value:,.0f}"
+        return {"result": f"{period} {metric.title()}: {display}", "success": True, "metric": metric, "period": period, "value": value, "data": data}
+    finally:
+        db.close()
+
 
 def _handle_manage_calendar(args: dict) -> dict:
-    global _event_counter
-    action = args.get("action", "list_today")
+    from app.models.calendar_event import CalendarEvent
 
-    if action == "list_today":
-        today = time.strftime("%Y-%m-%d")
-        today_events = [e for e in MOCK_CALENDAR if e["date"] == today]
-        if not today_events:
-            upcoming = sorted(MOCK_CALENDAR, key=lambda e: e["date"])[:3]
-            summary = "; ".join(f"{e['title']} on {e['date']} at {e['time']}" for e in upcoming)
-            return {"result": f"No events today. Upcoming: {summary}", "success": True, "events": upcoming}
-        summary = "; ".join(f"{e['title']} at {e['time']}" for e in today_events)
-        return {"result": f"Today's events: {summary}", "success": True, "events": today_events}
+    db = _get_db()
+    try:
+        action = args.get("action", "list_today")
 
-    if action == "check":
-        date = args.get("date", time.strftime("%Y-%m-%d"))
-        events = [e for e in MOCK_CALENDAR if e["date"] == date]
-        if not events:
-            return {"result": f"No events scheduled for {date}. Time is available.", "success": True, "available": True}
-        summary = "; ".join(f"{e['title']} at {e['time']}" for e in events)
-        return {"result": f"Events on {date}: {summary}", "success": True, "available": False, "events": events}
+        if action == "list_today":
+            today = time.strftime("%Y-%m-%d")
+            events = db.query(CalendarEvent).filter(CalendarEvent.date == today).all()
+            if not events:
+                upcoming = db.query(CalendarEvent).order_by(CalendarEvent.date).limit(3).all()
+                summary = "; ".join(f"{e.title} on {e.date} at {e.time}" for e in upcoming)
+                return {"result": f"No events today. Upcoming: {summary}", "success": True}
+            summary = "; ".join(f"{e.title} at {e.time}" for e in events)
+            return {"result": f"Today's events: {summary}", "success": True}
 
-    if action == "schedule":
-        title = args.get("title", "Meeting")
-        date = args.get("date", "TBD")
-        time_ = args.get("time", "TBD")
-        attendees = args.get("attendees", "")
-        event_id = f"EVT-{_event_counter:03d}"
-        _event_counter += 1
-        new_event = {"id": event_id, "title": title, "date": date, "time": time_, "attendees": attendees, "status": "scheduled"}
-        MOCK_CALENDAR.append(new_event)
-        return {
-            "result": f"Event scheduled: '{title}' on {date} at {time_}. Attendees: {attendees or 'TBD'}. Confirmation {event_id} logged.",
-            "success": True, "event": new_event,
-        }
+        if action == "check":
+            date = args.get("date", time.strftime("%Y-%m-%d"))
+            events = db.query(CalendarEvent).filter(CalendarEvent.date == date).all()
+            if not events:
+                return {"result": f"No events scheduled for {date}. Time is available.", "success": True, "available": True}
+            summary = "; ".join(f"{e.title} at {e.time}" for e in events)
+            return {"result": f"Events on {date}: {summary}", "success": True, "available": False}
 
-    if action == "set_reminder":
-        text = args.get("reminder_text", "Reminder")
-        date = args.get("date", "TBD")
-        time_ = args.get("time", "TBD")
-        return {
-            "result": f"Reminder set for {date} at {time_}: '{text}'. You will be notified.",
-            "success": True,
-        }
+        if action == "schedule":
+            title = args.get("title", "Meeting")
+            date = args.get("date", "TBD")
+            time_ = args.get("time", "TBD")
+            attendees = args.get("attendees", "")
+            count = db.query(CalendarEvent).count()
+            event_id = f"EVT-{count + 1:03d}"
+            new_event = CalendarEvent(event_id=event_id, title=title, date=date, time=time_, attendees=attendees, status="scheduled")
+            db.add(new_event)
+            db.commit()
+            return {"result": f"Event scheduled: '{title}' on {date} at {time_}. Attendees: {attendees or 'TBD'}. Confirmation {event_id} logged.", "success": True}
 
-    if action == "cancel":
-        event_id = args.get("title", "")
-        matches = [e for e in MOCK_CALENDAR if e["id"].lower() == event_id.lower() or event_id.lower() in e["title"].lower()]
-        if not matches:
-            return {"result": f"Event not found: '{event_id}'.", "success": False}
-        matches[0]["status"] = "cancelled"
-        return {"result": f"Event '{matches[0]['title']}' on {matches[0]['date']} has been cancelled.", "success": True}
+        if action == "set_reminder":
+            text = args.get("reminder_text", "Reminder")
+            date = args.get("date", "TBD")
+            time_ = args.get("time", "TBD")
+            return {"result": f"Reminder set for {date} at {time_}: '{text}'. You will be notified.", "success": True}
 
-    return {"result": f"Unknown calendar action: {action}", "success": False}
+        if action == "cancel":
+            search = args.get("title", "")
+            event = db.query(CalendarEvent).filter((CalendarEvent.event_id.ilike(f"%{search}%")) | (CalendarEvent.title.ilike(f"%{search}%"))).first()
+            if not event:
+                return {"result": f"Event not found: '{search}'.", "success": False}
+            event.status = "cancelled"
+            db.commit()
+            return {"result": f"Event '{event.title}' on {event.date} has been cancelled.", "success": True}
+
+        return {"result": f"Unknown calendar action: {action}", "success": False}
+    finally:
+        db.close()
 
 
 # ── Session config endpoint (for frontend to fetch) ──
 
 @router.get("/voice-agent/config")
 async def get_voice_agent_config():
-    """Return session config for the frontend to send in session.update."""
+    """Return session config with dynamic system prompt built from live DB data."""
+    db = _get_db()
+    try:
+        from app.models.client import Client
+        from app.models.inventory import Inventory
+        from app.models.task import Task
+        from app.models.staff import Staff
+        from app.models.financial import Financial
+        from app.models.calendar_event import CalendarEvent
+        from app.models.document import Document
+
+        clients = db.query(Client).all()
+        inventory = db.query(Inventory).all()
+        tasks = db.query(Task).filter(Task.status != "completed").all()
+        staff_list = db.query(Staff).all()
+        financials = db.query(Financial).all()
+        events = db.query(CalendarEvent).filter(CalendarEvent.status == "scheduled").order_by(CalendarEvent.date).all()
+        doc_count = db.query(Document).count()
+
+        client_str = ", ".join(f"{c.name} ({c.payment_terms}, {c.currency})" for c in clients) or "None"
+        inv_str = ", ".join(f"{i.item_name} ({i.qty} @ ${i.unit_price})" for i in inventory) or "None"
+        task_str = ", ".join(f"{t.task_id} {t.title} ({t.assignee}, {t.status})" for t in tasks) or "None"
+        staff_str = ", ".join(f"{s.name} ({s.employee_id}, {s.role})" for s in staff_list) or "None"
+        fin_str = "; ".join(f"{f.period}: Revenue ${f.revenue:,.0f}, Profit ${f.profit:,.0f}, EBITDA {f.ebitda_margin}%" for f in financials) or "None"
+        event_str = "; ".join(f"{e.title} on {e.date} at {e.time}" for e in events[:6]) or "None"
+    except Exception as e:
+        logger.warning(f"DB query for system prompt failed, using defaults: {e}")
+        client_str = "Acme Corp (NET-30, USD), SoftTech BD (NET-45, BDT), InnoTech GmbH (NET-60, EUR)"
+        inv_str = "M3 Pro Chip (42@$450), Server Rack 42U (8@$2800), Fiber 100G (120@$180)"
+        task_str = "TASK-001 Q2 projections, TASK-002 NDA review, TASK-003 Fiber deploy"
+        staff_str = "Rafiqul Islam (EMP-1041, Engineer), Sarah Jenkins (EMP-0021, CFO)"
+        fin_str = "Q1 2026: Revenue $142K, Profit $57K; Q2 projected $185K"
+        event_str = "Q2 Strategy Apr 15, Board Meeting Apr 25"
+        doc_count = 14
+    finally:
+        db.close()
+
+    system_prompt = (
+        "You are Konthora, an autonomous voice-driven enterprise operations engine. "
+        "You help users create, revise, approve, and manage enterprise documents and business operations using voice commands.\n\n"
+        "DOCUMENT CAPABILITIES:\n"
+        "- Create 24 document types: quotations, purchase orders, invoices, proforma invoices, tax reports, financial reports, HR letters, meeting minutes, NDAs, expense vouchers, analytics charts, dispatch notifications, delivery challans, work orders, credit notes, debit notes, receipts, bank statements, memos, official notices, agreements, bids, tenders, insurance claims.\n"
+        "- Revise documents: change any field (discount, fee, salary, terms, etc.)\n"
+        "- Approve documents: authorize with CFO passkey for high-value items\n"
+        "- Compare document versions to show differences\n\n"
+        "OPERATIONS CAPABILITIES:\n"
+        "- Search documents by type, client, date range, or amount\n"
+        "- Send email or Slack notifications with document summaries\n"
+        "- Manage inventory: check stock, add/deduct units, list all items\n"
+        "- Task management: create, update, complete, list tasks with deadlines\n"
+        "- Financial queries: revenue, expenses, profit, EBITDA, tax by quarter\n"
+        "- Calendar: schedule meetings, check availability, set reminders, cancel events\n"
+        "- Currency conversion: USD to BDT, EUR, GBP, INR, JPY\n\n"
+        f"DATABASE (live — {doc_count} documents):\n"
+        f"- Clients: {client_str}\n"
+        f"- Financials: {fin_str}\n"
+        f"- Inventory: {inv_str}\n"
+        f"- Staff: {staff_str}\n"
+        f"- Tasks: {task_str}\n"
+        f"- Calendar: {event_str}\n\n"
+        "RULES:\n"
+        "- Keep spoken responses to 1-2 short sentences.\n"
+        "- Always respond in English.\n"
+        "- Quote specific names, IDs, currencies, numbers.\n"
+        "- Use the appropriate tool for each action.\n"
+        "- Be professional, concise, and proactive.\n"
+        "- When user says goodbye/thanks/nothing, respond briefly and do NOT ask further questions."
+    )
+
     return {
-        "system_prompt": (
-            "You are Konthora, an autonomous voice-driven enterprise operations engine. "
-            "You help users create, revise, approve, and manage enterprise documents and business operations using voice commands.\n\n"
-            "DOCUMENT CAPABILITIES:\n"
-            "- Create 24 document types: quotations, purchase orders, invoices, proforma invoices, tax reports, financial reports, HR letters, meeting minutes, NDAs, expense vouchers, analytics charts, dispatch notifications, delivery challans, work orders, credit notes, debit notes, receipts, bank statements, memos, official notices, agreements, bids, tenders, insurance claims.\n"
-            "- Revise documents: change any field (discount, fee, salary, terms, etc.)\n"
-            "- Approve documents: authorize with CFO passkey for high-value items\n"
-            "- Compare document versions to show differences\n\n"
-            "OPERATIONS CAPABILITIES:\n"
-            "- Search documents by type, client, date range, or amount\n"
-            "- Send email or Slack notifications with document summaries\n"
-            "- Manage inventory: check stock, add/deduct units, list all items\n"
-            "- Task management: create, update, complete, list tasks with deadlines\n"
-            "- Financial queries: revenue, expenses, profit, EBITDA, tax by quarter\n"
-            "- Calendar: schedule meetings, check availability, set reminders, cancel events\n"
-            "- Currency conversion: USD to BDT, EUR, GBP, INR, JPY\n\n"
-            "DATABASE:\n"
-            "- Clients: Acme Corp (CLI-8821, USD, NET-30), SoftTech BD (CLI-3302, BDT, NET-45), InnoTech GmbH (CLI-7703, EUR, NET-60)\n"
-            "- Q1 2026: Revenue $142K, Profit $57K, EBITDA 28.5%, Tax $11.4K; Q2 projected $185K\n"
-            "- Inventory: M3 Pro Chip (42@$450), Server Rack 42U (8@$2800), Fiber 100G (120@$180), Network Switch L3 (25@$950), UPS 3KVA (15@$620), CAT6 Cable (200@$45)\n"
-            "- Staff: Rafiqul Islam (EMP-1041, 120K BDT), Sarah Jenkins (EMP-0021, $95K)\n"
-            "- Tasks: TASK-001 Q2 projections (Sarah), TASK-002 NDA review (Legal), TASK-003 Fiber deploy (Rafiqul), TASK-004 Tax docs (Finance, completed)\n"
-            "- Calendar: Q2 Strategy Apr 15, InnoTech Signing Apr 18, Board Meeting Apr 25, Fiber Kickoff Apr 20\n\n"
-            "RULES:\n"
-            "- Keep spoken responses to 1-2 short sentences.\n"
-            "- Always respond in English.\n"
-            "- Quote specific names, IDs, currencies, numbers.\n"
-            "- Use the appropriate tool for each action.\n"
-            "- Be professional, concise, and proactive.\n"
-            "- When user says goodbye/thanks/nothing, respond briefly and do NOT ask further questions."
-        ),
+        "system_prompt": system_prompt,
         "greeting": "Welcome to Konthora. I am your enterprise voice operations engine. You can create documents, manage inventory, check finances, schedule meetings, and more — all by voice. How can I help you today?",
         "voice": "anna",
         "tools": VOICE_AGENT_TOOLS,
@@ -870,7 +931,24 @@ async def text_command(req: TextCommandRequest):
             "transcription_preview": transcript_text[:200],
             "summary": transcript_summary,
         }
-        # Clear the transcription after using it
+        # Save to database
+        try:
+            from app.models.document import Document
+            import json as _json
+            db = _get_db()
+            verif = _generate_verification(doc_type, doc_ref, 0)
+            doc = Document(
+                doc_type=doc_type, doc_ref=doc_ref, amount=0,
+                line_items="[]", notes=f"Generated from audio: {filename}. {transcript_summary or ''}",
+                status="DRAFT", approval_status="AUTO-APPROVED",
+                verification_hash=verif["verification_hash"], qr_payload=verif["qr_payload"],
+            )
+            db.add(doc)
+            db.commit()
+            db.close()
+        except Exception as e:
+            logger.error(f"Failed to save audio follow-up doc: {e}")
+
         _last_transcription.clear()
         return {"response": response, "action_card": action}
 

@@ -12,3 +12,7 @@ uvloop
 # Voice Agent + Audio Upload
 assemblyai>=0.33.0
 httpx
+
+# Database
+sqlalchemy
+
