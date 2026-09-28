@@ -1966,7 +1966,8 @@ function AudioUploadCard({ onFileUpload }: { onFileUpload: (file: File) => void 
   );
 }
 
-function AudioUploadResultCard({ data }: { data: Record<string, unknown> }) {
+function AudioUploadResultCard({ data, onSuggestionClick }: { data: Record<string, unknown>; onSuggestionClick?: (suggestion: string) => void }) {
+  const suggestions = (data.suggestions as string[]) || [];
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -1991,6 +1992,27 @@ function AudioUploadResultCard({ data }: { data: Record<string, unknown> }) {
         <div className="no-print text-[11px] text-neutral-400 bg-cyan-950/20 border border-cyan-500/20 rounded-lg p-2.5">
           <span className="text-neutral-500 font-bold">Transcript:</span>
           <p className="mt-1 line-clamp-4">{data.transcription}</p>
+        </div>
+      )}
+      {typeof data.duration_seconds === "number" && data.duration_seconds > 0 && (
+        <div className="text-[10px] font-mono text-neutral-500">
+          Duration: {Math.round(data.duration_seconds)}s
+        </div>
+      )}
+      {suggestions.length > 0 && (
+        <div className="space-y-2">
+          <div className="text-[10px] font-mono text-neutral-500 uppercase tracking-wider">What would you like me to do?</div>
+          <div className="flex flex-wrap gap-2">
+            {suggestions.map((s, i) => (
+              <button
+                key={i}
+                onClick={() => onSuggestionClick?.(s)}
+                className="text-[11px] font-medium px-3 py-1.5 rounded-lg bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/20 hover:border-cyan-400 transition-all cursor-pointer"
+              >
+                {s}
+              </button>
+            ))}
+          </div>
         </div>
       )}
     </div>
@@ -3187,6 +3209,7 @@ export default function VoiceAgentPage() {
                   {docCard.type === "audio_upload" && (
                     <AudioUploadResultCard
                       data={docCard.payload}
+                      onSuggestionClick={(suggestion) => sendTextCommand(suggestion)}
                     />
                   )}
                   {docCard.type === "delivery_challan" && (

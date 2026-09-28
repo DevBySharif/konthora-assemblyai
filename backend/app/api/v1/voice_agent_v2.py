@@ -271,6 +271,7 @@ class TextCommandRequest(BaseModel):
 # In-memory state (per-session, good enough for hackathon)
 _active_doc_state = {}
 _previous_doc_state = {}
+_last_transcription = {}
 
 EXCHANGE_RATES = {"USD": 1.0, "BDT": 120.0, "EUR": 0.92}
 CURRENCY_SYMBOLS = {"USD": "$", "BDT": "৳", "EUR": "€"}
@@ -797,23 +798,86 @@ async def get_voice_agent_config():
 
 @router.post("/voice-agent/text")
 async def text_command(req: TextCommandRequest):
-    """Handle text commands when voice is not available. Uses fast fallback."""
+    """Handle text commands — with context from recent audio upload if available."""
     text = req.text.strip()
     if not text:
         raise HTTPException(status_code=400, detail="Empty text command")
 
-    # Import and use the fast fallback from the existing service
     from app.services.voice_agent_service import VoiceAgentService
     svc = VoiceAgentService()
+    lowered = text.lower()
+
+    # Check if there's a recent transcription to use as context
+    has_context = bool(_last_transcription.get("text"))
+    transcript_text = _last_transcription.get("text", "")
+    transcript_summary = _last_transcription.get("summary", "")
+    filename = _last_transcription.get("filename", "recording")
+
+    # Handle follow-up actions after audio upload
+    if has_context and any(w in lowered for w in [
+        "meeting minutes", "meeting note", "minutes", "summary",
+        "action item", "task", "create task", "follow up",
+        "invoice", "purchase order", "quotation", "contract", "nda",
+        "email", "send", "dispatch", "notify",
+        "what did", "key point", "discussed", "decide", "decision",
+    ]):
+        # Determine action type
+        if any(w in lowered for w in ["meeting minutes", "minutes", "meeting note", "note"]):
+            doc_type = "meeting_minutes"
+            doc_ref = "MIN-2026-AUDIO"
+            action_desc = "meeting minutes"
+        elif any(w in lowered for w in ["task", "action item", "follow up", "create task"]):
+            doc_type = "task_update"
+            doc_ref = "TASK-AUDIO"
+            action_desc = "action items and tasks"
+        elif any(w in lowered for w in ["invoice", "bill"]):
+            doc_type = "invoice"
+            doc_ref = "INV-AUDIO"
+            action_desc = "invoice"
+        elif any(w in lowered for w in ["purchase order", "po"]):
+            doc_type = "purchase_order"
+            doc_ref = "PO-AUDIO"
+            action_desc = "purchase order"
+        elif any(w in lowered for w in ["quotation", "quote"]):
+            doc_type = "quotation"
+            doc_ref = "QUOTE-AUDIO"
+            action_desc = "quotation"
+        elif any(w in lowered for w in ["email", "send", "dispatch", "notify"]):
+            doc_type = "dispatch_notification"
+            doc_ref = "DISP-AUDIO"
+            action_desc = "email dispatch"
+        elif any(w in lowered for w in ["contract", "nda", "agreement"]):
+            doc_type = "legal_contract"
+            doc_ref = "NDA-AUDIO"
+            action_desc = "contract"
+        elif any(w in lowered for w in ["key point", "discussed", "decide", "decision", "what did"]):
+            doc_type = "meeting_minutes"
+            doc_ref = "MIN-2026-AUDIO"
+            action_desc = "key discussion points"
+        else:
+            doc_type = "meeting_minutes"
+            doc_ref = "MIN-2026-AUDIO"
+            action_desc = "summary"
+
+        response = (
+            f"Processed '{filename}': {action_desc} created from recording transcription. "
+            f"Document {doc_ref} is ready. The recording contained: {transcript_summary or transcript_text[:150]}..."
+        )
+        action = {
+            "doc_type": doc_type,
+            "doc_ref": doc_ref,
+            "source_file": filename,
+            "transcription_preview": transcript_text[:200],
+            "summary": transcript_summary,
+        }
+        # Clear the transcription after using it
+        _last_transcription.clear()
+        return {"response": response, "action_card": action}
+
+    # Default text command flow
     response = svc._fast_fallback(text)
-
-    # Also resolve document action
     action = svc.resolve_document_action(response, text)
-
-    return {
-        "response": response,
-        "action_card": action,
-    }
+    return {"response": response, "action_card": action}
 
 
 # ── Audio Upload → AssemblyAI Batch Transcription ──
@@ -900,16 +964,39 @@ async def upload_audio(file: UploadFile = File(...)):
     speakers = result.get("speaker_labels", []) if isinstance(result.get("speaker_labels"), list) else []
     duration = result.get("audio_duration", 0)
 
-    from app.services.voice_agent_service import VoiceAgentService
-    svc = VoiceAgentService()
-    response_text = svc._fast_fallback(full_text)
-    action = svc.resolve_document_action(response_text, full_text)
+    # Store transcription for follow-up text commands
+    _last_transcription["text"] = full_text
+    _last_transcription["summary"] = summary
+    _last_transcription["speakers"] = speakers
+    _last_transcription["duration"] = duration
+    _last_transcription["filename"] = file.filename
+
+    # Build suggested actions based on content
+    lowered = full_text.lower()
+    suggestions = []
+    if any(w in lowered for w in ["meeting", "discuss", "decide", "action item", "follow up", "agenda"]):
+        suggestions = ["Create meeting minutes", "Extract action items and create tasks", "Send meeting summary to team"]
+    elif any(w in lowered for w in ["invoice", "bill", "payment", "charge", "price", "cost"]):
+        suggestions = ["Create an invoice", "Create a purchase order", "Send payment reminder"]
+    elif any(w in lowered for w in ["deadline", "task", "assign", "complete", "finish", "deliver"]):
+        suggestions = ["Create tasks from this recording", "Update task status", "Send task assignments"]
+    elif any(w in lowered for w in ["contract", "agreement", "sign", "legal", "terms"]):
+        suggestions = ["Draft a contract", "Create an NDA", "Review legal terms"]
+    else:
+        suggestions = ["Create meeting minutes", "Summarize key points", "Create follow-up tasks"]
+
+    response_msg = (
+        f"Audio transcription complete ({duration}s). "
+        f"{summary + ' ' if summary else ''}"
+        f"What would you like me to do with this recording? I can: {', '.join(suggestions)}."
+    )
 
     return {
         "transcription": full_text,
         "summary": summary,
         "speakers": speakers,
         "duration_seconds": duration,
-        "response": response_text,
-        "action_card": action,
+        "response": response_msg,
+        "suggestions": suggestions,
+        "action_card": None,
     }
