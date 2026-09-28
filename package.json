@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "next start -H 0.0.0.0 -p ${PORT:-8080}",
     "lint": "eslint",
     "test:frontend": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test tests/frontend/*.test.mjs",
     "indexnow": "node scripts/submit-indexnow.mjs",
