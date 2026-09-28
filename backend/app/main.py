@@ -120,6 +120,12 @@ app.include_router(transcription_router, prefix="/api/v1")
 app.include_router(voice_agent_router, prefix="/api/v1")
 app.include_router(voice_agent_v2_router, prefix="/api/v1")
 
+# Railway healthcheck — zero dependency, always returns 200
+@app.get("/api/v1/health")
+@app.head("/api/v1/health")
+async def railway_health():
+    return {"status": "alive", "service": "konthora-api", "version": "1.0.0"}
+
 # Global Exception Handlers
 
 @app.exception_handler(TtsException)
