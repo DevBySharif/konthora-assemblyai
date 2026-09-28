@@ -863,6 +863,7 @@ async def upload_audio(file: UploadFile = File(...)):
                     "speaker_labels": True,
                     "summarization": True,
                     "summary_model": "informative",
+                    "summary_type": "bullets",
                 },
                 headers={"Authorization": api_key, "Content-Type": "application/json"},
             )
